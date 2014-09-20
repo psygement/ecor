@@ -1,0 +1,18 @@
+제 2 장 R언어와 활용
+========================================================
+
+텍스트 : 응용 계량경제학 - R 활용 / 박범조
+발제자 : 김무성
+
+
+
+```{r}
+summary(cars)
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+plot(cars)
+```
+
