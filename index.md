@@ -1,6 +1,6 @@
 ### 자료
-- [github]
-- [facebook ]
+- [github](https://github.com/psygement/ecor)
+- [facebook](https://www.facebook.com/notes/싸이지먼트/계량경제학-기초-using-r/806950069336900)
  
 
 ### 계량경제학 Using R
