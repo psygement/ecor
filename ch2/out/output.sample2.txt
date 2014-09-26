@@ -1,0 +1,8 @@
+"name" "sex" "age" "score"
+"p.1" "KIM" "M" 24 100
+"p.2" "LEE" "F" 21 95
+"p.3" "CHOI" "F" 22 80
+"p.4" "PARK" "M" 23 88
+"p.5" "HONG" "F" NA 92
+"p.6" "JIN" "M" 20 85
+"p.7" "KANG" "F" 22 86

@@ -638,7 +638,7 @@ trade.kor$KRW.USD[c(2,3,6)]
 #### 리스트의 성분과 원소 조작 : 성분의 추가와 삭제 
 ```{r}
 # 네 번째 성분으로, 같은 시기의 분기별 경제성장률(2010.1/4~2012.1/4, 단위 : %) 추가해보자
-GDP.growth <- c(2.1, 1.4, 0.6, 0.5, 1.3, 0.9, 0.8, 0.9)
+GDP.growth <- c(2.1, 1.4, 0.6, 0.5, 1.3, 0.9, 0.8, 0.3, 0.9)
 trade.tmp <- trade.kor
 trade.tmp
 trade.tmp[4] <- GDP.growth
@@ -649,12 +649,106 @@ trade.tmp$GDP.growth.rate <- NULL
 trade.tmp
 ```
 
-
 ## 6. 데이터 프레임(Data Frame)
+
+* 데이터 프레임은 리스트의 특수한 형태다
+* 2개의 차원으로 이루어져 있다.
+* 리스트와 마찬가지로 데이터 프레임을 구성하는 각 변수는 서로 다른 형태의 데이터를 가질 수 있다.
+* 다만 데이터 프레임은 모든 변수의 길이가 같아야 한다(리스트는 그럴 필요가 없다)
+
+### 1) 데이터 프레임의 생성 방법
+
+#### 데이터 프레임을 생성하기 위한 R 함수 : data.frame()
+
+```{r}
+# 대미환율(ex.rate), 경상수지(blc.ca), 경제성장률(GDP.growth) 자료 사용
+# 대미환율
+str(ex.rate)
+# 경상수지
+str(blc.ca)
+# 경제성장률
+str(GDP.growth)
+# 데이터 프레임 구성
+trade.df <- data.frame(ex.rate, blc.ca, GDP.growth, row.names=c(paste(rep(2010:2012, each=4, length.out=9), paste(1:4, 4, sep="/"), sep=".")))
+# 속성 확인
+attributes(trade.df)
+# 길이 확인
+length(trade.df)
+# 구조 요약확인
+str(trade.df)
+# 앞에 몇 개 데이터만 보기
+head(trade.df)
+# 데이터 요약통계 보기
+summary(trade.df)
+```
+
+### 3) 데이터 프레임의 조작 방법
+
+#### 데이터 프레임의 원소 조작 : 대괄호([ ]) 연산자와 성분추출($) 연산자
+
+```{r}
+head(trade.df)
+# 1행 전체, 즉 2010년 1/4분기의 대미환율, 경상수지, 경제성장률 관측값 추출
+trade.df[1,]
+# 세 번째 변수의 1행과 5행, 9행의 원소 - 즉 2010, 2011, 2012년도 1/4분기의 경제성장률 관측값 추출
+trade.df[c(1,5,9), 3]
+# 첫 번째 변수와 세 번째 변수, 즉 대미환율 변수와 경제성장률 변수 전체를 추출
+trade.df[,c(T,F,T)]
+# 세 번째 변수인 경제성장률 변수를 추출
+# 데이터 프레임도 리스트이므로, 성분 추출 연산자 [[]] 적용 
+trade.df[[3]]
+# 첫번째 변수의 첫 번째 원소, 즉 2010년 1/4분기의 대미환율 관측값 추출
+trade.df[[1]][1]
+# 세 번째 변수의 관측값들 중에서 1 이상의 값을 가지는 행을 추출 -> 경제성장률이 1% 이상인 분기를 학인
+trade.df[trade.df[[3]]>=1,]
+# 성분추출 연산자 $
+trade.df$ex.rate
+trade.df$GDP.growth[c(1,2,9)]
+trade.df[trade.df$blc.ca>=10000,2]
+```
+
+
+#### 데이터 프레임의 원소 조작 : attach() 함수와 detach() 함수 
+
+```{r}
+# 5명 학생 데이터 - 이름, 나이, 성별, 전공 변수로 구성.
+student <- data.frame(name=letters[1:5], age=c(22,23,21,20,25), sex=c("m", "m", "f", "f", "f"), major=c("eco", "math", "eng", "eco", "art"), stringsAsFactors=F)
+student
+search()
+attach(student)
+search()
+ls(2)
+sdt.tmp <- student
+sdt.tmp
+major
+major[c(3,4)] <- c("jab", "acc")
+sdt.tmp[,4] <- major
+sdt.tmp
+detach(student)
+search()
+```
 
 ## 7. 경제자료의 종류와 형태
 
+![그림2-60 관측 방법에 따른 자료의 분류](figure/fig2-60.tiff)
+
+* 횡단면 자료(coross-section data) - 관심의 대상이 되는 변수를 일정 시점에서 각 객체별로 관측하여 얻은 값
+
+![표2-15 횡단면 자료의 예](figure/table2-15.tiff)
+
+* 시계열 자료(time-series data) - 관심의 대상이 되는 변수를 시간의 순서에 따라 일정 기간 동안 관측하여 얻은 값.
+
+![표2-16 시계열 자료의 예](figure/table2-16.tiff)
+
+* 종적 자료(longitudinal data) - 변수들을 여러 개체별로 시간의 순서에 따라 여러 시점에 걸쳐 얻은 자료.
+
+* 패널 자료(panel data) - 종적 자료 중 개체별로 관측 시점이 모두 동일하게 구성된 경우.
+
+![표 2-17 패널 자료의 예](figure/table2-17.tiff)
+
+
 ## 8. 시계열 자료(Time Series data)
+
 
 ## 9. 패널 자료(Panel Data)
 
@@ -664,6 +758,21 @@ trade.tmp
 1. 주요 연산자
 2. 주요 수학 및 통계함수
 
+## 1. 주요 연산자
+
+### 1) 산술 연산자
+
+![표 2-22 산술 연산자](figure/table2-22.tiff)
+
+### 2) 관계 연산자
+
+![표 2-23 관계 연산자](figure/table2-23.tiff)
+
+### 3) 논리 연산자
+
+![표 2-24 논리 연산자](figure/table2-24.tiff)
+
+![표 2-25 진리표](figure/table2-25.tiff)
 
 --------------------------------------------------------
 
@@ -671,3 +780,113 @@ trade.tmp
 =========================================================
 1. 텍스트 파일의 입력 및 출력
 2. 엑셀 파일의 입력 및 출력
+
+## 1. 텍스트 파일의 입력 및 출력
+
+### 1) 텍스트 파일로부터 자료 불러오기
+
+#### 텍스트 파일 불러오기 : scan() 함수
+```{r}
+# 문자형 자료 예제 - 데이터 전체 불러오기
+scan(file="./data/input.sample.txt", what="")
+# 첫 번째 행의 자료 선택
+scan(file="./data/input.sample.txt", what="", nline=1)
+# 첫 번째 행의 자료 제외
+scan(file="./data/input.sample.txt", what="", skip=1)
+# 수치형 자료 예제 - 데이터 전체 불러오기
+scan(file="./data/input.sample0.txt", what="")
+# 3행과 4행의 데이터를 불러온 후 5x2 행렬 생성
+text.mat <- matrix(scan(file="./data/input.sample0.txt", skip=2), nrow=5, dimnames=list(1:5, c("X", "Y")))
+text.mat
+```
+
+
+#### 파일에 입력된 테이블 자료를 R에 불러오는 함수 : read.table()
+```{r}
+# 한국은행 경제통계시스템(ecos.bok.or.kr)에서 수집한 
+# 2011년 1월부터 2012년 1월까지의 
+# 월별 코스피(KOSPI)지수와 코스닥(KOSDAQ) 지수 자료
+
+# 파일 경로를 입력하여 데이터 전체 불러오기
+read.table(file="./data/input.sample1.txt")
+# 첫 줄 변수이름 사용 옵션
+sample1 <- read.table(file="./data/input.sample1.txt", header=T)
+str(sample1)
+head(sample1)
+sample1$KOSPI
+sample1$KOSDAQ
+# 첫 줄 변수이름 사용 옵션, 첫 번째 열을 행 이름으로 사용
+sample1 <- read.table(file="./data/input.sample1.txt", header=T, row.names=1)
+str(sample1)
+head(sample1)
+sample1$KOSPI
+sample1$KOSDAQ
+
+# 수치형과 문자형이 혼합되어 있으며
+# 결측값 NA가 포함되어 있고
+# 각 데이터가 쉼표로 구분되어 있는 경우
+# 계량경제학을 수강하는 학생 7명의 이름과 성별, 나이, 중간시험 성적 데이터가 입력된 자료
+sample2 <- read.table(file="./data/input.sample2.txt",         # 파일 로드
+                  sep=",", row.name=paste("p", 1:7, sep="."),  # 구분기호, 행 이름 입력
+                  col.names=c("name", "sex", "age", "score"),  # 열(변수) 이름 입력
+                  stringsAsFactors=F)                          # 범주자료 자동 변환 제한
+str(sample2)
+sample2
+sum(sample2$age)
+sample2$name
+sample2$sex
+```
+
+
+### 2) 텍스트 파일로 자료 보내기
+
+#### 연산 결과를 실시간으로 파일에 저장하는 R 함수 : sink()
+```{r}
+# 벡터 생성
+x <- c(10, 13, 56, 66, 74, 12, 41, 74, 85, 61)
+# 파일 생성 및 연결
+sink(file="./out/output.sample.txt")
+# 평균값 저장
+mean(x)
+# 표준편차 값 저장
+sd(x)
+# 요약통계량 저장
+summary(x)
+# 연결 종료
+sink()
+
+# 이미 생성된 파일에 추가로 결과물 저장
+# 첨부모드로 연결, 콘솔 출력 옵션 선택
+sink(file="./out/output.sample.txt", append=T, split=T)
+# 벡터 출력, 저장
+x
+# 새로운 벡터 생성, 출력, 저장
+(y<-1:10)
+# 공분산 결과 출력, 저장
+cov(x,y)
+# 상관계수 출력, 저장
+cor(x,y)
+# 연결종료
+sink()
+```
+
+#### 벡터 자료를 파일에 저장하는 R 함수 : cat()
+```{r}
+# 난수 생성
+ts <- round(rnorm(30, 100, 10))
+# 원소 이름 입력
+names(ts) <- paste(1982:2011, "Y")
+# 객체 ts의 데이터를 "output.sample0.txt"에 저장
+cat(ts, file="./out/output.sample0.txt",
+    sep=".",     # 구분기호는 마침표.
+    fill=T)      #텍스트 파일의 활성창(window) 크기에 맞춰서 자동으로 줄 바꿈
+```
+
+
+#### 테이블 구조의 자료를 파일에 저장하는 R 함수 : write.table()
+```{r}
+# sample1을 "output.sample1.txt"에 저장하기
+write.table(sample1, file="./out/output.sample1.txt", row.names=F)
+# sample2를 "output.sample2.txt"에 저장하기
+write.table(sample2, file="./out/output.sample2.txt")
+```
