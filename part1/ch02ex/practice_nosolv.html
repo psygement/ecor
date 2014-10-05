@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>문제 1) GDP.rate에 경제성장률 값을 할당하고 출력하시오</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h2>문제 1) GDP.rate에 경제성장률 값을 할당하고 출력하시오</h2>
+
+<h2>문제 2</h2>
+
+<h3>2-1) Unem.rate에 연도별실업률 값을할당 후 GDP.rate와 동시에 출력하시오</h3>
+
+<h3>2-2) Unem.rate의 길이, 유형, 클래스 확인</h3>
+
+<h2>문제 3) 12개 관측값을 WDrate로 할당, 각 원소 이름할당, 출력</h2>
+
+<h2>문제 4</h2>
+
+<h3>4-1) 커피판매자료를 coffee에할당, 범주화자료로 변환(Amer,Latte,Cappu) 후coffee.fct에 새롭게 할당, 결과출력</h3>
+
+<h3>4-2) Latte의 판매비율</h3>
+
+<h2>문제 5</h2>
+
+<h3>5-1) 모형계수행렬A를 정의하고 출력해라.</h3>
+
+<p>변수는 Qd1, Qs1, P1, Qd2, Qs2, p2순서로 배열하고, 
+행의 이름은 equ1~equ6 의 형태로, 열의 이름은 각각 변수이름으로 입력</p>
+
+<h3>5-2) 행렬의 속성을 확인</h3>
+
+<h2>문제 6</h2>
+
+<h3>6-1) 주어진 자료를 첫번째 차원은 국가, 두번째 차원은 변수, 세 번째 차원은 연도로 하는 3차원 형태로 배열</h3>
+
+<h3>6-2) 11,12년도 한국, 영국, 유료지역 달러환산 빅맥가격 평균과 표준편차를 구하고 3개국가 빅맥의 현지 통화가격을 계신하여 새로운 배열을 구성</h3>
+
+<h4>step1.빅맥가격의 평균과 표준편차</h4>
+
+<h4>step2. 3개국가 빅맥의 현지통화 가격을 계산</h4>
+
+<h4>step3. 새로운 배열 생성</h4>
+
+<h2>문제 7</h2>
+
+<h3>7-1) 표자료를 데이터프레임으로 구성</h3>
+
+<h3>7-2) 연도별 물가상승률과 실질경제성장률 관측값을 합하여 새로운 벡터 할당후 데이터프레임의 네번째 변수로 추가</h3>
+
+<h3>7-3) 실질경제성장률의 6년간 기하평군을 구하고 물가상승요인이 작용한 해를 확인해라</h3>
+
+<h2>문제 8) 평균50, 분산9 인 정규분포 난수 30개 생성 / 난수는 소수점 셋째자리에서 반올림, 언제나 동일한 난수를 생상하여 사용할수있도록 시드번호 1734입력.</h2>
+
+<h3>8-1) 데이터 총합, 데이터의 범위</h3>
+
+<h3>8-2) 데이터 내림차순정렬, 평균값, 중앙값, 표준편차</h3>
+
+<h3>8-3) 데이터 20%, 40%, 60%, 80%분위수, 요약통계량</h3>
+
+<h3>8-4) 종료시점 2013년 관측주기 1개월 시계열 자료생성, 시차지연함수 사용하여 1년 시차 지연효과를 적용해보라</h3>
+
+</body>
+
+</html>
+
