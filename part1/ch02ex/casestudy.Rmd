@@ -1,0 +1,44 @@
+---
+title: "casestudy"
+output: html_document
+---
+1-1. Excel파일불러오기
+ 1)파일 다운로드 
+ 2)통화서식을 숫자서식으로 변경
+ 3)불필요한 자료 삭제
+ 4)디렉토리에 CSV파일로 저장
+```{r}
+GNI.5Y<-read.csv(file="c:/R/bok.csv",header=T,row.names=1)
+GNI.5Y
+```
+1-2. 5개국 국민총생산 연도별 총액 / 5개국 5년간의 국민총생산 평균값
+```{r}
+colSums(GNI.5Y)
+rowMeans(GNI.5Y)
+```
+
+2-1. TXT파일 불러오기
+텍스트파일을 불러와 vec.feh에 할당 후 출력
+```{r}
+vec.feh<-scan(file="c:/R/bok.txt")
+vec.feh
+```
+2-2. vec.feh를 1개월마다 관측된 시계열 자료(ts.feh)로 변환 
+```{r}
+ts.feh<-ts(scan(file="c:/R/bok.txt"),start=2009,frequency=12)
+ts.feh
+```
+2-3. 선그림표 생성
+```{r}
+plot(ts.feh, main="FEH")
+```
+
+2-4. 2행 3열의 행렬구조로데이터를 불러옴
+```{r}
+mat.feh<-matrix(scan(file="c:/R/bok.txt"), ncol=3, dimnames=list(c(1:12),c(2009,2010,2011)))
+mat.feh
+```
+2-5. 상자그림 생성
+```{r}
+boxplot(mat.feh,main="box plot")
+```
