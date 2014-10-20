@@ -1,0 +1,135 @@
+----------------
+
+## 제 3절. R을 이용한 그래프 작성과 경제분석
+
+#### 1. 그래프 샘플 보기
+
+```{r}
+example(barplot) #Bar Plot
+example(boxplot) #Box Plot
+example(curve)   #Function Plot
+example(hist)    #Histogram
+example(pairs)   #Scatterplot Matrix
+example(persp)   #Perspective Plot   
+```
+
+
+###2. 통계 그래프 작성하기
+
+####1) 파이 차트
+
+```{r}
+HairEyeColor #HairEyeColor 데이터 확인
+
+pie(HairEyeColor[1, ,1],  #검은머리, 눈색 전부, 남자 데이터 지정
+main="Black Hair, Male")  #main=" " 차트 제목 입력
+```
+
+
+
+#### 2) 막대그래프
+```{r}
+barplot(HairEyeColor[1, ,1],   #검은머리, 눈색 전부, 남자 데이터 지정
+ylim=c(0,  35),                #y축의 최댓값, 최솟값 지정
+main= "Black Hair,  Male")     #차트 제목 입력
+```
+
+####여러 기둥 병렬 표시
+```{r}
+barplot(HairEyeColor[, , 1],               #남학생 데이터(4x4  분할표)  입력
+ylim=c(0, 60), main="Male",                #y축 범위, 차트 제목 입력
+beside=T,                                  #기둥 병렬 입력
+col=c ("Black", "Brown", "Red", "yellow"), #기둥 색상 입력
+legend=rownames(HairEyeColor))             #범례 입력
+```
+
+#### 3) 히스토그램
+```{r}
+head(trees, n=15)                             #내용 출력(상위  15개  행) # 지름(Girth), 높이(Height), 용적(Volume)
+hist(trees$Height, main="Histogram Height",   # 데이터 입력, 차트 제목 입력
+ylim=c(0,0.07), labels=T, freq=F)             # y축 범위 설정(0~0.07),기둥 수치표시 여부(T/F), 상대도수 표시여부(T/F)
+```
+
+#### 4) 산포도
+```{r}
+plot(trees$Girth, trees$Height,   # 지름변수(Girth)와 높이변수(Height)의 산포도 생성
+main="Plot  Girth  and Height")   # 차트 제목 입력
+pairs(trees, main= "Plot trees")  #산포도 행렬 생성. 모든 변수들 간의 산포도 생성
+```
+
+#### 5) 상자그림
+```{r}
+boxplot(trees,main="Boxplot trees") # trees 데이터의 상자 그림  생성
+# 선분 순서대로 최댓값，3사분위수，중앙값，2사분위수，최솟값(summar() 함수 결과)
+# 작은 원은 극단값(outlier)
+```
+
+#### 6) 확률밀도함수 그래프
+```{r}
+plot(density(trees$Height),       # 확를밀도함수 그래프 생성, density(): 확률밀도함수 추정
+main="Density Plot trees$Height") # 차트 제목 입력
+```
+
+
+
+#### 7) Q-Q 그래프
+ - 두 변수의 분위수에  대한 산포도
+ - 두 변수의 확률분포 형태가 동일한지, 종속 관계에 있는지 판단
+
+
+##### qqnorm() 함수: 데이터가 정규분포 따르는지 검증
+```{r}
+set.seed(123)         # 난수시드 입력(123)
+Y<-rchisq(500,df=5)   # 자유도 5개인 카이분포 따르는 난수  500개  생성
+qqnorm(Y)             # Q-Q 그래프  생성, 데이터 Y와 정규분포로 지정된 미지의 값 비교
+qqline(Y)             # 직선 추가해서 데이터가 선형일 때와 비교
+```
+
+##### qqplot() 함수: 입력된 두 데이터  분포 형태 동일한지 판단
+```{r}
+set.seed (123)         # 난수 시드 입력
+Y<-rt(500,df=10)       # 자유도 10 t분포 따르는 따르는 난수 500개 생성
+X<-rt(500,df=10)       # 자유도 10 t분포 따르는 따르는 난수 500개 생성
+qqplot(x=X,y=Y, main= "Quantile-Quantile Plot")   # Q-Q 그래프 생성
+abline(a=0, b=1)       # 절편 0, 기울기 1 직선 입력
+```
+
+####8) 선 그림표
+```{r}
+plot(UKgas, main="Line Chart UKgas") # UKgas 선 그림표  생성
+# 1960년 1분기~1981년 4분기 영국 가스 소비량 시계열 데이터, 단위: 백만 섬(therms)
+```
+
+####9) 3차원 그림표
+- 데이터: 콥-더글러스 생산함수(Cobb-Douglas production function)
+- 노동(L)과 자본(K) 두 변수에 의해 생산량이 결정되는 함수
+- Q=f(L, K) = ALαKβ
+- A: 생산성을 나타내는 상수, α: 노동소득분배율, β: 자본소득분배율
+
+> 세 가지 변수 지정하기
+```{r}
+L<-K<-seq(1, 100, 5)           # 독립변수 L과 K의 값 입력. 1부터 100까지 5씩 증가하는 연속값
+fn<-function(L, K) {           # 콥-더글러스 함수 정의
+A<-0.6; alpha<-0.7; beta<-0.3  # 생산성 상수 A=0.6, 노동소득분배율 α=0.7, 자본소득분배율 β=0.3 지정
+A*(L^alpha)*(K^beta)           # 함수식 계산
+}
+```
+
+> 세 가지 변수 이용해서 3차원 그림표 생성하기
+```{r}
+Q<-outer(L,K,fn)  # 콥-더글러스  함수 관계를  이용하여 두 변수의 외적율 구함
+persp(x=L, y=K, z=Q, theta=25, phi=15, expand=0.7, col="green",
+# persp(x=, y=, z=,): 3차원 그래프 인수 지정하기
+# theta: 방위각(azimuthal). 값이 커질수록 시점이 오른쪽으로  이동
+# phi: 여위도(colatitude). 값이 커질수록 시점이 위쪽으로 이동
+# expand: 종속변수 확장 정도. 1 보다 클수록 원래보다 확장, 작을수록 축소
+# shade: 표면에 그림자 효과 주기
+shade=0.2, main="Cobb-Douglas production function")  # 3차원  그림표 생성
+```
+
+### 3. 생성된 그래프 제어하기
+### 4. 그래프에 수식 및 특수문자 입력하기
+> 제목, 선 굵기, 간격, 색상 등 변경
+> 교재 233pg 참고
+
+

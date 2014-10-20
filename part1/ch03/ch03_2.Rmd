@@ -1,0 +1,209 @@
+##제 2절 패키지
+ - 패키지: 함수와 데이터들의 세트
+
+###1) 패키지 설치
+
+
+#### 명령어로 설치하기: : install.packages()  함수
+
+```{r}
+install.packages('plm', repos='http://cran.rstudio.com/')
+```
+
+- Rstudio에서는 이렇게만 해도 됨
+install.packages("plm")
+
+
+                      
+                         
+
+####메뉴로 설치하기
+- Tools->Install Packages-> 서버, 패키지명 입력
+
+###2) 패키지 실행
+
+-------------
+
+```
+library()         # 설치된 패키지 목록 보기
+```
+
+```
+bdsmatrix                       Routines for Block Diagonal Symmetric matrices
+bitops                          Bitwise Operations
+caTools                         Tools: moving window statistics, GIF, Base64, ROC AUC, etc.
+colorspace                      Color Space Manipulation
+dichromat                       Color Schemes for Dichromats
+digest                          Create cryptographic hash digests of R objects
+evaluate                        Parsing and evaluation tools that 
+```
+
+```{r}
+library("plm")    # ("plm") # plm 패키지 실행
+```
+
+```
+.packages()       # 실행 중인 패키지 목록 출력
+```
+
+```
+[1] "plm"       "Formula"   "stats"     "graphics"  "grDevices" "utils"     
+```
+
+
+#### 패키지에 포함된 데이터 조회 및 로드 : data()함수
+
+```{r}
+data(package="plm") # 패키지에 포함된 데이터 세트 목록 조회
+```
+```
+Data sets in package ¡???plm¡?:
+
+Cigar                        Cigarette Consumption
+Crime                        Crime in North Carolina
+EmplUK                       Employment and Wages in the United Kingdom
+Gasoline                     Gasoline Consumption
+Grunfeld                     Grunfeld's Investment Data
+Hedonic                      Hedonic Prices of Census Tracts in the Boston Area
+LaborSupply                  Wages and Hours Worked
+Males                        Wages and Education of Young Males
+Produc                       US States Production
+Snmesp                       Employment and Wages in Spain
+SumHes                       The Penn World Table, v. 5
+Wages                        Panel Data of Individual Wages
+````
+
+
+#### 함수 내 데이터 가져오기
+
+```
+Wages
+# 데이터 로드 안한 상태. 오류남
+```
+
+```{r}
+data(Wages, package="plm")   # plm 패키지의  Wages 데이터 로드
+head(Wages)                  # 로드된 데이터 앞 일부 확인
+```
+
+
+
+###3)도움말 및 업데이트
+
+####도움말
+```
+help(package="plm")  #plm 패키지 도움말 보기
+```
+
+####업데이트
+```
+Tools->Check for Package Updates
+```
+
+####명령어로 업데이트
+```
+update.packages()  #모든 패키지 업데이트
+```
+
+
+###4) 패키지 종료 및 제거
+
+```
+print(.packages())      # 실행 중인 패키지 목록 조회  
+```
+```
+[1] "plm"       "Formula"   "stats"     "graphics"  "grDevices" "utils"     "datasets" 
+[8] "methods"   "base"     
+```
+
+```
+detach(package:plm)     # plm 패키지 종료  
+print(.packages())      # 실행 중인 패키지 목록 조회  
+```
+```
+[1] "Formula"   "stats"     "graphics"  "grDevices" "utils"     "datasets"  "methods"  
+[8] "base"     
+```
+```
+remove.packages("plm")  #plm 패키지 제거  
+```
+```
+Removing package from ‘C:/Users/duddnya/Documents/R/win-library/3.1’
+(as ‘lib’ is unspecified)
+```
+```
+library("plm")          #plm 패키지 실행  
+```
+```
+Error in library("plm") : there is no package called ‘plm’
+```
+
+
+-----------------
+
+### 2.2. 수학 및 통계 패키지
+
+```
+data(package="datasets")  #데이터 세트 패키지 안에 있는 데이터 목록 조회  
+```
+
+Data sets in package
+```
+AirPassengers                 Monthly Airline Passenger Numbers 1949-1960  
+BJsales                       Sales Data with Leading Indicator  
+BJsales.lead (BJsales)        Sales Data with Leading Indicator  
+BOD                           Biochemical Oxygen Demand  
+CO2                           Carbon Dioxide Uptake in Grass Plants  
+```
+
+### 불러온 데이터 이용해서 분석하기
+```{r}
+AirPassengers  # AirPassengers 데이터 내용 확인
+# 1949~1960년, 국제선  항공기 이용 승객 수 분기별 시계열 데이터
+# datasets 패키지는 필수 패키지라서 따로 로드 안하고 바로 사용 가능
+```
+
+```{r}
+sum(AirPassengers) # 12년간 이용객 수 총합
+mean(AirPassengers) # 12년간 이용객 수 평균
+max(AirPassengers) # 월 최대 이용객 수
+min(AirPassengers) # 월 최소 이용객 수
+head(AirPassengers,n=12)  # 1949년 1월~12월 데이터 확인(상위 12행)
+AirPassengers-lag(AirPassengers, -1)  #전월 대비 승객 증가분
+     #lag(AirPassengers, -1): 바로 1개월 앞의 데이터
+```
+
+```{r}
+round((AirPassengers-lag(AirPassengers-1))/lag(AirPassengers, -1), digits=3)*100  # 증감률  연산
+# 전원대비 증가분을 전월로 나눔
+# round(): 반올림, digits=3 소수 첫째자리 까지 표기
+```
+
+-----------
+
+```{r}
+longley #Longley 데이터 확인
+#1947~1962 7개의 거시경제변수 데이터 셋
+#국민총소득 디플레이터(GNP.deflator)，국민총소득(GNP), 실업자(Unemployed), 군병력(Armed.Forces),  경제활동인구(Population), 연도(Year),  취업자 수(Employed)
+```
+
+```{r}
+summary(longley) # 요약 통계량 반환
+```
+
+
+#### 상관분석
+```{r}
+cor(longley) # longley 데이터 상관계수 출력
+```
+
+#### 회귀분석
+ - 최소제곱법(mediod of least squares)을 이용한 다중 선형 회귀분석(multiple linear regression analysis)
+```{r}
+longley.dep<-longley[,7]                       #종속변수 행렬 추출(7번째 데이터 취업자수(Employed))
+longley.ind<-longley[,c(1,2,3,4,5,6)]          #독립변수 행렬 추출(1~6번째 까지의 변수들)
+ls.result<-lsfit(x=longley.ind, y=longley.dep) #최소제곱추정
+ls.print(ls.result)                            #연산 결과 반환
+```
+
+

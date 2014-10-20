@@ -1,0 +1,397 @@
+
+## 제 4절. 기부 패키지
+
+------------------
+
+#### 1. 패널 자료 분석을 위한 plm 패키지
+
+- 패널 자료: 특정 변수를 개체(unit)별로 시간의 흐름에 따라 여러 시점에서 관측한 자료
+
+```{r}
+#install.packages("plm") # plm 패키지  설치
+```
+
+
+```{r}
+library("plm")                  # plm 패키지  실행
+data(Gasoline, package="plm")   # Gasoline  데이터  로드
+```
+- **데이터**
+- plm 패키지에 포함된  Bakagi  and  Griffln(1983)의  Gasoline
+- OECD  19개  국가, 1960~1978 18년간 데이터
+- 변수: 국가명(country),  연도(year),  자동차 한  대당 석유소비량(lgaspcar)，1인당  실질소득(lincomep)，실질 석유가격(lrpmg)，1인당  자동차 수(lcarpcap) 로그 변환된 값
+
+
+```{r}
+head(Gasoline,n=10)   # 상위 10행 보기
+summary(Gasoline)      # Gasoline의  요약 통계량 반환
+```
+
+```{r}
+pd<-plm(lgaspcar~lincomep+lrpmg+lcarpcap,  # 종속변수(자동차 한 대당 석유소비량) 독립변수(실질소득, 실질석유가, 1인당자동차수) 입력
+data=Gasoline,model="pooling")             # 데이터, 모델 종류 입력(pooling 선택)
+summary(pd)                                # 결과  반환
+```
+
+- **분석 결과**
+- 실질소득 증가할수록 자동차 한 대당 석유소비량 증가  
+- 실질석유가, 1인당자동차수 증가할수록 자동차 한 대당 석유소비량 감소  
+
+
+------------
+
+### 2. ARCH-GARCH  분석을 위한 rugarch 패키지
+
+- 일반적인 시계열 모형에서 오차항의 조건부 분산은 일정하다고 가정  
+- but 금융 시장 변수들(ex: 가격, 수익률)  
+- (1) 오차항의 분산이 일정하지 않음: 오차항에 이분산(heteroscedasticity)이 존재  
+- (2) 분산의 변동이 군집 현상을 이루는 경향  
+- ARCH(Auto Regressive Conditional Heteroscedasticity) 자기회귀 조건부 이분산 모형: 시간에 따른 변동성 측정 위해 고안된 모형
+
+
+#### 32bit windows version
+
+```{r}
+#install.packages("RODBC")      # 엑셀파일 자료 로드위해 RODBC 패키지 설치
+library(RODBC)                 # RODBC 패키지  실행
+connect<-odbcConnectExcel("kosdaq100.xls")  #  odbcConnectExcel is only usable with 32-bit Windows
+# R에 엑셀파일 연결
+# 한국거래소(krx.co.kr) 2007.7.2.~2012.7.31. 코스닥(KOSDAQ) 100개 종목 주가 수익률 일별 자료
+sqlTables(connect)       # 워크시트 목록 조회
+
+KOSDAQ100<-sqlFetch(connect, "Returns$")  # Returns 워크시트 데이터를 KOSDAQ100에 할당
+head(KOSDAQ100, n=5)                      # 데이터 상위 5행 출력
+plot(as.ts(KOSDAQ100))                    # as.ts(): 시계열 선 그림표 생성
+```
+
+#### ubuntu version
+
+```{r}
+#install.packages("xlsx")
+library(xlsx)
+KOSDAQ100  <- read.xlsx("KOSDAQ100.xls", sheetName = "Returns")
+head(KOSDAQ100, n=5)                      # 데이터 상위 5행 출력
+plot(as.ts(KOSDAQ100))                    # as.ts(): 시계열 선 그림표 생성
+```
+
+
+
+### rugarch
+
+```{r}
+#install.packages("rugarch")  # rugarch 패키지 설치
+library(rugarch)             # rugarch 패키지 실행
+ARCH4.spec<-ugarchspec(variance.model=list(garchOrder=c(4, 0)),  # ARCH 모형 설정
+mean.model=list(armaOrder=c(0,0)))
+# ugarchspec(): rugarch 패키지에 포함된 (G)ARCH 모형 형성 함수
+# variance.model=list(): 모델 형태 지정
+# garchOrder=c(4, 0): 오차항의  시차 p, 조건부분산의 시차 q 지정
+# mean.model=list(): 평균방정식의 형태를 결정
+# armaOrder(): 평균방정식에 ARMA 효과를 고려하는 경우 AR 시차변수 p, MA 시차변수 q 지정
+```
+
+```{r}
+ARCH4<-ugarchfit(spec=ARCH4.spec, data=KOSDAQ100) # 분석 실행. 분석 모형, 데이터 지정
+ARCH4                                             # 분석  결과 출력
+```
+
+
+- **결과**
+- 표준화된  잔차(stndardized residuals)의  LM  검정(ARCH LM Tests)  결과 시차  10에서  잔차항에  유의미한  ARCH  효과가  존재
+- -> ARCH 효과가 강하므로 오차항의  시차변수 뿐 아니라 조건부 분산의  시차변수까지 고려하는  GARCH  분석이 요구됨
+
+
+#### 동일한 자료를 GARCH 모형을 사용하여 분석
+
+```{r}
+GARCH11.spec<-ugarchspec(variance.model=list(garchOrder=c(1,1)), # GARCH 모형 설정
+mean.model=list(armaOrder=c(0,0)))
+# variance.model=llist(): 모델 형태 지정
+# variance.model=list(garchOrder=c(1,1): 오차항의 시차 p, 조건부분산의 시차 q 지정. 4,0->1,1로 변경
+# 잔차 제곱의 시차변수 p만 입력하고 GARCH 분석에 사용되는 조건부 분산의 시차변수인 q에 0 입력하면 ARCH 모형으로 설정됨
+
+GARCH11<-ugarchfit(spec=GARCH11.spec, data=KOSDAQ100) # 분석 실행. 분석 모형, 데이터 지정
+GARCH11                                            # 분석  결과 출력
+
+```
+
+
+- **분석결과**
+- 분산방정식에 포함된 모수 추정치값이 모두 0에 가까워 모수의 추정치가 모두 유의
+- 표준화된 잔차의 LM검정결과 ARCH모형에 비해 잔차항에 존재하는 arch효과가 현저히 줄어듬(모든 시차 에서P값이 증가함)
+- ARCH모형보다 GARCH모형이 ARCH 효과를 더 잘 반영해줌을 의미
+
+
+#### 조건부 표준편차 선 그림표 그리기
+> GARCH 모형에 존재하는 변동성 밀집 효과 파악 목적
+
+```{r}
+plot(GARCH11)
+
+#Make a plot selection (or 0 to exit): 
+
+# 1:   Series with 2 Conditional SD Superimposed
+# 2:   Series with 1% VaR Limits
+# 3:   Conditional SD (vs |returns|)
+# 4:   ACF of Observations
+# 5:   ACF of Squared Observations
+# 6:   ACF of Absolute Observations
+# 7:   Cross Correlation
+# 8:   Empirical Density of Standardized Residuals
+# 9:   QQ-Plot of Standardized Residuals
+#10:   ACF of Standardized Residuals
+#11:   ACF of Squared Standardized Residuals
+#12:   News-Impact Curve
+
+#Selection: 3
+```
+
+![alt text](02_Rplot_KOSDAQ100_2.png)
+
+- (그림) 02_Rplot_KOSDAQ100_2
+
+
+
+
+### 3. 분위수회귀 분석을 위한 quantreg 패키지
+- 분위수회귀추정법(method of quantile regression estimation)
+- 이상점 (outlier) 이나 오차항 분포에  민감하게 반응하지  않는  준모수적  방법 (semiparametric  method)
+- 최소제곱추정법이 주어진 회귀 변수(regressor) 집합의 조건부 평균함수만을 추정하는데 반해 
+- 조건부 분위수함수들을 추정, 종속변수의 조건부 분포의 특성을 알려주는 장점
+
+```{r}
+#install.packages("quantreg")  # quantreg  패키지 설치, 실행
+library(quantreg)
+```
+
+```{r}
+data(engel, package="quantreg")
+# 데이터  불러오기
+# quantreg 패키지에  포함된  engel. 벨기에 235개 가구의 식료품 지출비, 소득 자료
+head(engel, n=10)  # 상위  10행 출력
+```
+
+```{r}
+res1<-rq(formula=foodexp~income, data=engel, tau=0.5)
+# rq(): 분위수회귀 분석
+# formula( ~ ): 종속변수(foodexp)~독립변수(income) 지정
+# tau=분위수 지정
+
+res1  #요약 통계량 출력
+summary(res1, se='nid') # 결과 자세히 보기
+```
+
+
+
+####여러개의 분위수를 동시에 고려해서 분석
+```{r}
+taus<-c(0.1, 0.25, 0.5, 0.75, 0.9)             # 분위수 지정
+res2<-rq(foodexp~income, data=engel, tau=taus) # taus변수로부터 분위수 받음
+res2                                           # 결과 출력
+plot.rqs(res2) # 각 분위수 별 추정된 절편, 기울기 출력
+```
+
+
+- 분위수 회귀직선의 형태 파악 위해 두 변수의 산포도 생성, 그 위에 회귀선, 분위수 회귀선 표시하기
+
+```{r}
+plot(engel$income, engel$foodexp, xlab="Income",  # 산포도 생성
+ylab="Food Expenditure", cex=0.2,    # cex=0.2: 
+main="Scatterplot and Quantile Regression Fit")
+
+abline(lm(foodexp~income, data=engel), lty=2, lwd=2)
+# abline(): 회귀선 삽입. lm():선형회귀분석수행, lty=선종류, lwd: 선두께
+
+for(i in 1:length(taus))  {                       # 분위수별로 회귀선 삽입 반복
+taus<-c(0.1, 0.25, 0.5, 0.75, 0.9)                # 분위수 지정
+color<-c("red", "green", "blue", "gray", "black") # 선 색 지정
+abline(rq(foodexp~income, data=engel, tau=taus[i]), col=color[i]) } #분위수회귀분석 실시, 회귀선 삽입
+```
+
+
+-------------------
+
+### 4. 준비모수추정을 위한 gmm 패키지
+
+####준비모수추정방법
+ - 오차항의 분포 함수를 모르는 경우, 회귀모형의 가정이 충족되지 못하여 최우추정량을 적용할 수 없는 경우에 적률조건(moment conditions)만을 이용하여 회귀모형의 모수를 추정
+
+```{r}
+#install.packages ("gmm")  # gmm 패키지  설치, 실행
+library(gmm)     
+data(Finance,package="gmm")  #  패키지  데이터  로드
+```
+
+- **데이터**
+- 1993.1.5.~2009.1.30. 20개 회사의 일별 데이터
+- 주식수익률(회사명: WMK，UIS, ORB, NHP, AA, TOW)
+- 같은 기간 무위험 이자율(risk-free rate, rf), 시장포트폴리오 수익률(returns of market portfolio, rm), HML(Factor High-Minus-Low of Fama-French), SMB(Factor Small-Minus-Big of Fama-French)
+
+
+```{r}
+head(Finance,n=2)  # 상위 2개행 출력
+```
+
+
+- **자본 자산 가격결정모형의 계수 β 추정하기**
+- 자본 자산 가격결정모형(Capital Asset Pricing Model, CAPM)
+- 균형상태의 자본시장에서 모든 종류의 자본자산과 기대수익률 사이의 관계를 도출하는 데 사용
+
+```{r}
+r<-Finance[,1:3]    # WMK, UIS, ORB 회사의 증권수익률을 r에 할당
+rm<-Finance$rm      # 시장 포트폴리오 수익률을 rm에 할당
+rf<-Finance$rf      # 무위험 이자율 자료를 rf에 활당
+Y<-as.matrix(r-rf)  # 종속변수 행렬 생성: r(회사의 증권수익률) - (rf)무위험 이자율
+X<-as.matrix(rm-rf) # 독립변수 행렬 생성: rm(시장 포트폴리오 수익률) - rf(무위험 이자율)
+
+gmm.res<-gmm(Y~X,x=X,type="iterative") # gmm 추정 실행(iterated 방법 사용)
+summary(gmm.res)                      # 결과 반환
+```
+
+### 5. 단위근·공적분 검정과 VECM 분석을 위한 urea 패키지  
+
+
+- 단위근(unit root)이 존재하는 불안정 시계열 데이터 분석시 기존 회귀분석 쓰면 R2(설명량) 뻥튀기 문제
+- 불안정 시계열을 ‘일차 차분’해서 회귀분석으로 해결 BUT 시계열들 사이의 장기적 관계에 대한 중요 정보들 상실 문제
+- 오차수정모형(vector error correction model) 적용해서 해결
+- but 시계열들 사이에 공적분(cointegration) 관계 존재할 경우만 사용 가능
+- -> 경제변수 간 관계 분석시 불안정 시계열 간 공적분 판단 과정 중요
+
+- **일반적으로 사용되는 공적분 검정법**
+- 1) 엥글과 그랜저의 2단계 검정법: ADF의 단위근 검정 아이디어를 이용
+개념 이해 쉽고 검정 수행 용이 BUT 표본 수 영향 큼, 설정된 모형 형태 따라 결과 크게 변함->신뢰성 떨어짐
+- 2) 요한슨의 검정법: ADF의 단위근 검정을 다변량으로 확장하여 최우추정 통한 검정 수행
+일반적으로 요한슨의 검정법 사용
+
+
+```{r}
+#install.packages("urca")      # urca 패키지 설치, 실행(단위근 검정, 요한슨의 공적분 검정, 오차수정모형 분석)
+library(urca)
+data(finland,package="urca")  # 패키지 데이터 로드
+head(finland, n=10)           # 상위 10행 출력
+```
+
+
+- **데이터: 1958년 2분기~1984년 3분기 분기별 핀란드 자료**
+- 통화량 Ml(lrm1), 실질임금(lny)，한계 이자율(lnmr)，물가상승률(difp): 물가상승률 제외하고 로그값
+
+
+- **통화량->물가상승률 관계 검증 전에 단위근 검정 실시: 두 시계열 변수가 안정적인지 불안정적인지 여부 판단**
+- 절차: 단위근 존재 판단 -> 두 변수간 공적분 검증 -> 오차수형모형 적용
+
+```{r}
+attach(finland) # 데이터 프레임 안의 변수들에 쉽게 접근하기 위해 사용
+                # finland$lrm1 -> lrm1로 사용 가능
+
+adf.m1<-ur.df(lrm1,type="trend", selectlags="AIC")
+# 통화량 변수(lrml) ADF 공적분 검정
+# type="trend": 절편항과 추세항 추가
+# selectlags="AIC": 정보기준에 의해 시차 결정
+
+summary(adf.m1) # 결과 출력
+```
+
+
+- ADF 검정통계량이 -2.3396으로 tau3의 1% 유의수준 임계값 -3.99보다 큼
+- 단위근이 존재하는 불안정적 시계열 의미 -> 추가로 공적분 검정 요구됨
+
+
+```{r}
+adf.p<-ur.df(difp,type="trend", lags=4)
+# 물가 변수(difp) ADF 공적분 검정
+# lags=4: 시차 직접 입력
+
+summary(adf.p) # 결과 출력
+```
+
+
+```{r}
+detach(finland)  # attach 끝내기
+```
+
+- ADF 검정통계량이 -2.5159로 tau3의 1% 유의수준 임계값 -3.99보다 큼
+- 단위근이 존재하는 불안정적 시계열 의미 -> 추가로 공적분 검정 요구됨
+
+
+- **두 변수 사이에 공적분 관계 존재하는지 검정**
+
+```{r}
+attach(finland)
+data.mat<-cbind(lrm1,difp) # 두 변수(통화량,물가)로 행렬 생성
+detach(finland)  
+
+Jo.res<-ca.jo(data.mat, type="trace", ecdet="trend", spec="longrun")
+# ca.jo(): 요한슨 공적분 검정
+# type="trace“: 통계량 추정 방법 결정
+# ecdet=”trend“: 회귀식에 추세변수 추가
+# spec=”longrun“: 모형 구조 선택 - 장기 효과
+
+summary(Jo.res) # 결과 반환
+```
+
+- 공적분 없다 가정(r=0) 검정통계량 30.86이 유의수준 1% 임계값 30.45보다 큼 -> 탈락
+- 공적분 벡터 하나 이하 가정(r<=1) 검정통계량 5.86이 유의수준 1% 임계값 16.26보다 작음 -> 수용
+- 결론: 통화량-물가 변수 사이에 공적분 관계 존재함 
+- -> 오차수정모형 사용해서 변수 간 관계 분석
+
+
+```{r}
+VEC.res<-cajools(Jo.res) # 공적분 검정 결과 데이터로 오차수정모형 분석
+summary(VEC.res)         # 결과 반환
+```
+
+**첫번째 (Response lrm1.d) : 종속변수 통화량(lrm1), 독립변수 물가상승률(difp) **
+
+**두번째 결과(Response difp.d): 종속변수 물가물가상승률(difp), 독립변수 통화량(lrm1)**
+
+----------
+
+### 6. 벡터자기회귀(VAR)모형 추정을 위한 vars 패키지
+
+- **벡터자기회귀모형(Vector Autoregression, VAR)**
+- 상호의존성 가지는 둘 이상의 경제변수들 사이의 관계 분석에 효과적(자기상관구조 모형화)
+- ex) 실질 GDP, 통화량, 물가, 이자율, 환율
+- 거시경제변수 간 상관관계 연구에 자주 사용됨
+
+```{r}
+#install.packages("vars")   # vars 패키지 설치, 실행
+library(vars)
+data(Canada,package="vars")    #  데이터 로드
+```
+
+- **데이터: 1980년 1분기~2000년 4분기, 분기별 다중시계열(multiple time-series) 자료**
+- 경제협력개발기구(OECD)  웹페이지(http://www.oecd.org)에서 수집
+- 변수: 노동생산성(prod), 고용률(e) 실업률(U), 실질임금(rw)
+
+```{r}
+Canada  #  데이터  출력
+```
+
+
+- **어떤 경제이론이 데이터에 더 들어맞는지 검증하기**
+- (1) 전통적인 경제이론
+- 근로자 생산성 증가->임금 상승  
+
+- (2) 효율성 임금 이론 (efficiency wage theory)
+- 근로자 임금 증가 -> 우수 인재 유치 활발, 이직 감소-> 생산성 지속 유지 발전 -> 근로자 생산성 증가
+
+- 생산성->임금 or 임금->생산성 중 뭐가 맞는지 검증
+- 노동 생산성 변수(prod)와 실질임금(rw)으로 VAR 분석 수행
+
+```{r}
+res<-VAR(Canada[,c(2,3)], lag.max=3, ic="SC", type="none")  # VAR 모형 추정  
+# Canada[,c(2,3)]: 두 번째(prod, 생산성), 세 번째(임금) 변수 이용
+# lag.max=3: 제한될 최대 시차를 3으로 지정
+# ic="sc": Schwarz의 정보기준을 이용하여 자동으로 시차 결정
+# type="none“:  상수항, 추세항 제거 모형 지정
+
+summary(res) #결과 반환
+```
+
+- **첫 번째 결과: 종속변수 생산성(prod)**
+- **두 번째 결과: 종속변수 실질임금(rw)**
+- **분석결과: 두 방향 모두 유의**
+
+```{r}
+plot(res) # 분석결과 도표 출력. 종속변수 prod(생산성), w(실질임금) 순
+```

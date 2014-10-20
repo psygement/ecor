@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>제 3장 R 프로그래밍의 기초</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: rgb(88, 72, 246)
+   }
+
+   pre .number {
+     color: rgb(0, 0, 205);
+   }
+
+   pre .comment {
+     color: rgb(76, 136, 107);
+   }
+
+   pre .keyword {
+     color: rgb(0, 0, 255);
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: rgb(3, 106, 7);
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+
+</head>
+
+<body>
+<h1>제 3장 R 프로그래밍의 기초</h1>
+
+<p>텍스트 : 응용 계량경제학 - R 활용 / 박범조<br/>
+발제자 : 김영우</p>
+
+<hr/>
+
+<ol>
+<li><p>함수 정의하기<br/>
+1.1. 흐름 통제 명령어<br/>
+1.2. 함수  </p></li>
+<li><p>패키지<br/>
+2.1. 패키지 다루기<br/>
+2.2. R의 수학 및 통계 패키지  </p></li>
+<li><p>R을 이용한 그래프 작성과 경제분석<br/>
+3.1. 주요 그래프의 예<br/>
+3.2. 통계 그래프 작성하기<br/>
+3.3. 생성된 그래프 제어하기<br/>
+3.4. 그래프에 수식 및 특수문자 입력하기  </p></li>
+<li><p>기부 패키지(Contributed Package)<br/>
+4.1. 패널 자료 분석을 위한 plm 패키지<br/>
+4.2. ARCH-GARCH 분석을 위한 rugarch 패키지<br/>
+4.3. 분위수회귀 분석을 위한 quantreg 패키지<br/>
+4.4. 단위근, 공적분 검정과 VECM 분석을 위한 urca 패키지<br/>
+4.5. 벡터자기회귀(VAR)모형 추정을 위한 vars 패키지  </p></li>
+</ol>
+
+<hr/>
+
+<p>##제 1절. 함수 정의하기</p>
+
+<p>##1.1 흐름 통제 명령어</p>
+
+<p>###1) 조건 분기</p>
+
+<p>###if 문</p>
+
+<pre><code class="r">x&lt;-3
+if(x&lt;2) x+2   # 입력값이 2보다 작으면 2를 더함
+if(x&gt;=2) x+2    # 입력값이 2보다 크거나 같으면 2를 더함
+</code></pre>
+
+<pre><code>## [1] 5
+</code></pre>
+
+<pre><code class="r">y&lt;-c(-1,0,1)
+if(y&gt;0) y+1         # 첫번째 입력값이 0보다 작거나 같으면 1을 더함  
+</code></pre>
+
+<pre><code>## Warning: the condition has length &gt; 1 and only the first element will be
+## used
+</code></pre>
+
+<blockquote>
+<p>y에 값 여러개라서 경고 뜸</p>
+</blockquote>
+
+<pre><code class="r">if(any(y&gt;0)) y+1    # 입력된 모든 값에 대하여 하나 이상 만족되면 1을 더함
+</code></pre>
+
+<pre><code>## [1] 0 1 2
+</code></pre>
+
+<pre><code class="r">if(all(y&gt;0)) y+1    # 입력된 모든 값에 대하여 모든 값이 만족되면 1을 더함
+</code></pre>
+
+<pre><code class="r">if(x&gt;1|y&gt;2) x+2     # 두 조건 중 하나 이상이 만족되면 2를 더함(첫 번째 원소)
+</code></pre>
+
+<pre><code>## Warning: the condition has length &gt; 1 and only the first element will be
+## used
+</code></pre>
+
+<pre><code>## [1] 5
+</code></pre>
+
+<pre><code class="r">if(x&gt;1||y&gt;2) x+2    # 두 조건 중 하나 이상이 만족되면 2를 더함(모든 원소)
+</code></pre>
+
+<pre><code>## [1] 5
+</code></pre>
+
+<pre><code class="r">if(x&gt;1&amp;y&gt;2) x+2     # 두 조건이 모두 만족되면 2를 더함(첫 번째 원소)
+</code></pre>
+
+<pre><code>## Warning: the condition has length &gt; 1 and only the first element will be
+## used
+</code></pre>
+
+<pre><code class="r">if(x&gt;1&amp;&amp;y&gt;2) x+2    # 두 조건이 모두 만족되면 2를 더함(모든 원소)
+</code></pre>
+
+<hr/>
+
+<p>####if문 조건 맞으면 명령 여러개 수행</p>
+
+<pre><code class="r">if(x==3&amp;&amp;y==-1)  {  # 조건식  입력
+x&lt;-x^3              # 실행문1
+y&lt;-y*y              # 실행문2
+cat(&quot;there are two statements in braces&quot;)   # 실행문3
+}
+</code></pre>
+
+<pre><code>## there are two statements in braces
+</code></pre>
+
+<pre><code class="r">x;y
+</code></pre>
+
+<pre><code>## [1] 27
+</code></pre>
+
+<pre><code>## [1] 1 0 1
+</code></pre>
+
+<hr/>
+
+<p>###if문 중첩 사용  </p>
+
+<p>조건문 안에 조건문 넣기</p>
+
+<pre><code class="r">if(x&gt;2) {
+x&lt;-x/3
+if (x==9) x-6
+}
+</code></pre>
+
+<pre><code>## [1] 3
+</code></pre>
+
+<pre><code class="r">x
+</code></pre>
+
+<pre><code>## [1] 9
+</code></pre>
+
+<hr/>
+
+<p>###if else 문</p>
+
+<p>조건 참일 때 실행 명령문, 거짓일 때 실행 명령문 지정</p>
+
+<pre><code class="r">x&lt;-15;y&lt;-50 
+if(x&gt;y)
+cat(&quot;x  is  bigger  than y&quot;) else  # 참일 경우 실행문 + else
+cat(&quot;y  is  bigger  than x&quot;)       #거짓 일 경우 실행문
+</code></pre>
+
+<pre><code>## y  is  bigger  than x
+</code></pre>
+
+<hr/>
+
+<p>###ifelse() 함수</p>
+
+<p>함수화된 if else 문: 한 줄 안에 조건 맞을때/안맞을때 명령 입력</p>
+
+<pre><code class="r">y&lt;-10
+ifelse(y&gt;0, yes=y, no=y+10)    # 조건, 참일 때 명령, 거짓일 때 명령
+</code></pre>
+
+<pre><code>## [1] 10
+</code></pre>
+
+<pre><code class="r">ifelse(y&gt;0, y, y+10)        # 간소화
+</code></pre>
+
+<pre><code>## [1] 10
+</code></pre>
+
+<hr/>
+
+<p>###중첩 ifelse()문</p>
+
+<pre><code class="r">x&lt;-c(1,2,3,4,5)
+y&lt;-c(-2,-1,0,6,7)
+x&gt;y
+</code></pre>
+
+<pre><code>## [1]  TRUE  TRUE  TRUE FALSE FALSE
+</code></pre>
+
+<pre><code class="r">ifelse(x&gt;y,x,y)     # x와 y 중 큰 값 반환
+</code></pre>
+
+<pre><code>## [1] 1 2 3 6 7
+</code></pre>
+
+<pre><code class="r">x%%2==0
+</code></pre>
+
+<pre><code>## [1] FALSE  TRUE FALSE  TRUE FALSE
+</code></pre>
+
+<pre><code class="r">y%%2==0
+</code></pre>
+
+<pre><code>## [1]  TRUE FALSE  TRUE  TRUE FALSE
+</code></pre>
+
+<pre><code class="r">ifelse(x%%2==0, x, ifelse(y%%2==0,y,0))   # x가 짝수면 해당 값 반환, 홀수면 y 판단, y가 짝수면 해당 값 반환, 홀수면 0 반환)
+</code></pre>
+
+<pre><code>## [1] -2  2  0  4  0
+</code></pre>
+
+<hr/>
+
+<p>###else if 문</p>
+
+<ul>
+<li>여러 개 조건 중 해당 되는 명령 실행<br/></li>
+<li>과세표준에 따른 소득세율 계산<br/></li>
+</ul>
+
+<blockquote>
+<p>(과세표준)                         (세율)</p>
+
+<hr/>
+
+<p>3억원 초과                             9010만원+(3억 원을 초과하는 금액의 38%)
+8800만원 초과~3억 원 이하      1590만원+(8800만원을 초과하는 금액의 35%)
+4600만원 초과~8800만원 이하    582만원+(4600만원을 초과하는 금액의 24%)
+1200만원 초과~4600만원 이하    72만원+(1200만원을 초과하는 금액의 15%)
+1200만원 이하                      과세표준의 6%</p>
+</blockquote>
+
+<pre><code class="r">income&lt;-12000     # 과세표준 할당
+if(income&gt;30000)  # if 조건식 입력
+9010+((income-30000)*0.38) else if(income&gt;8800)
+1590+((income-8800)*0.35) else if(income&gt;4600)
+582+((income-4600)*0.24) else if(income&gt;1200)
+72+((income-1200)*0.15) else
+income*0.06
+</code></pre>
+
+<pre><code>## [1] 2710
+</code></pre>
+
+<hr/>
+
+<h3>swich() 함수</h3>
+
+<ul>
+<li>여러 조건 중 맞는 명령 실행</li>
+<li>조건으로 문자도 가능</li>
+</ul>
+
+<pre><code class="r">x&lt;-1:10
+switch(1, mean(x) ,sum(x) ,var(x), sd(x))  # 조건이 1이니까 mean(x) 실행
+</code></pre>
+
+<pre><code>## [1] 5.5
+</code></pre>
+
+<pre><code class="r">switch(2, mean(x) ,sum(x) ,var(x), sd(x))   # 조건이 2니까 sum(x) 실행
+</code></pre>
+
+<pre><code>## [1] 55
+</code></pre>
+
+<pre><code class="r">x&lt;-1:10
+method&lt;-(&quot;my.mean&quot;)     
+switch(method,        # method를 조건으로 따름. “my.mean”이 지정되어 있으므로 실행문 1 수행
+my.mean=mean(x),      # 실행문 1
+my.sum=sum(x),        # 실행문 2
+my.sd=sd(x)             # 실행문 3
+)
+</code></pre>
+
+<pre><code>## [1] 5.5
+</code></pre>
+
+<pre><code class="r">method&lt;-(&quot;my.sum&quot;)
+switch(method,        # method를 조건으로 따름. “my.sum”이 지정되어 있으므로 실행문 2 수행
+my.mean=mean(x),        # 실행문 1
+my.sum=sum(x),      # 실행문 2
+my.sd=sd(x)         # 실행문 3
+)
+</code></pre>
+
+<pre><code>## [1] 55
+</code></pre>
+
+<hr/>
+
+<h3>2) 루핑(Looping)</h3>
+
+<ul>
+<li>반복 노가다 컴퓨터 시키기</li>
+</ul>
+
+<h3>for 문</h3>
+
+<ul>
+<li>조건에  입력된  벡터를 순서대로 입력받아 실행문 반복</li>
+</ul>
+
+<pre><code class="r">P&lt;-c(150,100,80,90,120)
+Q&lt;-c(3,4,5,7,2)
+value&lt;-0
+for(i in 1:5) {     # 다섯 개 값 순차적으로 받아서 실행
+value&lt;-value+(P[i]*Q[i])
+cat(&quot;P&quot;,i,&quot;*&quot;,&quot;Q&quot;,i,&quot;=&quot;,P[i]*Q[i],&quot;\n&quot;,&quot;cumsum=&quot;,value,&quot;\n&quot;)
+}
+</code></pre>
+
+<pre><code>## P 1 * Q 1 = 450 
+##  cumsum= 450 
+## P 2 * Q 2 = 400 
+##  cumsum= 850 
+## P 3 * Q 3 = 400 
+##  cumsum= 1250 
+## P 4 * Q 4 = 630 
+##  cumsum= 1880 
+## P 5 * Q 5 = 240 
+##  cumsum= 2120
+</code></pre>
+
+<hr/>
+
+<h3>while 문</h3>
+
+<ul>
+<li>조건이 참인 경우에만 반복</li>
+</ul>
+
+<pre><code class="r">x&lt;-1
+while(x&lt;=5) {
+cat(&quot;collect an apple 5 times\n&quot;)
+x&lt;-x+1
+}
+</code></pre>
+
+<pre><code>## collect an apple 5 times
+## collect an apple 5 times
+## collect an apple 5 times
+## collect an apple 5 times
+## collect an apple 5 times
+</code></pre>
+
+<hr/>
+
+<h3>3) 무조건 분기</h3>
+
+<ul>
+<li>조건 상관없이 반복</li>
+<li>break 명령문(멈춤)과 next 명령문(건너뜀)으로 제어<br/></li>
+</ul>
+
+<h3>break 명령문</h3>
+
+<pre><code class="r">x&lt;-0
+repeat{
+cat(&quot;collect an apple 5 times\n&quot;)
+x&lt;-x+1
+if(x==5) break
+}
+</code></pre>
+
+<pre><code>## collect an apple 5 times
+## collect an apple 5 times
+## collect an apple 5 times
+## collect an apple 5 times
+## collect an apple 5 times
+</code></pre>
+
+<h3>next 명령문</h3>
+
+<ul>
+<li>next 명령문을 만나면 해당 실행문 건너뜀<br/></li>
+</ul>
+
+<pre><code class="r">P&lt;-c(150,100,80,90,120)
+Q&lt;-c(3,4,5,7,2)
+value&lt;-0
+for(i in 1:5) {
+if(i%%2==0) next            # i가 짝수면 건너뜀 -&gt; 1,3,5번째 값만 실행문1 수행
+value&lt;-value+(P[i]*Q[i])            
+cat(&quot;P&quot;,i,&quot;*&quot;,&quot;Q&quot;,i,&quot;=&quot;,P[i]*Q[i],&quot;\n&quot;,
+&quot;cumsum=&quot;,value,&quot;\n&quot;)           
+}
+</code></pre>
+
+<pre><code>## P 1 * Q 1 = 450 
+##  cumsum= 450 
+## P 3 * Q 3 = 400 
+##  cumsum= 850 
+## P 5 * Q 5 = 240 
+##  cumsum= 1090
+</code></pre>
+
+<hr/>
+
+<p>###1.2. 함수</p>
+
+<ul>
+<li>미리 짜놓은 명령어 세트</li>
+<li>함수에 값을 넣으면 짜놓은 명령어에 맞게 처리해서 결과물 출력</li>
+</ul>
+
+<h3>인수가 하나인 함수 만들기</h3>
+
+<h4>표준편차 구하는 함수 만들기</h4>
+
+<pre><code class="r">x&lt;-c(10, 15, 30, 55, 70)
+my.sd&lt;-function(x) sqrt(sum((x-mean(x))^2)/(length(x)-1))  # sqrt : 제곱근(루트 씌우기)
+my.sd(x)
+</code></pre>
+
+<pre><code>## [1] 25.84
+</code></pre>
+
+<pre><code class="r">sd(x)
+</code></pre>
+
+<pre><code>## [1] 25.84
+</code></pre>
+
+<h4>소득세 산출 함수 만들기</h4>
+
+<pre><code class="r">inc.tax&lt;-function(x) {
+if(x&gt;30000)
+9010+((x-30000)*0.38) else if(x&gt;8800)
+1590+((x-8800)*0.35) else if(x&gt;4600)
+582+((x-4600)*0.24) else if(x&gt;1200)
+72+((x-1200)*0.15) else
+x*0.06
+}
+inc.tax(12000)
+</code></pre>
+
+<pre><code>## [1] 2710
+</code></pre>
+
+<pre><code class="r">inc.tax(5000)
+</code></pre>
+
+<pre><code>## [1] 678
+</code></pre>
+
+<p>####인수가 여러개인 함수 만들기</p>
+
+<ul>
+<li>여러 값을 이용해서 처리해주는 함수</li>
+</ul>
+
+<pre><code class="r">compare&lt;-function(x, y) {
+if(x&gt;y)
+cat(x,&quot;is bigger than&quot;, y) else
+cat(y,&quot;is bigger than&quot;, x)
+}
+compare(10, 20)
+</code></pre>
+
+<pre><code>## 20 is bigger than 10
+</code></pre>
+
+<p>####여러 기능을 가진 함수 만들기: match.arg() 함수</p>
+
+<ul>
+<li>함수에 넣는 명령어에 따라 다른 처리</li>
+</ul>
+
+<pre><code class="r">scatt.f&lt;-function(x,method) {
+a&lt;-match.arg(arg=method, choices=c(&quot;my.range&quot;,&quot;my.mad&quot;,&quot;my.iqr&quot;,&quot;my.var&quot;,&quot;my.std&quot;))
+# 인수 매치: 입력된 method 값이 선택지와 매치되는지 확인, 매치되는 값을 a에 반환
+
+switch (a,                                    # switch 함수에 값 a 입력, 문자열에 해당되는 실행문 수행
+my.range=diff(range(x)),                      # my.range: 범위
+my.mad=sum(abs(x-mean(x)))/length(x),         # my.mad: 평균편차. abs(): 절대값
+my.iqr=diff(quantile(x,probs=c(0.25,0.75))),  # my.iqr: 사분위편차
+my.var=sum((x-mean(x))^2)/(length(x)-1),      # my.var: 분산
+my.std=sqrt(sum((x-mean(x))^2)/(length(x)-1)) # my.std: 표준편차. sqrt(): 루트
+)
+}
+x&lt;-c(10,15,60,80,150)
+scatt.f(x,&quot;my.var&quot;)
+</code></pre>
+
+<pre><code>## [1] 3245
+</code></pre>
+
+<pre><code class="r">scatt.f(x,&quot;my.v&quot;)   # 함수에 지정해둔 명령어(인수) 앞의 일부만 입력해도 출력됨
+</code></pre>
+
+<pre><code>## [1] 3245
+</code></pre>
+
+<pre><code class="r">scatt.f(x,&quot;my.mad&quot;)
+</code></pre>
+
+<pre><code>## [1] 41.6
+</code></pre>
+
+<p>####3)  이항 연산 함수 만들기</p>
+
+<ul>
+<li>두 개의 변수를 가지고 계산하는 함수 만들기</li>
+</ul>
+
+<pre><code class="r">&quot;%T%&quot;&lt;-function(P,Q) {  # %T%로 이항 연산자 이름 만들어 함수 생성
+TR&lt;-sum(P*Q)
+return(TR)
+}
+price&lt;-c(150,100,80,90,120) 
+quantity&lt;-c(3,4,5,7,2)
+price%T%quantity
+</code></pre>
+
+<pre><code>## [1] 2120
+</code></pre>
+
+</body>
+
+</html>
+
