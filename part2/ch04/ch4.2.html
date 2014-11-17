@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title> 4.2 행렬 연산과 관련된 연산자와 함수</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h2> 4.2 행렬 연산과 관련된 연산자와 함수</h2>
+
+<p><br></p>
+
+<table><thead>
+<tr>
+<th>표4-1</th>
+<th>원소별 연산자</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>+</td>
+<td>행렬의 원소별 덧셈</td>
+</tr>
+<tr>
+<td>-</td>
+<td>행렬의 원소별 뺄셈</td>
+</tr>
+<tr>
+<td>*</td>
+<td>행렬의 원소별 곱셈</td>
+</tr>
+<tr>
+<td>/</td>
+<td>행렬의 원소별 나눗셈</td>
+</tr>
+</tbody></table>
+
+<p><br></p>
+
+<table><thead>
+<tr>
+<th>표4-2</th>
+<th>바이너리 연산자</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>\% * \%</td>
+<td>행렬 내적 (inner product)</td>
+</tr>
+<tr>
+<td>\% o \%</td>
+<td>행렬 외적 (outer product)</td>
+</tr>
+<tr>
+<td>\% x \%</td>
+<td>행렬 크로넥터 곱 (Kronecter product)</td>
+</tr>
+</tbody></table>
+
+<p><br></p>
+
+<table><thead>
+<tr>
+<th>표4-3</th>
+<th>행렬연산 관련 함수</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>t()</td>
+<td>전치 연산</td>
+</tr>
+<tr>
+<td>sort()</td>
+<td>원소 오름차순 정렬</td>
+</tr>
+<tr>
+<td>diag()</td>
+<td>주대각선 원소 추출</td>
+</tr>
+<tr>
+<td>det()</td>
+<td>정방행렬의 행렬식(deteminant) 계산</td>
+</tr>
+<tr>
+<td>rankMatrix()</td>
+<td>행렬 계수(rank) 계산</td>
+</tr>
+<tr>
+<td>solve()</td>
+<td>역행렬(inverse) 계산, 선형등식체계의 해 계산</td>
+</tr>
+<tr>
+<td>eigen()</td>
+<td>고유값, 고유벡터 (eigen-value/vector) 계산</td>
+</tr>
+<tr>
+<td>cov()</td>
+<td>공분산행렬 계산</td>
+</tr>
+<tr>
+<td>cor()</td>
+<td>상관계수 행렬 계산</td>
+</tr>
+<tr>
+<td>chol()</td>
+<td>콜레스키 분해 계산</td>
+</tr>
+<tr>
+<td>qr()</td>
+<td>QR 분해 요약 리스트</td>
+</tr>
+<tr>
+<td>qr.Q()</td>
+<td>QR 분해 : 직교행렬 Q 출력</td>
+</tr>
+<tr>
+<td>qr.R()</td>
+<td>QR 분해 : 위삼각행렬 R 출력</td>
+</tr>
+<tr>
+<td>qr.solve()</td>
+<td>선형등식체계 Rx=h 해 계산</td>
+</tr>
+<tr>
+<td>svd()</td>
+<td>특이값 분해(singular value decomposition)</td>
+</tr>
+<tr>
+<td>norm()</td>
+<td>노옴(norm) 계산</td>
+</tr>
+</tbody></table>
+
+</body>
+
+</html>
+

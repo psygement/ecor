@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title> 4.4.6 선형등식체계 해 </title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: rgb(88, 72, 246)
+   }
+
+   pre .number {
+     color: rgb(0, 0, 205);
+   }
+
+   pre .comment {
+     color: rgb(76, 136, 107);
+   }
+
+   pre .keyword {
+     color: rgb(0, 0, 255);
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: rgb(3, 106, 7);
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+
+</head>
+
+<body>
+<pre><code>## Loading required package: Matrix
+</code></pre>
+
+<h3> 4.4.6 선형등식체계 해 </h3>
+
+<p>linear equation system 은 표현형태 </p>
+
+<blockquote>
+<p>Ax = h</p>
+</blockquote>
+
+<p>계수행렬(coefficient matrix) A 는 m x n 이고,</p>
+
+<p>변수행렬 x는 n x 1 이고,</p>
+
+<p>상수행렬 h는 m x 1 형태를 갖는다.</p>
+
+<blockquote>
+<p>x = A<sup><sup>-1<sup><sup>h</sup></sup></sup></sup></p>
+</blockquote>
+
+<p>만약 A 가 정방행렬이고 비특이행렬이면,</p>
+
+<p>역행렬이 존재하고, 따라서 해는 유일하다.</p>
+
+<pre><code class="r">A &lt;- matrix(c(3,5,4,2), nrow=2, byrow=T)
+h &lt;- matrix(c(13,8), nrow=2)
+det(A)
+</code></pre>
+
+<pre><code>## [1] -14
+</code></pre>
+
+<pre><code class="r">solve(A)%*%h
+</code></pre>
+
+<pre><code>##      [,1]
+## [1,]    1
+## [2,]    2
+</code></pre>
+
+<pre><code class="r">solve(A,h)
+</code></pre>
+
+<pre><code>##      [,1]
+## [1,]    1
+## [2,]    2
+</code></pre>
+
+<pre><code class="r"># 해를 도출할 수 없는 경우
+X &lt;- matrix(c(2,3,5,3,2,5,4,5,9), nrow=3)
+b &lt;- matrix(c(20,22,42), nrow=3)
+det(X)
+</code></pre>
+
+<pre><code>## [1] -1.388e-15
+</code></pre>
+
+<pre><code class="r">#solve(X)%*%b # 실행하면 에러 발생 = 해 도출 불가
+## Error in solve.default(X) : 
+##  system is computationally singular: reciprocal condition number = 5.50706e-18
+</code></pre>
+
+<h2><br></h2>
+
+<h3> 4.4.7 고유값(eigenvalue) 과 고유벡터(eigenvector) </h3>
+
+<p>p316 (내용을 잘못 이해하고 적었을 수 있음 -_-; 주의바람!)</p>
+
+<p>행렬 A (n x n) 와 스칼라 L(lambda)</p>
+
+<blockquote>
+<p>Ax = Lx</p>
+
+<p>(A - LI)x = 0  # (숫자0 아니고 0행렬)</p>
+</blockquote>
+
+<p>위 형태는 n개 미지수와 n개 방정식으로 구성된 동차선형계로 볼 수 있다.</p>
+
+<p>아래 명제들은 같다.</p>
+
+<p>(A - LI) 가 특이행렬이다.</p>
+
+<p>=&gt; |A-LI| = 0</p>
+
+<p>=&gt; 비자명해 (nontrivial solution) 를 갖는다. </p>
+
+<p>=&gt; x 가 0행렬이 아닌 행렬을 갖는다.</p>
+
+<p>=&gt; <strong>이때 0행렬이 아닌 x 를 고유벡터라고 한다.</strong></p>
+
+<p>=&gt; <strong>이때의 L 값을 고유값이라고 한다.</strong></p>
+
+<p><br></p>
+
+<p>x 의 비자명해를 구하려면,</p>
+
+<p>우선 |A-LI| = 0 이여야 한다.</p>
+
+<p>그럼 L 에 대한 다항식이 나온다.</p>
+
+<p>이때 다항식의 차수는 A 가 n x n 행렬이면 n 차 다항식이다.</p>
+
+<p><br></p>
+
+<p>예를들어, A 행렬이 아래와 같으면,</p>
+
+<pre><code>##      [,1] [,2]
+## [1,]    4   -2
+## [2,]    1    1
+</code></pre>
+
+<p>고유행렬식은 </p>
+
+<blockquote>
+<p>|A-LI| = (4-L)(1-L) + 2 = L<sup><sup>2<sup><sup>-5L+6</sup></sup></sup></sup></p>
+</blockquote>
+
+<p>으로 L 의 2차 다항식이다. </p>
+
+<p>L<sup><sup>2<sup><sup>-5L+6</sup></sup></sup></sup> = (L-2)(L-3) = 0</p>
+
+<p>만족하는 L 은 3, 2 이다.</p>
+
+<p><br></p>
+
+<p>우선 L 에 첫번째값 3을 넣고 풀면, x 해가 무수히 많은데,</p>
+
+<p>단위 길이 1 이라는 x<sub>1</sub><sup><sup>2<sup>^</sup></sup></sup> + x<sub>2</sub><sup><sup>2<sup>^</sup></sup></sup> = 1 제약조건을 추가하면,</p>
+
+<p>x<sub>1</sub> = 2/sqrt(5), x<sub>2</sub> = 1/sqrt(5)</p>
+
+<p>가 나온다.</p>
+
+<p>마찬가지로 L 에 2를 넣고 풀면,</p>
+
+<p>x<sub>1</sub> = 1/sqrt(2), x<sub>2</sub> = 1/sqrt(2)</p>
+
+<pre><code class="r">A &lt;- matrix(c(4,1,-2,1), nrow=2)
+A
+</code></pre>
+
+<pre><code>##      [,1] [,2]
+## [1,]    4   -2
+## [2,]    1    1
+</code></pre>
+
+<pre><code class="r">eigen(A)
+</code></pre>
+
+<pre><code>## $values
+## [1] 3 2
+## 
+## $vectors
+##        [,1]   [,2]
+## [1,] 0.8944 0.7071
+## [2,] 0.4472 0.7071
+</code></pre>
+
+<h2><br></h2>
+
+<h3> 4.4.8 직교행렬과 대칭행렬의 대각화 </h3>
+
+<p>A 가 대칭행렬이면, 고유값은 실수이고, (복소수 아님)</p>
+
+<p>각 고유값에 대응되는 고유벡터는 직교(orthogonal) 한다.</p>
+
+<p>모두 다른 n 개 고유값에 대응되는 고유벡터로 구성된 </p>
+
+<p>행렬 X = (x<sub>1</sub>,x<sub>2</sub>,&hellip;,x<sub>n</sub>) 은 </p>
+
+<p>직교행렬(orthogonal matrix) 이다.</p>
+
+<p>따라서 X 의 전치행렬 = X 의 역행렬이다.</p>
+
+<blockquote>
+<p>X&#39;X = XX&#39; = I , X&#39; = X<sup><sup>-1<sup>^</sup></sup></sup></p>
+</blockquote>
+
+<pre><code class="r">a &lt;- 1/sqrt(2)
+X &lt;- matrix(c(a,a,-a,a), ncol=2)
+round(t(X)%*%X)
+</code></pre>
+
+<pre><code>##      [,1] [,2]
+## [1,]    1    0
+## [2,]    0    1
+</code></pre>
+
+<pre><code class="r">t(X); solve(X)  # 전치행렬과 역행렬이 같다.
+</code></pre>
+
+<pre><code>##         [,1]   [,2]
+## [1,]  0.7071 0.7071
+## [2,] -0.7071 0.7071
+</code></pre>
+
+<pre><code>##         [,1]   [,2]
+## [1,]  0.7071 0.7071
+## [2,] -0.7071 0.7071
+</code></pre>
+
+<p>n x n  A행렬이 대칭행렬이면,</p>
+
+<p>X&#39;AX 를 대각행렬로 만드는 직교행렬 X 가 존재한다.</p>
+
+<blockquote>
+<p>AX = XA_</p>
+
+<p>X&#39;AX = X&#39;X A_ = A_</p>
+</blockquote>
+
+<p>그럼 주대각선에 A 의 고유값을 갖는 대각행렬 A_이 만들어진다.</p>
+
+<p>이것을 대칭행렬의 대각화 (diagonalization) 이라 한다.</p>
+
+<pre><code class="r"># 대칭행렬
+A &lt;- matrix(c(2,1,1,2), ncol=2)  
+
+# 직교행렬 생성
+X &lt;- matrix(c(1,1,-1,1), ncol=2)
+X &lt;- X* 1/sqrt(2)
+
+# 고유값이 대각에 모여있음
+round(t(X) %*% A %*% X)
+</code></pre>
+
+<pre><code>##      [,1] [,2]
+## [1,]    3    0
+## [2,]    0    1
+</code></pre>
+
+<p><strong>직교행렬 속성</strong></p>
+
+<blockquote>
+<p>직교행렬의 고유값은 +1, -1 </p>
+
+<p>직교행렬 A 의 전치행렬 A&#39; 와 역행렬 A<sup><sup>-1<sup>^</sup></sup></sup> 도 직교행렬이다</p>
+
+<p>직교행렬의 행렬식은 +1 이거나 -1 이다</p>
+</blockquote>
+
+<h2><br></h2>
+
+<h3> 4.4.9 멱등행렬 </h3>
+
+<p>A = A&#39; 와 A = A<sup><sup>2<sup>^</sup></sup></sup> 를 만족하면 멱등행렬(idempotent matrix)</p>
+
+<p>0 행렬과 I 행렬이 멱등행렬</p>
+
+<blockquote>
+<p>M = I - X(X&#39;X)<sup><sup>-1<sup><sup>X&#39;</sup></sup></sup></sup></p>
+</blockquote>
+
+<p>멱등행렬은 대칭행렬이기도 하다.</p>
+
+<p><strong>멱등행렬 속성</strong></p>
+
+<blockquote>
+<p>멱등행렬 고유값은 1 또는 0 이다</p>
+
+<p>A 가 멱등행렬이면, I - A 도 멱등행렬이다.</p>
+</blockquote>
+
+<h2><br></h2>
+
+<h3> 4.4.10 이차형태 </h3>
+
+<p>행렬 A 와 벡터 a, x 에 대해서 </p>
+
+<p>L = a&#39;x 을 x 의 일차형태(linear form)이라 하고,</p>
+
+<p>대칭행렬 A 와 벡터 x 에 의해 정의된 스칼라 Q</p>
+
+<p>Q = x&#39;Ax</p>
+
+<p>는 x에 대한 이차형태(quadratic form)이라 한다.</p>
+
+<p>&hellip; 복잡하다 @_@</p>
+
+<p>편미분 dQ/dx = Ax + A&#39;x = (A + A&#39;)x </p>
+
+<h2><br></h2>
+
+<h3> 4.4.11 확률변수 집합의 공분산행렬 </h3>
+
+<p>가자~ 달나라로!</p>
+
+<h2><br></h2>
+
+<h3> 4.4.12 콜레스키 분해 </h3>
+
+<h2><br></h2>
+
+<h3> 4.4.13 QR 분해 </h3>
+
+<h2><br></h2>
+
+<h3> 4.4.14 특이값 분해 </h3>
+
+<h2><br></h2>
+
+<h3> 4.4.15 벡터 및 행렬 노옴 </h3>
+
+</body>
+
+</html>
+
