@@ -1,0 +1,552 @@
+---
+title: "ch4.4.6"
+output:
+  html_document:
+    keep_md: yes
+---
+
+```{r, echo=FALSE}
+require(Matrix)
+```
+
+<h3> 4.4.6 선형등식체계 해 </h3>
+
+linear equation system 은 표현형태 
+
+> Ax = h
+
+계수행렬(coefficient matrix) A 는 m x n 이고,
+
+변수행렬 x는 n x 1 이고,
+
+상수행렬 h는 m x 1 형태를 갖는다.
+
+> x = A^-1^h
+
+만약 A 가 정방행렬이고 비특이행렬이면,
+
+역행렬이 존재하고, 따라서 해는 유일하다.
+
+```{r}
+A <- matrix(c(3,5,4,2), nrow=2, byrow=T)
+h <- matrix(c(13,8), nrow=2)
+det(A)
+solve(A)%*%h
+solve(A,h)
+
+# 해를 도출할 수 없는 경우
+X <- matrix(c(2,3,5,3,2,5,4,5,9), nrow=3)
+b <- matrix(c(20,22,42), nrow=3)
+det(X)
+#solve(X)%*%b # 실행하면 에러 발생 = 해 도출 불가
+## Error in solve.default(X) : 
+##  system is computationally singular: reciprocal condition number = 5.50706e-18
+
+```
+
+
+<br/>
+----------
+
+<h3> 4.4.7 고유값(eigenvalue) 과 고유벡터(eigenvector) </h3>
+
+p316 (내용을 잘못 이해하고 적었을 수 있음 -_-; 주의바람!)
+
+행렬 A (n x n) 와 스칼라 L(lambda)
+
+> Ax = Lx
+
+> (A - LI)x = 0  # (숫자0 아니고 0행렬)
+
+위 형태는 n개 미지수와 n개 방정식으로 구성된 동차선형계로 볼 수 있다.
+
+아래 명제들은 같다.
+
+(A - LI) 가 특이행렬이다.
+
+=> |A-LI| = 0
+
+=> 비자명해 (nontrivial solution) 를 갖는다. 
+
+=> x 가 0행렬이 아닌 행렬을 갖는다.
+
+=> **이때 0행렬이 아닌 x 를 고유벡터라고 한다.**
+
+=> **이때의 L 값을 고유값이라고 한다.**
+
+<br/>
+
+x 의 비자명해를 구하려면,
+
+우선 |A-LI| = 0 이여야 한다.
+
+그럼 L 에 대한 다항식이 나온다.
+
+이때 다항식의 차수는 A 가 n x n 행렬이면 n 차 다항식이다.
+
+<br/>
+
+예를들어, A 행렬이 아래와 같으면,
+```{r, echo=FALSE}
+A <- matrix(c(4,-2,1,1), nrow=2, byrow=T)
+A
+```
+
+
+고유행렬식은 
+
+> |A-LI| = (4-L)(1-L) + 2 = L^2^-5L+6
+
+으로 L 의 2차 다항식이다. 
+
+L^2^-5L+6 = (L-2)(L-3) = 0
+
+만족하는 L 은 3, 2 이다.
+
+<br/>
+
+우선 L 에 첫번째값 3을 넣고 풀면, x 해가 무수히 많은데,
+
+단위 길이 1 이라는 x<sub>1</sub>^2^ + x<sub>2</sub>^2^ = 1 제약조건을 추가하면,
+
+x<sub>1</sub> = 2/sqrt(5), x<sub>2</sub> = 1/sqrt(5)
+
+가 나온다.
+
+마찬가지로 L 에 2를 넣고 풀면,
+
+x<sub>1</sub> = 1/sqrt(2), x<sub>2</sub> = 1/sqrt(2)
+
+```{r}
+A <- matrix(c(4,1,-2,1), nrow=2)
+A
+eigen(A)
+```
+
+
+<br/>
+----------
+
+<h3> 4.4.8 직교행렬과 대칭행렬의 대각화 </h3>
+
+A 가 대칭행렬이면, 
+
+고유값은 실수이고, (복소수 아님)
+
+각 고유값에 대응되는 고유벡터는 직교(orthogonal) 한다.
+
+<br/>
+
+그래서 모두 다른 n 개 고유값에 대응되는 고유벡터들 
+
+x<sub>1</sub>,x<sub>2</sub>,...,x<sub>n</sub> 로 구성된 
+
+행렬 X = (x<sub>1</sub>,x<sub>2</sub>,...,x<sub>n</sub>) 은 
+
+**직교행렬(orthogonal matrix)** 이다.
+
+따라서 **X 의 전치행렬** = **X 의 역행렬**이다.
+
+> X'X = XX' = I , X' = X^-1^
+
+
+```{r}
+a <- 1/sqrt(2)
+X <- matrix(c(a,a,-a,a), ncol=2)
+round(t(X)%*%X)
+t(X); solve(X)  # 전치행렬과 역행렬이 같다.
+```
+
+n x n  A행렬이 대칭행렬이면,
+
+X'AX 를 대각행렬로 만드는 직교행렬 X 가 존재한다.
+
+> AX = X A_
+
+> X'AX = X'X A_ = A_
+
+(주의! A 와 A_ 는 다르다!)
+
+그럼 주대각선에 A 의 고유값을 갖는 **대각행렬 A_**이 만들어진다.
+
+<pre> ex) 주 대각선에 고유값들이 모여있다.
+A_ = [L<sub>1</sub> 0 0]
+     [0 L<sub>2</sub> 0]
+     [0 0 L<sub>3</sub>]
+</pre>
+
+이것을 **대칭행렬의 대각화 (diagonalization)** 이라 한다.
+
+(대각화의 장점은 연산의 편리성인거 같음.
+
+A = X' A_ X 로 분해가 되었다면,
+
+A^2^ = X' A_^2^ X 와 같다. 
+
+그런데 대각 행렬인 A_^2^ 은 대각에 있는 값의 2제곱과 같다.
+
+또, 대각행렬은 그자체가 대칭행렬이여서 = 전치행렬이며,
+
+역행렬과 제곱행렬을 구하기도 쉽다)
+
+```{r}
+A_ = matrix(c(1,0,0,0,2,0,0,0,3), nrow=3)
+A_
+t(A_)
+solve(A_) # 역행렬은 각 대각값들의 역수
+A_^2 # 제곱은 각 대각값들의 제곱
+```
+
+
+```{r}
+# 대칭행렬
+A <- matrix(c(2,1,1,2), ncol=2)  
+
+# 직교행렬 생성
+X <- matrix(c(1,1,-1,1), ncol=2)
+X <- X* 1/sqrt(2)
+
+# 고유값이 대각에 모여있음
+round(t(X) %*% A %*% X)
+
+# (그런데 위의 직교행렬은 어디서 왔을까?
+#  직교행렬의 구한 결과가 고유벡터 행렬 X 와 같아보인다.)
+eigen(A)
+```
+
+<br/>
+
+**직교행렬 속성**
+
+> 직교행렬의 고유값은 +1, -1 
+
+> 직교행렬 X 의 전치행렬 X' 와 역행렬 X^-1^ 도 직교행렬이다
+
+> 직교행렬의 행렬식은 +1 이거나 -1 이다
+
+
+<br/>
+----------
+
+<h3> 4.4.9 멱등행렬 </h3>
+
+A = A' 와 A = A^2^ 를 만족하면 **멱등행렬(idempotent matrix)**
+
+0 행렬과 I 행렬이 멱등행렬의 대표적 예이다.
+
+계량 경제학에서 가장 많이 사용되는 멱등행렬 M 을 예로 살펴보자.
+
+> M = I - X(X'X)^-1^X'
+
+위 행렬 M 은 대칭행렬이여서 M' = M 전치행렬과 자기자신이 같다.
+
+또, M = M^2^ 이다.
+
+간단히 항등행렬 I<sub>2 * 2</sub> 을 멱등행렬임을 증명해보자.
+
+```{r}
+Id <- matrix(c(1,0,0,1), nrow=2)
+Id
+t(Id)==Id # 전치행렬과 같음
+Id%*%Id== Id # 제곱된 결과와 같음
+```
+
+**멱등행렬 속성**
+
+> 멱등행렬 고유값은 1 또는 0 이다
+
+> A 가 멱등행렬이면, I - A 도 멱등행렬이다.
+
+<br/>
+----------
+
+<h3> 4.4.10 이차형태 </h3>
+
+행렬 A 와 벡터 a, x 에 대해서 
+
+<pre>
+A = [a<sub>11</sub> a<sub>12</sub> ... a<sub>1n</sub>]
+    [a<sub>21</sub> a<sub>22</sub> ... a<sub>2n</sub>]
+    [...    ...   ]
+    [a<sub>n1</sub> a<sub>n2</sub> ... a<sub>nn</sub>]
+    
+a = [a<sub>1</sub>]
+    [a<sub>2</sub>]
+    [..]
+    [a<sub>n</sub>]
+    
+x = [x<sub>1</sub>]
+    [x<sub>2</sub>]
+    [..]
+    [x<sub>n</sub>]
+</pre>
+
+> L = a'x = a<sub>1</sub>x<sub>1</sub> + a<sub>2</sub>x<sub>2</sub> + ... +  a<sub>n</sub>x<sub>n</sub>
+
+L 은 x 에 의한 일차형태(linear form)이라 하고,
+
+대칭행렬 A 와 벡터 x 에 의해 정의된 스칼라 Q
+
+> Q = x'Ax
+
+Q 는 x에 대한 이차형태(quadratic form)이라 한다.
+
+예를 들어,
+
+<pre>
+A = [a<sub>11</sub> a<sub>12</sub>]  x = [x<sub>1</sub>]
+    [a<sub>21</sub> a<sub>22</sub>]      [x<sub>2</sub>]
+
+에 대한 이차형태는 아래와 같다.
+    
+Q = x'Ax = [x<sub>1</sub> x<sub>2</sub>][a<sub>11</sub> a<sub>12</sub>][x<sub>1</sub>] = a<sub>11</sub>x<sub>1</sub><sup>2</sup> + a<sub>12</sub>x<sub>1</sub>x<sub>2</sub> + a<sub>21</sub>x<sub>1</sub>x<sub>2</sub> + a<sub>22</sub>x<sub>2</sub><sup>2</sup>
+                 [a<sub>21</sub> a<sub>22</sub>][x<sub>2</sub>]
+
+</pre>
+
+회귀모형의 모수를 최소제곱법이나 최우법에 의해 추정하는 과정에서 
+
+모수벡터에 대해 목적함수를 미분하는 것이 필요하므로
+
+일차형태와 이차형태에 대한 편미분에 대하여 간단히 살펴보자. (???)
+
+
+우선 벡터 x 의 각 원소에 의한 일차형태 편미분은 
+
+dL/dx = a
+
+dQ/dx = Ax + A'x = (A + A')x 
+
+(수식을 풀어 설명하는 부분은 p322~p323 참고)
+
+```{r}
+A <- matrix(c(6,2,2,2), nrow=2)
+A + t(A) # 이차형태의 편미분
+```
+
+
+<br/>
+----------
+
+<h3> 4.4.11 확률변수 집합의 공분산행렬 </h3>
+
+(p324)
+
+평균이 0 이고, 분산이 sigma<sup>2</sup> 인,
+
+서로 독립인 n개 확률변수(random variables) 집합 x' = [x<sub>1</sub> x<sub>2</sub> ... x<sub>n</sub>] 을 정의하자.
+
+이때 확률변ㅅ의 기댓값이 0 이므로, 
+
+공분산행렬(covariance matrix) 는 다음과 같다. 
+
+C = E[xx']
+
+여기서 E[x<sub>i</sub>x<sub>j</sub>] = {sigma<sup>2</sup>  i = j, 0  i != j} 이므로, 공분산행렬은 다음과 같다. 
+
+<pre>
+C = I sigma<sup>2</sup> =  E [sigma<sup>2</sup> 0 ... 0]
+                  [0  sigma<sup>2</sup> ... 0]
+                  [...         ...]
+                  [0  0 ... sigma<sup>2</sup>]                            
+</pre>
+
+물론 확률변수의 공분산이 Cov(x<sub>i</sub>, x<sub>j</sub>) = sigma<sub>ij</sub> 인 일반적인 경우의 공분산행렬은 다음과 같다. 
+
+<pre>
+(a = sigma)
+
+C = [a<sub>11</sub> a<sub>12</sub> ... a<sub>1n</sub>]
+    [a<sub>21</sub> a<sub>22</sub> ... a<sub>2n</sub>]
+    [...    ...   ]
+    [a<sub>n1</sub> a<sub>n2</sub> ... a<sub>nn</sub>]
+</pre>
+
+R 에서 공분산행렬은 공분산을 구하는 cov() 를 사용해서 생성한다.
+
+확률변수를 행렬의 형태로 만들어 입력한다.
+
+```{r}
+x <- rnorm(10,0,1)  # 평균 0, 표준편차 1, 10개 정규난수
+y <- rnorm(10,0,2)  # 평균 0, 표준편차 2, 10개 정규난수
+z <- x + y          
+A <- matrix(c(x,y,z), ncol=3)  # 10 * 3 행렬 생성
+cov(A) # 공분산 행렬 생성 
+cov(A[,1], A[,1])  # sigma 11 값 확인
+cov(A[,2], A[,2])  # sigma 22 값 확인
+cov(A[,3], A[,3])  # sigma 33 값 확인
+```
+<br/>
+----------
+
+<h3> 4.4.12 콜레스키 분해 </h3>
+
+행렬 A 가 양의 정부호(positive definite) 대칭행렬이면, 
+
+이 행렬은 U'U 로 나누어진다.
+
+여기서 U 는 양의 대각원소를 갖는 위삼각행렬(upper triangle) 이며, 
+
+이와같은 분해를 **콜레스키 분해(Cholesky decomposition)** 라고 한다.
+
+<br/>
+
+R 은 콜레스키 분해를 계산하는 함수 chol() 을 제공한다. 
+
+U <- chol(A)
+
+입력변수인 A 는 n * n 행렬이며, 출력변수 U 는 A = U'U 를 만족하는 n * n 위삼각행렬이다.
+
+```{r}
+A <- matrix(c(4,2,-2,2,10,2,-2,2,5), ncol=3)
+U <- chol(A)
+U
+t(U) %*% U
+A
+```
+
+<br/>
+----------
+
+<h3> 4.4.13 QR 분해 </h3>
+
+계수가 p 인 n x p 행렬 A 가 존재할때, 
+
+행렬 A 는 Q 와 R 의 곱으로 분해될 수 있다. 
+
+이때, Q 는 차수가 n x p 인 직교행렬이며, 
+
+R 은 차수가 p x p 인 위삼각행렬이다. 
+
+> A = QR
+
+**QR 분해 (QR decomposition)**
+
+R 언어에서 QR 분해를 위한 함수 qr(), qr.Q(), qr.R() 등을 제공한다. 
+
+```{r}
+A <- matrix(c(1,1,1,1,1,2,2,1,2,3,1,6),ncol=3)
+r <- qr(A) # QR 분해 결과리스트 반환
+qr.Q(r) # 직교행렬 Q 반환
+qr.R(r) # 위삼각행렬 R 반환
+qr.Q(r) %*% qr.R(r) # A = QR
+```
+
+QR 분해는 **최소제곱추정치**를 구할때 유용하다. 
+
+즉, A 가 n x p 행렬이고, 계수(rank) 가 p 이면 
+
+직교행렬의 특성 Q'Q = I 을 이용해,
+
+연립방정식체계 Ax = h 의 해를 아래처럼 구할 수 있다. 
+
+> x = R<sup>-1</sup> Q' h
+
+```{r}
+Q <- qr.Q(r) # 직교행렬
+R <- qr.R(r) # 위삼각행렬
+h <- matrix(c(3,-4,2,1), ncol=1) # 상수행렬 h 생성
+
+Q
+R
+h
+solve(R) %*% t(Q) %*% h 
+```
+
+또한, R 언어에서는 Ax = h 해를 쉽게 구할 수 있는 함수 qr.solve()를 제공하며,
+
+입력된 행렬 A 를 QR 분해한 후, R<sup>-1</sup>Q'h 의 연산을 수행한다. 
+
+qr.solve(A,h)
+
+```{r}
+A <- matrix(c(1,1,1,1,1,2,2,1,2,3,1,6), ncol=3)
+h <- matrix(c(3,-4,2,1), ncol=1) # 상수행렬 
+qr.solve(A,h) # 해 도출
+```
+
+<br/>
+----------
+
+<h3> 4.4.14 특이값 분해 </h3>
+
+n x p 행렬 A 일때, 
+
+> A = UDV'
+
+이와 같은 분해를 **특이값 분해 (singular value decomposition) 또는 SVD 분해** 라고 한다. 
+
+U 좌측 특이행렬 n x n 
+V 우측 특이행렬 p x p 
+D 대각행렬, 주 대각선의 값 모두 양의 실수 n x p
+
+고유값분해  vs  SVD 분해
+
+고유값분해는 정방행렬만 가능, 
+SVD 분해는 모든행렬을 분해할 수 있다.
+
+A 행렬이 양의 정부호 대칭행렬일 경우 A 고유값분해 = A 특이값분해 
+
+(양의 정부호란 det()값을 말하는 것인듯?)
+
+```{r}
+A <- matrix(c(5,2,-3,2,6,3,-5,2,1), ncol=3, byrow=T)
+det(A)
+A
+svd(A)
+eigen(A)
+```
+
+양의 정부호 대칭행렬을 사용할때, 고유값분해 = SVD 분해 인지 확인해보자.
+
+```{r}
+A <-matrix(c(4,2,-2,2,10,2,-2,2,5), ncol=3)
+det(A)
+svd(A)
+eigen(A)
+```
+<br/>
+----------
+
+<h3> 4.4.15 벡터 및 행렬 노옴 </h3>
+
+노움(norm) 이란 일반적으로 벡터나 행렬의 크기(size)나 길이(length)를 말한다.
+
+방향은 가지지 않아서 양수값이다. 
+
+노옴을 구하는 5가지 방법 
+
+**1. 열 합의 절대 최대값 (maximum absolute colum sum)** 
+: 열 원소 합의 최대값
+
+**2. 행 합의 절대 최대값 (maximum absolute row sum)**
+
+**3. 최대 모듈러스(maximum modulus)**
+: 모든 원소의 최대 모듈러스를 노옴으로 한다.  
+
+**4. 유클리드 노옴(Euclidean norm) 또는 프로베니우스 노옴(Frobenius norm)**
+: 모든 원소 제곱합의 제곱근을 노옴으로 한다.
+
+**5. 스펙트럼 노옴(spectral norm) 또는 2-노옴(2-norm)**
+: 특이값(singular value) 중 최대값
+
+? 모듈러스 
+
+실함수(real function)영역에서 최대 모듈러스 = 절대 최대값 인데 반해,
+
+복소함수로 확장되면, 최대 모듈러스 = 최대 절대값 원리
+
+ex) 복소함수 z = a + bi => 최대 모듈러스 |z| = root(a<sup>2</sup> + b<sup>2</sup>)
+
+
+norm(v, type=c("O","I","F","M","2"))
+
+type 은 순서대로 
+
+"O" 열합의 최대값, "I" 행합의최대값, "F" 유클리드노옴, "M" 최대모듈러스, "2" 스펙트럼노옴
+
+```{r}
+v <- matrix(c(2,4,4), nrow=1)
+v
+norm(v, "F")
+```
