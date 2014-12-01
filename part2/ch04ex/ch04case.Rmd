@@ -1,0 +1,22 @@
+# case 1
+
+```{r}
+A <- matrix(c(1,-0.9, -1, 1), nrow=2)
+h <- matrix (c(50,40), nrow=2)
+solve(A,h)
+```
+
+
+# case 2
+
+```{r}
+A <- matrix(c(0.2, 0.4, 0.1, 0.3, 0.1, 0.3, 0.2, 0.2, 0.2), nrow=3)
+A
+I <- matrix(0, nrow=3, ncol=3)    # 0 matrix
+diag(I) <- 1    # identity matrix
+Tmat <- I-A
+Tmat
+d <- matrix(c(10,5,6), nrow=3)
+d
+solve(Tmat,d)
+```
