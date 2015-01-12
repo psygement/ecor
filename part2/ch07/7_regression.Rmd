@@ -344,25 +344,26 @@ $$ \hat{\beta}_LS = (X'X)^{-1}X'y$$
 ![fig](http://postfiles1.naver.net/20150111_32/swatpjs_1420969518490OKYJw_PNG/table7-2.png?type=w2)
 
 
-```
-
 > 7-5와 7-6 두문제 같이 풀어보고
 > 칠판에 써서 생각해 보면 좋을것 같습니다.
 
 <7-5>
 
-Birth.df<-read.table(file="C:\\Users\\Park\\Desktop\\coursera\\Birthrate.txt", header=T, row.names=1)
+```{r}
+Birth.df<-read.table(file="./Birthrate.txt", header=T, row.names=1)
 head(Birth.df,n=3)
 y<-Birth.df$birth
 x<-Birth.df[,c(2,3,4,5)]
 mls.res<-lsfit(x,y)
 ls.print(mls.res)
+```
 
 <7-6>
 
+```{r}
 lm.res<-lm(formula=birth~W.act+edu.spd+cru.div+rGDPgw,data=Birth.df)
 summary(lm.res)
-
+```
 
 
 

@@ -508,33 +508,74 @@ y와 입실론은 nX1 벡터, X는 n x (K+1)행렬
 <img src="http://postfiles3.naver.net/20150111_178/swatpjs_14209695182636lzxA_PNG/fig7-7.png?type=w2" alt="fig"/>
 <img src="http://postfiles1.naver.net/20150111_32/swatpjs_1420969518490OKYJw_PNG/table7-2.png?type=w2" alt="fig"/></p>
 
-<pre><code>
-&gt; 7-5와 7-6 두문제 같이 풀어보고
-&gt; 칠판에 써서 생각해 보면 좋을것 같습니다.
+<blockquote>
+<p>7-5와 7-6 두문제 같이 풀어보고
+칠판에 써서 생각해 보면 좋을것 같습니다.</p>
+</blockquote>
 
-&lt;7-5&gt;
+<p><7-5></p>
 
-Birth.df&lt;-read.table(file=&quot;C:\\Users\\Park\\Desktop\\coursera\\Birthrate.txt&quot;, header=T, row.names=1)
+<pre><code class="r">Birth.df&lt;-read.table(file=&quot;./Birthrate.txt&quot;, header=T, row.names=1)
 head(Birth.df,n=3)
-y&lt;-Birth.df$birth
+</code></pre>
+
+<pre><code>##      birth W.act edu.spd cru.div rGDPgw
+## 1971  4.54  39.5   8.339     0.3   10.4
+## 1972  4.14  39.6   9.927     0.4    6.5
+## 1973  4.10  41.5  10.202     0.4   14.8
+</code></pre>
+
+<pre><code class="r">y&lt;-Birth.df$birth
 x&lt;-Birth.df[,c(2,3,4,5)]
 mls.res&lt;-lsfit(x,y)
 ls.print(mls.res)
+</code></pre>
 
-&lt;7-6&gt;
+<pre><code>## Residual Standard Error=0.456
+## R-Square=0.7899
+## F-statistic (df=4, 36)=33.85
+## p-value=0
+## 
+##           Estimate Std.Err t-value Pr(&gt;|t|)
+## Intercept  10.2108  1.7463  5.8470   0.0000
+## W.act      -0.2064  0.0429 -4.8176   0.0000
+## edu.spd     0.2277  0.0639  3.5606   0.0011
+## cru.div    -0.5813  0.1991 -2.9197   0.0060
+## rGDPgw     -0.0067  0.0211 -0.3164   0.7535
+</code></pre>
 
-lm.res&lt;-lm(formula=birth~W.act+edu.spd+cru.div+rGDPgw,data=Birth.df)
+<p><7-6></p>
+
+<pre><code class="r">lm.res&lt;-lm(formula=birth~W.act+edu.spd+cru.div+rGDPgw,data=Birth.df)
 summary(lm.res)
+</code></pre>
 
+<pre><code>## 
+## Call:
+## lm(formula = birth ~ W.act + edu.spd + cru.div + rGDPgw, data = Birth.df)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.1522 -0.2219  0.0734  0.3066  0.8287 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 10.21078    1.74633    5.85  1.1e-06 ***
+## W.act       -0.20644    0.04285   -4.82  2.6e-05 ***
+## edu.spd      0.22769    0.06395    3.56   0.0011 ** 
+## cru.div     -0.58127    0.19909   -2.92   0.0060 ** 
+## rGDPgw      -0.00667    0.02107   -0.32   0.7535    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.456 on 36 degrees of freedom
+## Multiple R-squared:  0.79,   Adjusted R-squared:  0.767 
+## F-statistic: 33.8 on 4 and 36 DF,  p-value: 9.64e-12
+</code></pre>
 
+<p>###2. 최우 추정량</p>
 
-
-
-
-###2. 최우 추정량
-
-```r
-회귀모형의 계수들을 추정하는 다른 중요한 방법으로 최우법(rnaximum likelihood method) 을 들 수 있다. 비선형회귀모형의 계수들을 추정히는 데 그 중요성이 더욱 부각되는 이기법은 1920년대 초 피셔(R. A. Fisher)에 의해 소개되었으며， 1940년대 이후 그 이론이 본격적으로 이용되기 시작하여 오늘날 최소제곱법과 함께 중요한 추정기법이 되었다. 최소제곱법은 회귀계수 (베타 값들)의 추정값만을 제공하고 오차항의 분산 (시그마제곱) 의 추정값을 제공하지 못하였으나， 최우법은 이 추정값까지 제공해주는 장점이 있다. 반면에 최소제곱추정량이 바람직한 속성을 지니기 위해서 회귀모형을 위한 기본가정중 오7-1항의 분포에 대한 가정은 필요 없는데 반해 최우법을 사용하기 위해서는 오차항의 분포에 대한 기본가정이 요구되며 일반적으로 정규분포를 가정한다.
+<pre><code class="r">회귀모형의 계수들을 추정하는 다른 중요한 방법으로 최우법(rnaximum likelihood method) 을 들 수 있다. 비선형회귀모형의 계수들을 추정히는 데 그 중요성이 더욱 부각되는 이기법은 1920년대 초 피셔(R. A. Fisher)에 의해 소개되었으며， 1940년대 이후 그 이론이 본격적으로 이용되기 시작하여 오늘날 최소제곱법과 함께 중요한 추정기법이 되었다. 최소제곱법은 회귀계수 (베타 값들)의 추정값만을 제공하고 오차항의 분산 (시그마제곱) 의 추정값을 제공하지 못하였으나， 최우법은 이 추정값까지 제공해주는 장점이 있다. 반면에 최소제곱추정량이 바람직한 속성을 지니기 위해서 회귀모형을 위한 기본가정중 오7-1항의 분포에 대한 가정은 필요 없는데 반해 최우법을 사용하기 위해서는 오차항의 분포에 대한 기본가정이 요구되며 일반적으로 정규분포를 가정한다.
 </code></pre>
 
 <p>&lt;정규분포 가정&gt;이 필요합니다.</p>

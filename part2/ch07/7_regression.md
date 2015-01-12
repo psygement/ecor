@@ -355,25 +355,76 @@ $$ \hat{\beta}_LS = (X'X)^{-1}X'y$$
 ![fig](http://postfiles1.naver.net/20150111_32/swatpjs_1420969518490OKYJw_PNG/table7-2.png?type=w2)
 
 
-```
-
 > 7-5와 7-6 두문제 같이 풀어보고
 > 칠판에 써서 생각해 보면 좋을것 같습니다.
 
 <7-5>
 
-Birth.df<-read.table(file="C:\\Users\\Park\\Desktop\\coursera\\Birthrate.txt", header=T, row.names=1)
+
+```r
+Birth.df<-read.table(file="./Birthrate.txt", header=T, row.names=1)
 head(Birth.df,n=3)
+```
+
+```
+##      birth W.act edu.spd cru.div rGDPgw
+## 1971  4.54  39.5   8.339     0.3   10.4
+## 1972  4.14  39.6   9.927     0.4    6.5
+## 1973  4.10  41.5  10.202     0.4   14.8
+```
+
+```r
 y<-Birth.df$birth
 x<-Birth.df[,c(2,3,4,5)]
 mls.res<-lsfit(x,y)
 ls.print(mls.res)
+```
+
+```
+## Residual Standard Error=0.456
+## R-Square=0.7899
+## F-statistic (df=4, 36)=33.85
+## p-value=0
+## 
+##           Estimate Std.Err t-value Pr(>|t|)
+## Intercept  10.2108  1.7463  5.8470   0.0000
+## W.act      -0.2064  0.0429 -4.8176   0.0000
+## edu.spd     0.2277  0.0639  3.5606   0.0011
+## cru.div    -0.5813  0.1991 -2.9197   0.0060
+## rGDPgw     -0.0067  0.0211 -0.3164   0.7535
+```
 
 <7-6>
 
+
+```r
 lm.res<-lm(formula=birth~W.act+edu.spd+cru.div+rGDPgw,data=Birth.df)
 summary(lm.res)
+```
 
+```
+## 
+## Call:
+## lm(formula = birth ~ W.act + edu.spd + cru.div + rGDPgw, data = Birth.df)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.1522 -0.2219  0.0734  0.3066  0.8287 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 10.21078    1.74633    5.85  1.1e-06 ***
+## W.act       -0.20644    0.04285   -4.82  2.6e-05 ***
+## edu.spd      0.22769    0.06395    3.56   0.0011 ** 
+## cru.div     -0.58127    0.19909   -2.92   0.0060 ** 
+## rGDPgw      -0.00667    0.02107   -0.32   0.7535    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.456 on 36 degrees of freedom
+## Multiple R-squared:  0.79,	Adjusted R-squared:  0.767 
+## F-statistic: 33.8 on 4 and 36 DF,  p-value: 9.64e-12
+```
 
 
 
