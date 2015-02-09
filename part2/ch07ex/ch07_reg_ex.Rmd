@@ -1,43 +1,72 @@
 제 7장 회귀분석 연습문제
 ========================================================
 
+* 텍스트 : 응용 계량경제학 - R 활용 / 박범조
+* 발제자 : 김무성
+
+--------------------------------------------------------
+
 # 7-3
 
+![연습문제 7-3](figure/ex7.3.png)
+
+
+
+```{r}
+y <- c(-1, 1, 2, 4, 4, 5)
+x <- c(-2, 0, 1, 2, 3, 4)
+lm(y~x)
+res <- lm(y~x)
+summary(res)
+```
 
 ## (1)
 
 ```{r}
-
+mean(y)
+mean(x)
 ```
 
 ## (2)
 
 ```{r}
-
+res$coefficients[2]
 ```
 
 ## (3)
 
 ```{r}
-
+res$coefficients[1]
 ```
 
 ## (4)
 
 ```{r}
-
+res$residuals[4]
 ```
 
 ## (5)
 
 ```{r}
-
+sse <- res$residuals[4]
+sse
+n <- length(x)
+n
+sigma2 <- sse / (n - 2) 
+sigma2
+var_b1 <- sigma2 / sum((x - mean(x))*(x - mean(x)))
+var_b1
 ```
 
 ## (6)
 
 ```{r}
-
+sse <- res$residuals[4]
+sse
+sst <- sum((y - mean(y))*(y - mean(y)))
+sst
+r2 <- 1 - (sse / sst)
+r2
 ```
 
 ---------------------------------
@@ -45,107 +74,163 @@
 
 # 7-10
 
+![연습문제 7-10](figure/ex7.10.png)
+![연습문제 7-10-1](figure/ex7.10_1.png)
 
+
+```{r}
+ad <- read.table('./Ad.Cost.txt', header=T)
+head(ad)
+str(ad)
+summary(ad)
+```
 
 ## (1)
 
 ```{r}
-
+ad.res <- lm(Y~X, data=ad)
+summary(ad.res)
 ```
 
 ## (2)
 
-```{r}
+* 절편계수의 경우 계산된 p-값이 0.1보다 작으므로 Ho : ßo =0 은 기각되아 βo는 유의성이 있다. 
+* 기울기계수 역시 계산된 p-값이 0에 가까워 H1: ß1 =0 은 기각되며 β1 은 유의성이 있다.
 
-```
 
 ## (3)
 
 ```{r}
-
+confint(ad.res, level=0.9)
 ```
 
 ## (4)
 
 ```{r}
-
+confint(ad.res, level=0.95)
 ```
 
 ## (5)
 
-```{r}
-
-```
+* 결정계수는 0.7932
 
 ## (6)
 
 ```{r}
+names(ad.res$coefficients) <- c("results", "y") # 이건 꼼수.
+b0 <- ad.res$coefficients[1]
+b0
+b1 <- ad.res$coefficients[2]
+b1
+x <- 10
+x
+y <- b0 + (b1 * x)
+y
+```
 
+```{r}
+# 또는 predict 함수 사용
+predict(ad.res, data.frame(X = c(10)))
 ```
 
 ---------------------------------
 
 # 7-13
 
+![연습문제 7-13](figure/ex7.13.png)
 
 ## (1)
 
 ```{r}
-
+Key.df <- read.table(file='./Keynes.txt', header=T)
+head(Key.df)
+str(Key.df)
+summary(Key.df)
+# 실질 자료로 변환
+real.C <- (Key.df$C/Key.df$CPI*100)
+head(real.C)
+# 실질 자료로 변환
+real.Y <- (Key.df$Y/Key.df$CPI*100)
+head(real.Y)
+# 최소제곱추정(추세변수미포함)
+key.res <- lm(real.C ~ real.Y)
+summary(key.res)
+# 계수 추정치 출력
+coef(key.res)
+# 잔차 제곱합(SSE)
+resid(key.res)
+sum(resid(key.res)^2)
+# car 패키지 실행
+library(car)
+# 더비-왓슨 통계량 계산
+dwt(key.res)
 ```
+
+* 잔차제곱합은 6725024439, 
+* 더빈-왓슨 통계랑은 0.4345898 이다.
 
 ## (2)
 
 ```{r}
+t.sq <-(1:42)^2
+t.sq
+key.res.t <- lm(real.C ~ real.Y + t.sq)
+summary(key.res.t)
+coef(key.res.t)
+sum(resid(key.res.t)^2)
+dwt(key.res.t)
 
 ```
 
 ## (3)
 
-```{r}
-
-```
+* 추세변수를 포함한 모형의 잔차제곱의 합(6725024439)이 추세변수가 없는 모형의 잔차제곱합(7240595246)보다 작으므로 추세변수를 포함한 모형이 자료를 더 잘 적합하고 있음을 의미한다. 또한 더빈-핫슨 통계량의 추정치도 추세변수를 포함하 면서 0.3653292에서 0.4345898로 2에 보다 가깝게 되어 필요한 변수의 누락으로 인해 발생되는 자기상관이 다소 완화됨을 알 수 있다. 결과적으로 추세변수를 포함한 모형 이 더 적합하다.
 
 ## (4)
 
 ```{r}
-
+AIC(key.res)
+AIC(key.res.t)
 ```
 
+* 추세변수를 포함한 모형의 AIC( =920. 631)가 추세변수를 포함하지 않은 모 형의 AIC(=921.7334)보다 작으므로 추세변수를 포함한 모형이 더 적합하다.
 
 ---------------------------------
 
 # 7-14
 
-
+![연습문제 7-14](figure/ex7.14.png)
 
 ## (1)
 
 ```{r}
-
+Package <- read.table('./Delivery.txt', header=T)
+head(Package)
+summary(Package)
+p.res <- lm(Cost ~ Weight + Distance, data = Package)
+summary(p.res)
 ```
 
 ## (2)
-
-```{r}
-
-```
+* 결정계수는 0.9064
+* 조정된 결정계수는 0.8953
 
 ## (3)
 
-```{r}
-
-```
+* 검정통계량은 t17 = b2/ Sb = 40.758/4.804 = 8.484이며 계산된 p-값이 0에 가까우므로 결정규칙에 의해 페를 기각한다. 소포의 배달거리 변수는 통계적으로 유의성이 존재 한다.
 
 ## (4)
 
-```{r}
-
-```
+* H0 : 회귀식이 통계적으로 유의하지 않다. 
+* H1 : 회귀식이 통계적으로 유의하다.
+* 검정통계량은 F=82.28이며 계산된 p-값이 0에 가까우므로 결정규칙에 의해 페는 기각된다. 모든 독립변수의 모임이 소포의 배달비용에 유의성 있게 영향을 준다.
 
 ## (5)
 
 ```{r}
-
+residuals <- resid(p.res)
+yhat <- predict(p.res, interval="none")
+plot(x=yhat, y=residuals, col="blue", lwd=2, main=expression(list("Scater Plot of"~~e[i]~~and~~widehat(y[i]))))
 ```
 
+* 위의산포도를보면두변수사이에어떤함수관계가존재한다고판단할 수 있으므로 다중회귀모형에 대한 동분산 가정에 위배된다고 판단할 수 있다. 보다 정확한 판단을 위해서는 BPG 검정통계량을 계산해볼 펼요가 있다.
