@@ -1,0 +1,63 @@
+
+body{
+    color: #141516;
+    font-family: '나눔고딕','맑은 고딕',serif;
+    font-size: 2em;
+    line-height: 2.2em;
+    background-color: #A8987D;
+}
+
+div#t1{
+    font-family: '배달의민족 한나','나눔고딕','맑은 고딕',serif;
+    color: #171E2C;
+    text-align: center;
+    font-size: 2.6em;
+    line-height: 1.2em;
+    margin : 10px;
+}
+
+div#t2{
+    font-family: '배달의민족 한나','나눔고딕','맑은 고딕',serif;
+    color: #171E2C;
+    font-size: 2.2em;
+    line-height: 1.3em;
+    margin : 10px;
+}
+
+div#goal_ex{
+    font-family: '배달의민족 한나','나눔고딕','맑은 고딕',serif;
+    color: #171E2C;
+    font-size: 1.3em;
+    text-align: center;
+}
+
+div#ex_block{
+    width: auto;
+    background-color: #D9CEBB;
+    border: 2px solid #F0E9DA;
+    padding: 3%;
+    border-radius: 10px;
+    word-wrap: break-word;
+    margin-bottom: 12px;
+    margin-top: 12px;
+
+}
+
+div#res{
+    font-family: '배달의민족 한나','나눔고딕','맑은 고딕',serif;
+    color: #A82410;
+    font-size: 2.2em;
+    line-height: 1.3em;
+    margin : 10px;
+    margin-top: 20px;
+}
+hr#res{
+    color : #A82410;
+    size : 3px;
+}
+
+hr#line{
+    size : 3px;
+    color: #A8987D;
+
+}}
