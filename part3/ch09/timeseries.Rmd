@@ -7,6 +7,8 @@ output:
 ---
 
 ```{r}
+options(warn=-1)
+
 AR.ts <- scan(file="AR.ex.txt")
 plot(AR.ts,type="l")
 acf(AR.ts)

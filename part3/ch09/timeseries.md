@@ -3,6 +3,8 @@ Sangyeol_lee
 
 
 ```r
+options(warn=-1)
+
 AR.ts <- scan(file="AR.ex.txt")
 plot(AR.ts,type="l")
 ```
@@ -208,26 +210,8 @@ library(TTR)
 ```
 
 ```
-## Warning: package 'TTR' was built under R version 3.1.2
-```
-
-```
 ## Loading required package: xts
-```
-
-```
-## Warning: package 'xts' was built under R version 3.1.2
-```
-
-```
 ## Loading required package: zoo
-```
-
-```
-## Warning: package 'zoo' was built under R version 3.1.3
-```
-
-```
 ## 
 ## Attaching package: 'zoo'
 ## 
@@ -265,18 +249,7 @@ legend(1975,170,legend=c("original","0.4E","0.7E"),lty=c(1,2,6),col=c("black","r
 
 ```r
 library(tseries)
-```
-
-```
-## Warning: package 'tseries' was built under R version 3.1.2
-```
-
-```r
 adf.test(imp.ts)
-```
-
-```
-## Warning in adf.test(imp.ts): p-value greater than printed p-value
 ```
 
 ```
@@ -322,13 +295,6 @@ adf.test(resid(lm.res))
 
 ```r
 library(tsDyn)
-```
-
-```
-## Warning: package 'tsDyn' was built under R version 3.1.2
-```
-
-```r
 VECM.res<-VECM(DowKos,lag=2,include="const",estim="2OLS")
 summary(VECM.res)
 ```
@@ -364,47 +330,11 @@ library(vars)
 ```
 
 ```
-## Warning: package 'vars' was built under R version 3.1.2
-```
-
-```
 ## Loading required package: MASS
-```
-
-```
-## Warning: package 'MASS' was built under R version 3.1.2
-```
-
-```
 ## Loading required package: strucchange
-```
-
-```
-## Warning: package 'strucchange' was built under R version 3.1.2
-```
-
-```
 ## Loading required package: sandwich
-```
-
-```
-## Warning: package 'sandwich' was built under R version 3.1.2
-```
-
-```
 ## Loading required package: urca
-```
-
-```
-## Warning: package 'urca' was built under R version 3.1.2
-```
-
-```
 ## Loading required package: lmtest
-```
-
-```
-## Warning: package 'lmtest' was built under R version 3.1.2
 ```
 
 ```r
@@ -515,13 +445,6 @@ summary(joh.test)
 
 ```r
 library(FinTS)
-```
-
-```
-## Warning: package 'FinTS' was built under R version 3.1.2
-```
-
-```r
 ex.returns<-scan("Ex.returns.txt")
 for(i in c(2,5,10)) print(ArchTest(ex.returns,lags=i))
 ```
@@ -548,10 +471,6 @@ for(i in c(2,5,10)) print(ArchTest(ex.returns,lags=i))
 
 ```r
 library(rugarch)
-```
-
-```
-## Warning: package 'rugarch' was built under R version 3.1.2
 ```
 
 ```
@@ -662,7 +581,7 @@ arch2
 ## 4    50    107.28    3.070e-06
 ## 
 ## 
-## Elapsed time : 0.789979
+## Elapsed time : 0.7732031
 ```
 
 ```r
@@ -767,7 +686,7 @@ egarch.res
 ## 4    50     71.71    0.0188649
 ## 
 ## 
-## Elapsed time : 0.2825649
+## Elapsed time : 0.3240042
 ```
 
 ```r
@@ -872,7 +791,7 @@ gjrgarch.res
 ## 4    50     69.83     0.026876
 ## 
 ## 
-## Elapsed time : 0.267837
+## Elapsed time : 0.2870491
 ```
 
 ```r
