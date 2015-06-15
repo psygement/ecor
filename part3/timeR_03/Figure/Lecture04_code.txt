@@ -1,0 +1,921 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\input{../template_lecture.Rnw}
+\begin{document}
+\SweaveOpts{concordance=TRUE, keep.source=TRUE}
+<<echo=FALSE>>=
+options(width=60)
+@
+
+\title{제4강: R 그래픽 및 차트 기능}
+\subtitle{금융 통계 및 시계열 분석}
+\author{TRADE INFORMATIX}
+\date{2014년 1월 17일}
+\maketitle
+
+\begin{frame}[fragile]
+\frametitle{Outline}
+\tableofcontents
+\end{frame}
+
+
+\section{R 그래픽 관련 참고 자료}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 그래픽 관련 참고 자료}
+  \begin{itemize}
+    \item \url{https://www.stat.auckland.ac.nz/~paul/Talks/Rgraphics.pdf}
+    \item \url{http://www.statmethods.net/advgraphs/}
+    \item \url{http://rgraphics.limnology.wisc.edu/}
+    \item \url{http://www.stat.tamu.edu/~jkim/Rfigurelayout.pdf}
+    \item \url{http://www.stat.tamu.edu/~jkim/Rlinestyle.pdf}
+    \item \url{http://www.stat.tamu.edu/~jkim/Rcolorstyle.pdf}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+
+\section{R 그래픽 구조}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 그래픽 구조}
+  \begin{itemize}
+    \item device, figure, plot 의 3단계 구조
+    \item figure는 그리드 형태로 여러개의 plot을 가질 수 있음
+  \end{itemize}
+  \begin{center}
+  \includegraphics[width=0.5\textwidth, height=0.9\textheight]{rplotsize.png}
+  \end{center}  
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 그래픽 구조 (계속)}
+  \begin{tcolorbox}\scriptsize
+<<fig1, eval=FALSE>>=
+plot(0:10, 0:10, type="n", xlab="X", ylab="Y")
+text(5, 5, "plot area", col="red")
+box("plot", col="red") 
+mtext("Figure", SOUTH<-1, line=3, adj=1.0)
+box("figure", col="blue")
+@
+  \end{tcolorbox}  
+  \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=6,height=4>>=
+<<fig1>>
+@  
+  \end{center}  
+\end{frame}
+%===============================================================================
+
+
+
+\section{디바이스}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{디바이스}
+  \begin{itemize}
+    \item 디바이스(Device) 
+    \begin{itemize}
+      \item 그래픽 처리를 위한 드라이버
+      \item pdf, postscript, xfig, bitmap, pictex, X11, svg, png, jpeg, bmp, tiff 등
+      \item R은 유한개의 디바이스를 오픈하고 
+            한번에 한개의 디바이스를 선택하여 사용
+    \end{itemize}
+    \item 관련 명령어
+    \begin{itemize}
+      \item {\tt dev.cur()} : 현재 선택된 디바이스
+      \item {\tt dev.list()} : 현재 열려있는 디바이스
+      \item {\tt dev.set()} : 디바이스 선택
+      \item {\tt dev.off()} : 현재 선택된 디바이스를 닫음
+      \item {\tt dev.next()} : 현재 열려있는 디바이스 중 다음 디바이스
+      \item {\tt dev.prev()} : 현재 열려있는 디바이스 중 이전 디바이스
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 그래픽의 파일 저장 방법}
+  \begin{enumerate}
+    \item 저장하려는 그래픽 포맷에 대한 디바이스와 파일을 오픈
+    \begin{itemize}
+      \item {\tt bmp(filename, width, height, units, pointsize, bg, antialias)}
+      \item {\tt jpeg(filename, width, height, units, pointsize, bg, antialias, quality)}
+      \item {\tt png(filename, width, height, units, pointsize, bg, antialias)}
+      \item {\tt tiff(filename, width, height, units, pointsize, bg, antialias, compression)}
+    \end{itemize}
+    \item 차트 작업
+    \item {\tt dev.off()}로 선택된 디바이스 닫음
+  \end{enumerate}
+\end{frame}
+%===============================================================================
+
+\section{그래픽 설정}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{그래픽 파라미터 설정}
+  \begin{itemize}
+    \item 그래픽 파라미터 설정 방법은 두가지가 있다.
+    \begin{enumerate}
+      \item {\tt plot()}, {\tt lines()} 등의 플롯 명령의 인수로 넣는 방법
+      \item {\tt par()} 명령으로 외부에서 설정하는 방법
+    \end{enumerate}
+    \item {\tt par()} 설정은 이후의 모든 그래픽에 적용되므로 
+          기존 설정을 저장할 필요가 있는 경우 오브젝트에 저장 
+    \item 그래픽이 그려진 다음에는 {\tt par()} 명령이 효과 없음
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<eval=FALSE>>=
+old.par <- par()
+par(old.par)
+@
+  \end{tcolorbox}  
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{par() 명령으로 설정 가능한 파라미터 1}
+  \begin{center}
+    \begin{tabularx}{\textwidth}{|lX|lX|}
+    \toprule
+    이름 & 의미 & 이름 & 의미   \\ 
+    \midrule
+    {\tt din} &  device 크기 (inch)  & {\tt omi} & device 마진 (inch)  \\
+    {\tt fin} &  figure 크기 (inch)  & {\tt oma} & device 마진 (line)  \\
+    {\tt pin} &  picture 크기 (inch) & {\tt omd} & device 마진 (device fraction)  \\
+    {\tt mgp} &  축 마진 (line))     & {\tt mai} & figure 마진 (inch)  \\
+    {\tt }    &                      & {\tt mar} & figure 마진 (line)  \\
+    \midrule
+    {\tt mfrow} & figure 그리드 설정 & {\tt mfg} & figure 그리드내 위치 지정  \\
+    \midrule
+    {\tt col}     & 플롯 색상   & {\tt cex}     & 글자 및 심볼 확대배율  \\
+    {\tt col.axis}& 축 색상     & {\tt cex.axis}& 축 확대배율 \\
+    {\tt col.lab} & 라벨 색상   & {\tt cex.lab} & 라벨 확대배율  \\
+    {\tt col.main}& 제목 색상   & {\tt cex.main}& 제목 확대배율  \\
+    {\tt col.sub} & 부제목 색상 & {\tt cex.sub} & 부제목 확대배율   \\
+    {\tt fg} & foreground 색상  & {\tt crt} & 글자 회전 각도 \\
+    {\tt bg} & background 색상  & {\tt cra} & 글자크기 (픽셀단위) \\
+    \bottomrule
+    \end{tabularx}
+  \end{center} 
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{par() 명령으로 설정 가능한 파라미터 2}
+  \begin{center}
+    \begin{tabularx}{\textwidth}{|lX|}
+    \toprule
+    이름 & 의미   \\ 
+    \midrule
+    {\tt new} & TRUE면 plot명령이 나와도 앞서 그림을 지우지 않음 \\
+    \midrule
+    {\tt pty} & 플롯 영역 스타일. 's'(정사각형) 'm'(최대 크기) \\
+    \midrule
+    {\tt lty}   & line type. "solid", "dashed", "dotted", "dotdash", "longdash" \\
+    {\tt lwd}   & line width. 디폴트 1  \\
+    {\tt lend}  & line end style.  "round", "butt", "square"  \\
+    {\tt ljoin} & line join style. "round", "mitre", "bevel"  \\
+    \midrule
+    {\tt pch}   &  심볼 정의 (0:18 정수) \\
+    \midrule
+    {\tt font}     & font       \\
+    {\tt font.axis}& 축 font    \\
+    {\tt font.lab} & 라벨 font  \\
+    {\tt font.main}& 제목 font  \\
+    {\tt font.sub} & 부제목 font\\
+    \midrule
+    {\tt las}  & 축 라벨 스타일. 0(축에 평행), 1(수평), 2(축에 수직), 3(수직) \\
+    {\tt xaxt} & x 축 유형. 's' 표준, 'n' 축없음  \\
+    {\tt xlog} & x 축 로그 스케일 사용 여부 (TRUE면 로그)\\
+    \bottomrule
+    \end{tabularx}
+  \end{center} 
+\end{frame}
+%===============================================================================
+
+\section{차트 종류별 기능}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{차트 종류별 기능}
+  \begin{itemize}
+    \item R 에서 기본적으로 지원하는 차트/플롯 종류
+      \begin{itemize}
+        \item Bar chart
+        \item Pie chart
+        \item Line chart
+        \item Scatter plot
+        \item Pairs plot
+        \item Box plot
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{Bar 차트}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Bar 차트}
+  \begin{itemize}
+    \item {\tt barplot(height, names)}
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<fig_bar1,results=hide>>=
+category <- month.abb
+value <- c(3,7,4,1,8,4,5,8,2,3,4,9)
+barplot(value, names=category)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=10,height=5>>=
+<<fig_bar1>>
+@  
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Stacked Bar 차트}
+  \begin{itemize}
+    \item data가 matrix이면 자동으로 stacked bar 차트
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<fig_bar2,results=hide>>=
+data <- matrix(as.vector(mdeaths), ncol=12)
+barplot(data, names=month.abb, col=palette("default"))
+@
+  \end{tcolorbox}
+  \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=10,height=5>>=
+<<fig_bar2>>
+@  
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Grouped Bar 차트}
+  \begin{itemize}
+    \item {\tt plot} 에서 {\tt beside=TRUE} 설정
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<fig_bar3,results=hide>>=
+data <- matrix(as.vector(mdeaths), nrow=12, byrow=TRUE)
+barplot(data, names=start(mdeaths)[1]:end(mdeaths)[1], beside=TRUE, col=palette("default"))
+@
+  \end{tcolorbox}
+  \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=10,height=5>>=
+<<fig_bar3>>
+@  
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Horizontal Bar 차트}
+  \begin{itemize}
+    \item {\tt horiz=TRUE}
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<fig_bar4,results=hide>>=
+category <- month.abb
+value <- c(3,7,4,1,8,4,5,8,2,3,4,9)
+barplot(value, names=category, horiz=TRUE)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=10,height=7>>=
+<<fig_bar4>>
+@  
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{Pie 차트}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Pie 차트}
+  \begin{itemize}
+    \item {\tt pie(data, labels, radius, clockwise, init.angle)}
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<fig_pie1,results=hide>>=
+category <- month.abb
+value <- c(3,7,4,1,8,4,5,8,2,3,4,9)
+pie(value, labels=category)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=10,height=8>>=
+<<fig_pie1>>
+@  
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{Line 차트}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Line 차트}
+  \begin{itemize}
+    \item {\tt plot(x, y, type)} 명령
+    \item {\tt type} 인수는 라인 유형 결정 
+    \begin{itemize}
+      \item {\tt type='p'} : 포인트만 그림
+      \item {\tt type='l'} : 라인만 그림
+      \item {\tt type='b'} : 포인트와 라인 모두(both) 그림 (겹치지 않음)
+      \item {\tt type='o'} : 포인트와 라인을 겹쳐서 그림 (overplotted)
+      \item {\tt type='c'} : both 유형에서 포인트 제외
+      \item {\tt type='n'} : 실제 라인/포인트는 그리지 않음
+      \item {\tt type='s'} : 계단형 스텝 (zero-order-hold)
+      \item {\tt type='S'} : 계단형 스텝 (backward zero-order-hold)
+      \item {\tt type='h'} : 히스토그램 스타일
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Line 차트 유형 1}
+<<fig_plot_setup, eval=FALSE, echo=FALSE>>=
+x <- AirPassengers[-(1:100)]
+@
+  \begin{columns}[c]
+    \column{0.48\textwidth}
+<<fig=TRUE,echo=TRUE,width=7,height=5>>=
+<<fig_plot_setup>>
+plot(x, type='l', lty=1)
+@
+\\
+<<fig=TRUE,echo=TRUE,width=7,height=5>>=
+<<fig_plot_setup>>
+plot(x, type='p', lty=1)
+@
+    \column{0.48\textwidth}
+<<fig=TRUE,echo=TRUE,width=7,height=5>>=
+<<fig_plot_setup>>
+plot(x, type='b', lty=1)
+@
+\\
+<<fig=TRUE,echo=TRUE,width=7,height=5>>=
+<<fig_plot_setup>>
+plot(x, type='o', lty=1)
+@
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Line 차트 유형 2}
+  \begin{columns}[c]
+    \column{0.48\textwidth}
+<<fig=TRUE,echo=TRUE,width=7,height=5>>=
+<<fig_plot_setup>>
+plot(x, type='s', lty=1)
+@
+\\
+<<fig=TRUE,echo=TRUE,width=7,height=5>>=
+<<fig_plot_setup>>
+plot(x, type='S', lty=1)
+@
+    \column{0.48\textwidth}
+<<fig=TRUE,echo=TRUE,width=7,height=5>>=
+<<fig_plot_setup>>
+plot(x, type='c', lty=1)
+@
+\\
+<<fig=TRUE,echo=TRUE,width=7,height=5>>=
+<<fig_plot_setup>>
+plot(x, type='h', lty=1)
+@
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\subsection{Scatter Plot}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Scatter Plot}
+  \begin{itemize}
+    \item 두 개의 시계열이 있는 경우 상관도를 보기 위한 차트
+    \item {\tt plot(x, y, type='p')}
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<fig,results=hide>>=
+plot(trees$Height, trees$Volume)
+@
+  \end{tcolorbox}  
+  \begin{center}  
+<<fig=TRUE,echo=FALSE,results=hide,width=10,height=7>>=
+<<fig>>
+@  
+  \end{center}  
+\end{frame}
+%===============================================================================
+
+\subsection{Pair Plot}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Pair Plot}
+  \begin{itemize}
+    \item 두 개 이상의 시계열이 있는 경우 상관도를 보기 위한 차트
+    \item {\tt pairs(data.frame)}
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<fig,results=hide>>=
+plot(trees)
+@
+  \end{tcolorbox}  
+  \begin{center}  
+<<fig=TRUE,echo=FALSE,results=hide,width=10,height=7>>=
+<<fig>>
+@  
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{Box Plot}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Box Plot}
+  \begin{itemize}
+    \item Box plot 또는 Box-Whisker plot
+    \begin{itemize}
+      \item center line : 중간값(median)
+      \item box : 1st quartile, 3rd quartile
+      \item whisker : +/- 1.5 IQR (Inter-quartile range, IQR = Q3 - Q1)
+      \item circle : whisker 밖의 아웃라이어(outlier)
+    \end{itemize}
+  \end{itemize}
+  \begin{center}
+  \includegraphics[width=0.5\textwidth, height=0.7\textheight]{Boxplot.png}
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Box Plot 예}
+  \begin{columns}[c]
+    \column{0.48\textwidth}
+      \begin{tcolorbox}\footnotesize
+<<fig>>=
+trees
+boxplot(trees)
+@
+      \end{tcolorbox}  
+    \column{0.48\textwidth}
+      \begin{center}  
+<<fig=TRUE,echo=FALSE,results=hide,width=6,height=10>>=
+<<fig>>
+@  
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\subsection{QQ Plot}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{QQ Plot}
+  \begin{itemize}
+    \item 정규분포 혹은 특정 샘플집합과의 Quantile-Quantile plot
+    \item 동일한 quantile 값을 가지는 값을 양쪽 집합에서 구해서 x,y 값으로 사용
+    \item normality/skewness/kurtisis 등을 한 눈에 파악
+    \begin{itemize}
+      \item {\tt qqnorm(y)} : 정규 분포와 qq 비교  
+      \item {\tt qqplot(x, y)} : 일반 샘플집합과 qq 비교
+      \item {\tt qqline(y)} : QQ plot 기준선 추가    
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{QQ Plot 예}
+  \begin{columns}[c]
+    \column{0.48\textwidth}
+      \begin{tcolorbox}\footnotesize
+<<fig>>=
+y <- rt(200, df = 5)
+qqnorm(y); qqline(y, col = 2)
+@
+      \end{tcolorbox}  
+      or, 
+      \begin{tcolorbox}\footnotesize
+<<fig, eval=FALSE>>=
+qqplot(y, rt(300, df = 5))
+@
+      \end{tcolorbox}  
+    \column{0.48\textwidth}
+      \begin{center}  
+<<fig=TRUE,echo=FALSE,results=hide,width=6,height=10>>=
+<<fig>>
+@  
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\section{R 그래픽 Annotation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 그래픽 Annotation}
+  \begin{itemize}
+    \item annotation 명령어는 추가적인 선/점/문자 등을 그리는 명령
+    \item 여러 유형의 차트가 합쳐진 복합차트, 여러개의 축을 가지는 차트,
+          혹은 화살표나 설명을 가진 차트 등을 생성할 때 사용
+    \item 내부적으로 {\tt plot.new()}를 호출하지 않으므로
+          사용하기 전에 이미 {\tt plot()}, {\tt bar()} 등 {\tt plot.new()}를
+          호출하는 명령이 실행되어 플롯 영역이 존해해야 한다.
+      \begin{itemize}
+        \item {\tt lines} : 라인 플롯
+        \item {\tt points} : 점 플롯 
+        \item {\tt symbol} : 특수문자
+        \item {\tt text} : 문자
+        \item {\tt abline} : 직선
+        \item {\tt arrows} : 화살표
+        \item {\tt rect} : 사각형
+        \item {\tt polygon} : 다각형
+        \item {\tt qqline} : QQ plot 기준선 
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 그래픽 Annotation 예}
+  \begin{columns}[c]
+    \column{0.55\textwidth}
+      \begin{tcolorbox}\footnotesize
+<<fig>>=
+plot(cars, main="Car Performances",
+     sub="Speed and Stopping Distance",
+     xlab="speed", ylab="stopping distance")
+arrows(cars$speed[10], cars$dist[10],
+       cars$speed[10] + 8, cars$dist[10])
+text(cars$speed[10] + 8, cars$dist[10],
+     labels="10th point", pos=4)
+@
+      \end{tcolorbox}  
+    \column{0.45\textwidth}
+      \begin{center}  
+<<fig=TRUE,echo=FALSE,results=hide,width=5,height=6>>=
+<<fig>>
+@  
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\section{R 그래픽 추가 설정}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 그래픽 추가 설정}
+  \begin{itemize}
+    \item plot 명령 인수
+      \begin{itemize}
+        \item {\tt main} : 타이틀 캡션
+        \item {\tt sub} : 서브 타이틀 캡션
+        \item {\tt xlab} : x 축 라벨 캡션
+        \item {\tt ylab} : y 축 라벨 캡션
+      \end{itemize}    
+    \item 외부 명령어 
+      \begin{itemize}
+        \item {\tt title} : 타이틀
+        \item {\tt legend} : 레전드
+        \item {\tt box} : 플롯 경계 상자 
+        \item {\tt axes} : 축
+        \item {\tt mtext} : 마진 문자 (플롯 경계 바깥)
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{축 범위와 틱 설정}
+  \begin{itemize}
+    \item 축 범위는 plot 명령의 인수로 설정
+    \begin{itemize}
+      \item {\tt xlim} : x 축 최대/최소값 범위 설정
+      \item {\tt ylim} : y 축 최대/최소값 범위 설정
+      \item {\tt axis(side, at, labels, tick)}
+    \end{itemize}
+    \item {\tt axis(side, at, labels, tick)} : 축 생성 및 틱 설정
+      \begin{itemize}
+        \item {\tt side} : 축 위치 (1=아래, 2=왼쪽, 3=위 and 4=오른쪽)
+        \item {\tt at} : 틱 위치
+        \item {\tt labels} : 틱 라벨
+      \end{itemize}    
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{축 설정 예}
+  \begin{columns}[c]
+    \column{0.55\textwidth}
+      \begin{tcolorbox}\footnotesize
+<<fig>>=
+x <- c(1:10)
+y <- x
+z <- 10/x
+plot(x, y, type="b", yaxt="n",
+     pch=21, col="red", lty=3)
+lines(x, z, type="b", pch=22, col="blue")
+axis(2, at=x, labels=x, col.axis="red")
+axis(4, at=z, labels=round(z,digits=2))
+@
+      \end{tcolorbox}  
+    \column{0.45\textwidth}
+      \begin{center}  
+<<fig=TRUE,echo=FALSE,results=hide,width=5,height=6>>=
+<<fig>>
+@  
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\section{R 그래픽 레이아웃}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multiple Plot}
+  \begin{itemize}
+    \item 한 figure에 여러 개의 plot을 grid 형태로 넣는 multiple plot을 그리려면 
+          {\tt layout()} 명령어 사용
+    \item {\tt layout(mat, widths, heights)}
+    \begin{itemize}
+      \item {\tt mat} : 그리드 설정 명령어
+      \begin{itemize}
+        \item n x m 행렬을 넣으면 n x m 그리드 설정
+        \item 행렬 값은 0부터 최대 nm의 정수
+        \item 빈공간에는 0을 넣고 나머지는 1부터 순서대로 설정
+        \item 추후 {\tt plot.new()}를 실행하거나 이를 내부적으로 실행하는 명령을
+              사용하면 1로 설정된 영역부터 차례대로 그려짐
+      \end{itemize}
+      \item {\tt widths} : 폭 벡터. 그리드 셀의 상대적 크기 조정
+      \item {\tt heights} : 높이 벡터. 그리드 셀의 상대적 크기 조정
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multiple Plot의 예}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig>>=
+library("HSAUR2")
+layout(matrix(c(2, 0, 1, 3), 2, 2, byrow=T), 
+       c(2, 1), c(1, 2))
+plot(mortality ~ hardness, data=water, 
+     col=c("red", "blue"))
+hist(water$hardness)
+boxplot(water$mortality)
+@
+      \end{tcolorbox}  
+    \column{0.5\textwidth}
+      \begin{center}  
+<<fig=TRUE,echo=FALSE,results=hide,width=6,height=7>>=
+<<fig>>
+@  
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multiple Axes}
+  \begin{itemize}
+    \item 한 plot에 다른 스케일을 가지는 여러가지 자료를 그리려면 복수개의 축
+          (multiple axes)가 필요 
+    \item 다양한 plot 설명 명령어 및 annotation 명령어 필요
+    \item 생성 방법
+    \begin{enumerate}
+      \item {\tt par(mar)} 명령으로 마진을 넓게 설정
+      \item 축 스케일을 설정하기 위한 range 계산
+      \item {\tt axes=F} 인수로 축과 박스가 없는 플롯을 그림. 
+            필요하면 {\tt xlab=""} 등으로 라벨 생성을 막음
+            이 때 {\tt xlim}, {\tt ylim} 등의 인수로 축 스케일을 사용자가 고정 
+      \item 필요할 경우 추가 플롯 그림. 
+            이 때 {\tt lines()}과 같은 annotation 명령어는 그냥 사용 가능하지만
+            {\tt plot()}과 같이 새로운 플롯 영역을 생성하는 명령어를 사용할 때는
+            {\tt par(new=TRUE)} 명령으로 홀드시킨다.
+            마찬가지로 {\tt xlim}, {\tt ylim} 등의 인수로 축 스케일을 사용자가 고정
+      \item {\tt axes()} 명령으로 필요한 축을 생성
+      \item {\tt box()}  명령으로 필요한 경계박스 생성
+      \item {\tt mtext()} 명령으로 축 라벨을 생성
+    \end{enumerate}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multiple Axes의 예}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig>>=
+time <- seq(7000,3400,-200)
+pop <- c(200,400,450,500,300,100,400,700,830,1200,
+         400,350,200,700,370,800,200,100,120)
+grp <- c(2,5,8,3,2,2,4,7,9,4,4,2,2,7,5,12,5,4,4)
+med <- c(1.2,1.3,1.2,0.9,2.1,1.4,2.9,3.4,2.1,1.1,
+         1.2,1.5,1.2,0.9,0.5,3.3,2.2,1.1,1.2)
+
+par(mar=c(5, 12, 4, 4) + 0.1)
+
+plot(time, pop,
+     type="l", col="black", 
+     xlim=c(7000,3400), ylim=c(0,max(pop)), 
+     axes=F, xlab="", ylab="", main="")
+points(time, pop, pch=20, col="black")
+axis(2, ylim=c(0,max(pop)), col="black", lwd=2)
+mtext(2, text="Population", line=2)
+par(new=T)
+plot(time, med,
+     type="l", lty=2, lwd=2,
+     xlim=c(7000,3400), ylim=c(0,max(med)), 
+     axes=F, xlab="", ylab="", main="")
+points(time, med, pch=20)
+axis(2, ylim=c(0,max(med)), lwd=2, line=3.5)
+mtext(2, text="Median Group Size", line=5.5)
+par(new=T)
+plot(time, grp,
+     type="l", lty=3, lwd=2,
+     xlim=c(7000,3400), ylim=c(0,max(grp)), 
+     axes=F, xlab="", ylab="", main="")
+points(time, grp, pch=20)
+axis(2, ylim=c(0,max(grp)), lwd=2, line=7)
+mtext(2, text="Number of Groups", line=9)
+
+axis(1,pretty(range(time),10))
+mtext("cal BP",side=1,col="black",line=2)
+@
+      \end{tcolorbox}  
+    \column{0.5\textwidth}
+      \begin{center}  
+<<fig=TRUE,echo=FALSE,results=hide,width=8,height=9>>=
+<<fig>>
+@  
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\section{R 그래픽 패키지}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{추가적인 R 그래픽 패키지}
+  \begin{itemize}
+    \item \url{http://cran.r-project.org/web/views/Graphics.html} 참조
+    \item 일반 그래픽 패키지  
+      \begin{itemize}
+        \item grid 패키지 : base R의 그래픽 기능 강화
+        \item lattice 패키지 : S/plus 의 Trellis 패키지 R 구현
+        \item ggplot2 패키지 : Lelend Wilkinson 문법 구현
+      \end{itemize}
+    \item interactive 그래픽 (rstudio 서버 버전에서 사용 불가) 
+      \begin{itemize}
+        \item rggobi 
+        \item iplots
+      \end{itemize}
+    \item 특화된 그래픽 패키지
+      \begin{itemize}
+        \item orderbook : limit order book  
+        \item rgl : openGL 3d graphics
+        \item visreg : regression models
+        \item vcd, vcdExtra : categorical data
+        \item rCharts : javascript rendering 
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+
+\subsection{grid 패키지}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{grid 패키지}
+  \begin{itemize}
+    \item R base의 low-level 그래픽 기능을 재구성
+    \item {\tt viewport}와 {\tt object} 기반
+    \item {\tt viewport}
+      \begin{itemize}
+        \item R base figure에 해당하는 공간
+      \end{itemize}
+    \item {\tt object}
+      \begin{itemize}
+        \item text, line, circle, rectangle 등 그래픽 구성요소
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{lattice 패키지}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{lattice 패키지: 지원하는 플롯 유형}
+  \begin{center}
+    \begin{tabularx}{\textwidth}{|lX|}
+    \toprule
+    이름 & 의미   \\ 
+    \midrule
+    {\tt histogram()} & 히스토그램 \\
+    {\tt densityplot()} &  커널 덴서티 플롯\\
+    {\tt qqmath()} &  theoretical qq plot\\
+    {\tt qq()} & qq plot  \\
+    {\tt stripplot()} & strip chart \\
+    {\tt bwplot()} & comparative box-whisker plot  \\
+    {\tt dotplot()} & cleveland dot plot \\
+    {\tt barchart()} & bar plot  \\
+    {\tt xyplot()} & scatter plot  \\
+    {\tt splom()} & scatter plot matrix \\
+    {\tt contourplot()} & contour plot of suface \\
+    {\tt levelplot()} & false color level plot \\
+    {\tt wireframe()} & 3d perspective plot \\
+    {\tt cloud()} & 3d scatter plot \\
+    {\tt parallel()} & parallel coordinate plot  \\
+    \bottomrule
+    \end{tabularx}
+  \end{center} 
+\end{frame}
+%===============================================================================
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{lattice 패키지: Factor-conditional grid plot}
+  \begin{columns}[c]
+    \column{0.6\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<>>=
+data(Chem97, package="mlmRev")
+head(Chem97, n=10)
+xtabs(~score, data=Chem97)
+@
+<<fig>>=
+data(Chem97, package="mlmRev")
+library("lattice")
+histogram(~gcsescore|factor(score), data=Chem97)
+@
+      \end{tcolorbox}  
+    \column{0.4\textwidth}
+      \begin{center}  
+<<fig=TRUE,echo=FALSE,results=hide,width=6,height=7>>=
+<<fig>>
+@  
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\subsection{ggplot2 패키지}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ggplot2 패키지: 예 1}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig>>=
+library("ggplot2")
+set.seed(1410)
+dsmall <- diamonds[sample(nrow(diamonds), 1000), ]
+p <- ggplot(dsmall, aes(carat, price, color=color)) + 
+     geom_point() + geom_smooth()
+print(p)
+@
+      \end{tcolorbox}  
+    \column{0.5\textwidth}
+      \begin{center}  
+<<fig=TRUE,echo=FALSE,results=hide,width=6,height=7>>=
+<<fig>>
+@  
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ggplot2 패키지: 예 2}
+  \begin{center}  
+<<fig=TRUE,echo=FALSE,results=hide,width=6,height=5>>=
+library(grid)
+a <- ggplot(dsmall, aes(color, price/carat)) + geom_jitter(size=4, alpha = I(1 / 1.5), aes(color=color))
+b <- ggplot(dsmall, aes(color, price/carat, color=color)) + geom_boxplot()
+c <- ggplot(dsmall, aes(color, price/carat, fill=color)) + geom_boxplot() + opts(legend.position = "none")
+grid.newpage() 
+pushViewport(viewport(layout = grid.layout(2, 2))) 
+print(a, vp = viewport(layout.pos.row = 1, layout.pos.col = 1:2))
+print(b, vp = viewport(layout.pos.row = 2, layout.pos.col = 1))
+print(c, vp = viewport(layout.pos.row = 2, layout.pos.col = 2, width=0.3, height=0.3, x=0.8, y=0.8))
+@  
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\end{document}

@@ -1,0 +1,951 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\input{../template_lecture.Rnw}
+\begin{document}
+\SweaveOpts{concordance=TRUE, keep.source=TRUE}
+<<echo=FALSE>>=
+options(width=60)
+@
+
+\title{제11강: 다변량시계열 분석 및 페어트레이딩}
+\subtitle{금융 통계 및 시계열 분석}
+\author{TRADE INFORMATIX}
+\date{2014년 2월 14일}
+\maketitle
+
+\begin{frame}[fragile]
+\frametitle{목차}
+\tableofcontents
+\end{frame}
+
+\section{다변량 시계열 분석}
+
+\subsection{다변량 시계열}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{다변량 시계열 (Multivariate Time Series)}
+  \begin{itemize}
+    \item 벡터값을 가지는(vector-valued) 시계열
+      \begin{eqnarray*}
+        x_{t} = ( x_{1,t}, x_{2,t}, \ldots, x_{k,t} )
+      \end{eqnarray*}
+    \item 각 시계열간 상호연관성 존재
+    \item 다변량 시계열 모형
+    \begin{itemize}
+      \item VARMA (Vector ARMA)
+    \end{itemize}
+    \item 다변량 시계열 문제
+    \begin{itemize}
+      \item 의사(擬似)상관 (spurous correlation)
+      \item 공적분 (cointegration)
+      \item 페어 트레이딩 (pair trading)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{다변량 시계열의 예 1: 비정상 다변량 시계열}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE,results=hide>>=
+require(rquantbook, quietly=TRUE)
+require(xts, quietly=TRUE)
+require(xtsExtra, quietly=TRUE)
+d1 <- get_quantbook_data("krx_stock_daily_price",
+  ticker="010140",
+  date_start="2002-01-01", date_end="2013-12-10")
+d2 <- get_quantbook_data("krx_stock_daily_price",
+  ticker="042660",
+  date_start="2002-01-01", date_end="2013-12-10")
+x1 <- xts(d1$close, order.by=as.POSIXct(d1$date))
+x2 <- xts(d2$close, order.by=as.POSIXct(d2$date))
+x <- merge(x1, x2)
+plot(x, main="SHI & DSME Stock Prices")
+@
+      \end{tcolorbox}
+    \column{0.5\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=8,height=8>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{다변량 시계열의 예 2: 정상 다변량 시계열}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE,results=hide>>=
+require(TTR, quietly=TRUE)
+y1 <- ROC(x1)
+y2 <- ROC(x2)
+x <- na.omit(merge(x1, x2))
+y <- na.omit(merge(y1, y2))
+plot(y, main="SHI & DSME Stock Price Returns")
+@
+      \end{tcolorbox}
+    \column{0.5\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=8,height=8>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{정상 다변량 시계열}
+  \begin{itemize}
+    \item 정상 다변량 시계열 : $k \times 1$ 벡터
+      \begin{eqnarray*}
+        x_{t} = ( x_{1,t}, x_{2,t}, \ldots, x_{k,t} )^T
+      \end{eqnarray*}
+    \item 평균 벡터 (mean vector) : $k \times 1$ 벡터
+      \begin{eqnarray*}
+        \mu = E[ x_t ]
+      \end{eqnarray*}
+    \item 공분산 행렬 (covariance matrix) : $k \times k$ 행렬
+      \begin{eqnarray*}
+        \Gamma(l) = E[ ( x_t - \mu ) ( x_{t-l} - \mu )^T ]
+      \end{eqnarray*}
+    \item 분산대각행렬 : $k \times k$ 대각행렬
+      \begin{eqnarray*}
+        D = \text{diag} ( \sqrt{\Gamma_{1,1}(0)}, \ldots, \sqrt{\Gamma_{k,k}(0)} )
+      \end{eqnarray*}
+    \item 상호상관계수 행렬 (crosscorrelation matrix) : $k \times k$ 행렬
+      \begin{eqnarray*}
+        \rho(l) = D^{-1} \Gamma(l) D^{-1}
+      \end{eqnarray*}
+      개별 원소로 보면
+      \begin{eqnarray*}
+        \rho(l)_{i,j} = \dfrac{\Gamma(l)_{i,j}}{\sqrt{\Gamma(0)_{i,i}}\sqrt{\Gamma(0)_{j,j}}}
+      \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{상호상관계수 행렬의 예}
+  \begin{itemize}
+    \item dse 패키지의 {\tt acf} 명령 이용
+  \end{itemize}
+  \begin{columns}[c]
+    \column{0.45\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+library("dse")
+(acf(coredata(y),lag.max=4))
+@
+      \end{tcolorbox}
+    \column{0.55\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=8,height=8>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{VAR 모형}
+  \begin{itemize}
+    \item VAR (Vector Autoregressive) 모형의 예 
+      \begin{eqnarray*}
+        \begin{pmatrix}
+         x_{1, t} \\
+         x_{2, t} 
+        \end{pmatrix}
+         &=& 
+        \begin{pmatrix}
+         a_{11} & a_{12} \\
+         a_{21} & a_{22}
+        \end{pmatrix}
+        \begin{pmatrix}
+         x_{1, t-1} \\
+         x_{2, t-1} 
+        \end{pmatrix}
+        +
+        \begin{pmatrix}
+         w_{1, t} \\
+         w_{2, t} 
+        \end{pmatrix} \\
+      x_t &=& A x_{t-1} + B w_t
+      \end{eqnarray*} 
+    \item 정상조건
+    \begin{itemize}
+      \item 행렬특성식 $A(x) = I - Ax - \cdots - A^p x^p = 0$ 의 determinant equation의 
+            zero의 크기가 1보다 커야한다.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{VAR 모형 시뮬레이션 명령}
+  \begin{itemize}
+    \item dse 패키지 이용
+    \item {\tt ARMA(A, B)} : Vector ARMA 모형 생성
+    \begin{itemize}
+      \item {\tt A, B} : $A(L)y(t) = B(L)w(t)$ 형태의 모형 계수 어레이. 
+                         사이즈는 각각 $a \times p \times p$,
+                         $b \times p \times p$
+    \end{itemize}
+    \item {\tt simulate(model)} : 시뮬레이션
+    \begin{itemize} 
+      \item {\tt model} : {\tt ARMA} 명령으로 생성한 모형 
+    \end{itemize}
+    \item {\tt l(model, simout)} : 시뮬레이션과 모형 결합
+    \begin{itemize} 
+      \item {\tt simout} : {\tt simulate} 명령으로 생성한 시뮬레이션 결과
+    \end{itemize}
+    \item {\tt tfplot(model)} or {\tt tfplot(simout)} : 시뮬레이션/모형 플롯
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{VAR 모형 시뮬레이션 예 1}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+require(dse)
+AR <- array(c(1, .5, .3, 0, .2, .1, 0, .2, .05, 1, .5, .3), c(3,2,2))
+MA <- array(c(1, .2, 0, .1, 0, 0, 1, .3), c(2,2,2))
+(arma <- ARMA(A=AR, B=MA, C=NULL))
+summary(arma)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{VAR 모형 시뮬레이션 예 2}
+  \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE,results=hide>>=
+simout <- simulate(arma)
+arma <- l(arma, simout)
+tfplot(arma)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=10,height=8>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{VAR 모형 추정 - 차수 선택}
+  \begin{itemize}
+    \item vars 패키지의 {\tt VARselect(x, lag.max)} 명령 이용
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+require(vars)
+VARselect(y, lag.max=10)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{VAR 모형 추정 - 계수추정}
+  \begin{itemize}
+    \item vars 패키지의 {\tt VAR} 명령 이용
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+(m1 <- VAR(y, p=6))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{VAR 모형 추정 - 계수추정 (계속)}
+  \begin{itemize}
+    \item vars 패키지의 {\tt VAR} 명령 이용
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+summary(m1, "y1")
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{VAR 모형 추정 결과}
+  \begin{itemize}
+    \item vars 패키지의 {\tt plot} 명령 이용
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE,results=hide>>=
+plot(m1, "y1")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=10,height=8>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{VAR 모형 예측}
+  \begin{itemize}
+    \item vars 패키지의 {\tt predict} 명령 이용
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE,results=hide>>=
+Np <- 4; N <- dim(y)[1]; y2 <- y[-seq(N-(Np-1), N),]
+m2 <- VAR(y2, p=6); pred <- predict(m2, n.ahead=Np)
+y3 <- c(y2, xts(cbind(pred$fcst$y1[,1], pred$fcst$y2[,1]), order.by=index(y)[seq(N-(Np-1), N)]))
+plot(cbind(y, y3)["2013-12-01/"], screens=c(1,2), lwd=2, type='o', lty=c(1,1,2,2), pch=c(20,20,0,0),
+     main="VARMA Prediction (ahead=4)")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=10,height=6>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{VAR 모형 예측}
+  \begin{itemize}
+    \item AR 모형 결과와 비교
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE,results=hide>>=
+require(forecast)
+Np <- 4; N <- dim(y1)[1]; y1.2 <- y1[-seq(N-(Np-1), N),]
+m.ar <- auto.arima(y1.2); pred <- predict(m.ar, n.ahead=Np)
+y1.3 <- c(y1.2, xts(pred$pred, order.by=index(y1)[seq(N-(Np-1), N)]))
+plot(cbind(y1, y1.3, y3$y1)["2013-12-01/"], screens=c(1), lwd=2, type='o', lty=c(1,1,1), pch=c(20, 0, 1),
+     main="VARMA Prediction vs AR Prediction")
+legend("topleft", c("original", "AR", "VAR"), lwd=2, pch=c(20, 0, 1))
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=10,height=6>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{spurious correlation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{spurious correlation}
+  \begin{itemize}
+    \item 추세를 가지는 두 개의 비정상 시계열에서 상관계수가 크게 나타나는 현상
+    \item 회귀분석 $R^2$가 Durbin-Watson Statistics보다 크면 의심
+    \begin{itemize}
+      \item lmtest 패키지의 {\tt dwtest} 또는 car 패키지의 {\tt durbinWatsonTest}
+    \end{itemize}
+  \end{itemize}
+  \begin{columns}[c]
+    \column{0.6\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+require(lmtest, quietly=TRUE)
+x1 <- 0.8 * 1:500 + cumsum(rnorm(500))
+x2 <- 0.6 * 1:500 + cumsum(rnorm(500))
+cor(x1, x2)
+m <- lm(x1 ~ x2); summary(m); dwtest(m)
+plot(x1, type='l', col='red'); lines(x2, col='blue')
+@
+      \end{tcolorbox}
+    \column{0.4\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=5,height=7>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\section{공적분}
+
+\subsection{공적분}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{공적분(Cointegration)}
+  \begin{itemize}
+    \item 두 integrated 비정상 신호의 선형조합(linear combination)이 
+          integration 차수가 낮아지거나 정상상태가 되는 경우
+    \item ``술취한 사람과 개''의 비유
+    \item CI(d, b) 모형
+    \begin{itemize}
+      \item multiple-valued time series $x_t = (x_{1,t}, x_{2,t}, \cdots, x_{n,t}$의 
+            각 신호 $x_i$는 I(d)모형 신호이지만 
+            선형조합을 하는 경우 I(d-b)모형 신호가 되는 
+            0-벡터가 아닌 선형조합이 존재하는 시계열
+      \item $d=b$인 경우 정상시계열이 됨
+    \end{itemize}
+    \item cointegration vector
+    \begin{itemize}
+      \item multiple-valued time series
+    \end{itemize}
+    \item 공적분의 응용 
+    \begin{itemize}
+      \item 페어 트레이딩 (pair)
+      \item 통계적 차익거래 (statistical arbitrage)
+      \item 복수 주식의 포트폴리오 혹은 스프레드가 정상 상태가 되므로
+            과매도/과매수 상태를 이용한 contrarian 전략을 사용 가능
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{공적분 시계열의 예}
+  \begin{itemize}
+    \item 비정상 ARMA(1,1) 모형 
+      \begin{eqnarray*}
+        \begin{pmatrix}
+         x_{1, t} \\
+         x_{2, t} 
+        \end{pmatrix}
+         = 
+        \begin{pmatrix}
+         -0.5 & 1.0 \\
+         0.25 & -0.5 
+        \end{pmatrix}
+        \begin{pmatrix}
+         x_{1, t-1} \\
+         x_{2, t-1} 
+        \end{pmatrix}
+        +
+        \begin{pmatrix}
+         w_{1, t} \\
+         w_{2, t} 
+        \end{pmatrix}
+        +
+        \begin{pmatrix}
+         0.2 & -0.4 \\
+         -0.1 & 0.2 
+        \end{pmatrix}
+        \begin{pmatrix}
+         w_{1, t-1} \\
+         w_{2, t-1} 
+        \end{pmatrix}
+      \end{eqnarray*}
+    \item 선형 변형
+      \begin{eqnarray*}
+        \begin{pmatrix}
+         y_{1, t} \\
+         y_{2, t} 
+        \end{pmatrix}
+         &=& 
+        \begin{pmatrix}
+         1 & -2 \\
+         0.5 & 1 
+        \end{pmatrix}
+        \begin{pmatrix}
+         x_{1, t} \\
+         x_{2, t} 
+        \end{pmatrix} \\
+        \begin{pmatrix}
+         v_{1, t} \\
+         v_{2, t} 
+        \end{pmatrix}
+         &=& 
+        \begin{pmatrix}
+         1 & -2 \\
+         0.5 & 1 
+        \end{pmatrix}
+        \begin{pmatrix}
+         w_{1, t} \\
+         w_{2, t} 
+        \end{pmatrix} 
+      \end{eqnarray*}
+    \item $y_2$는 다음과 같은 정상 시계열이 된다.
+      \begin{eqnarray*}
+        y_{2, t} = v_{2, t} - 0.4 v_{1, t-1}
+      \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{Error Correction Model}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Error Correction Model}
+  \begin{itemize}
+    \item 다음 VAR는 아래의 Vector Error Correction Model로 변형 가능
+      \begin{eqnarray*}
+        x_{t} = A_1 x_{t-1} + A_2 x_{t-2} + \cdots + A_p x_{t-p} + e_t
+      \end{eqnarray*}
+    \item long-run form VECM
+      \begin{eqnarray*}
+        \Delta x_{t} = \Phi x_{t-p} + 
+          \Gamma_1 \Delta x_{t-1} + \Gamma_2 \Delta x_{t-2} + \cdots + 
+          \Gamma_{p-1} \Delta x_{t-p+1} + e_t
+      \end{eqnarray*}
+      \begin{eqnarray*}
+        \Phi = - ( I - A_1 - \cdots A_p )
+      \end{eqnarray*}
+      \begin{eqnarray*}
+        \Gamma_i = - ( I - A_1 - \cdots A_i )
+      \end{eqnarray*}
+    \item transitory form VECM
+      \begin{eqnarray*}
+        \Delta x_{t} = \Phi x_{t-1} + 
+          \Gamma_1 \Delta x_{t-1} + \Gamma_2 \Delta x_{t-2} + \cdots + 
+          \Gamma_{p-1} \Delta x_{t-p+1} + e_t
+      \end{eqnarray*}
+      \begin{eqnarray*}
+        \Phi = - ( I - A_1 - \cdots A_p )
+      \end{eqnarray*}
+      \begin{eqnarray*}
+        \Gamma_i = - (  A_{i+1} + \cdots A_p )
+      \end{eqnarray*}
+    \item Vector Error Correction Model은 양변이 모두 stationary
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{Engle-Granger’s Representation Theorem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Engle-Granger’s Representation Theorem}
+  \begin{itemize}
+    \item 두 시계열 $x_t \sim I(1)$, $y_t \sim I(1)$이 공적분이면
+          다음과 같은 ECM이 존재 (또는 그 반대)
+      \begin{eqnarray*}
+        \Delta y_t = \gamma_1 z_{t-1} 
+          + \sum_{i=1}^K \psi_{1,i} \Delta x_{t-i} 
+          + \sum_{i=1}^L \psi_{2,i} \Delta y_{t-i} + e_{1,t}
+      \end{eqnarray*}
+      여기에서 정상신호 $z_t$는 OLS $y_t \sim x_t$의 잔차항, 즉
+      \begin{eqnarray*}
+        y_t = A x_t + z_t
+      \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{Engle and Granger 2-스텝 방법}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Engle and Granger 2-스텝 방법}
+  \begin{enumerate}
+    \item 개별 시계열에 대해 unit root test로 I(1) 증명
+    \item 개별 시계열간 선형회귀분석
+      \begin{eqnarray*}
+        y_t = a x_t + z_t
+      \end{eqnarray*}
+    \item unit root test로 선형회귀분석 잔차 $z_t$가 stationary임을 증명
+    \item ECM 모형으로 정상신호 OLS 회귀분석
+      \begin{eqnarray*}
+        \Delta y_t = \gamma z_{t-1} 
+          + \psi_1 \Delta x_{t-1} + \psi_2 \Delta y_{t-1} + e_t
+      \end{eqnarray*}
+    \item ECM 회귀분석의 계수 $\gamma$의 부호가 0이 아님($\gamma \neq 0$)을 확인
+  \end{enumerate}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Engle and Granger 2-스텝 예 1-1}
+      \begin{tcolorbox}\scriptsize
+<<>>=
+set.seed(123456)
+x <- cumsum(rnorm(100))
+y <- 0.6 * x + rnorm(100)
+(m1 <- lm(y ~ x))
+summary(m1)
+@
+      \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Engle and Granger 2-스텝 예 1-2}
+      \begin{tcolorbox}\scriptsize
+<<>>=
+error <- residuals(m1)
+summary(ur.df(error))
+@
+      \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Engle and Granger 2-스텝 예 1-3}
+      \begin{tcolorbox}\scriptsize
+<<>>=
+error.lagged <- error[-c(99, 100)]
+dx <- diff(x)
+dy <- diff(y)
+df <- data.frame(embed(cbind(dx, dy), 2))
+colnames(df) <- c('dx', 'dy', 'dx.1', 'dy.1')
+m2 <- lm(dy ~ error.lagged + dx.1 + dy.1, data=df)
+summary(m2)
+@
+      \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Engle and Granger 2-스텝 예 2-1}
+      \begin{tcolorbox}\scriptsize
+<<>>=
+d1 <- get_quantbook_data("krx_stock_daily_price",
+  ticker="010140",
+  date_start="2002-01-01", date_end="2013-12-10")
+d2 <- get_quantbook_data("krx_stock_daily_price",
+  ticker="042660",
+  date_start="2002-01-01", date_end="2013-12-10")
+x1 <- xts(d1$close, order.by=as.POSIXct(d1$date))
+x2 <- xts(d2$close, order.by=as.POSIXct(d2$date))
+x <- na.omit(merge(x1, x2))
+p1 <- x[,1]
+p2 <- x[,2]
+(m1 <- lm(p2 ~ p1))
+@
+      \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Engle and Granger 2-스텝 예 2-2}
+      \begin{tcolorbox}\scriptsize
+<<>>=
+error <- residuals(m1)
+summary(ur.df(coredata(error)))
+@
+      \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Engle and Granger 2-스텝 예 2-3}
+      \begin{tcolorbox}\scriptsize
+<<>>=
+N <- dim(p1)[1]
+error.lagged <- error[-c(N-1, N)]
+dx <- diff(coredata(p1))
+dy <- diff(coredata(p2))
+df <- data.frame(embed(cbind(dx, dy), 2))
+colnames(df) <- c('dx', 'dy', 'dx.1', 'dy.1')
+m2 <- lm(dy ~ error.lagged + dx.1 + dy.1, data=df)
+summary(m2)
+@
+      \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\subsection{Johansen 방법}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Johansen 방법}
+  \begin{itemize}
+    \item Engle and Granger 2-스텝 방법의 단점
+    \begin{itemize}
+      \item 두번의 연속 OLS로 오차 누적
+      \item 3개 이상의 시계열에 대해 개별적 관계를 구함
+    \end{itemize}
+    \item Johansen 방법
+    \begin{itemize}
+      \item 3개 이상의 시계열에 대해 가능한 공적분 벡터를 한번에 추정
+      \item ECM 모형의 $\Phi$ 행렬의 rank 조건 사용하여 한번에 공적분 테스트
+      \item $H_0$ : 최소 $r$개의 공적분 벡터가 존재한다.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R에서 Johansen 방법 사용}
+  \begin{itemize}
+    \item urca 패키지 이용
+    \item {\tt ca.jo(x)} : Johansen 공적분 테스트
+    \begin{itemize}
+      \item {\tt x} : 다변량 시계열 자료
+    \end{itemize}
+    \item {\tt cajorls(m, r)} : VECM 모형 추정
+    \begin{itemize}
+      \item {\tt m} : {\tt ca.jo} 명령으로 생성된 결과
+      \item {\tt r} : 공적분 rank
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Johansen 방법의 예 1-1}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+library(urca)
+set.seed(12345); e1 <- rnorm(250, 0, 0.5); e2 <- rnorm(250, 0, 0.5); e3 <- rnorm(250, 0, 0.5)
+u1.ar1 <- arima.sim(model=list(ar=0.75), innov=e1, n=250)
+u2.ar1 <- arima.sim(model=list(ar=0.30), innov=e2, n=250)
+y3 <- cumsum(e3); y1 <- 0.8 * y3 + u1.ar1; y2 <- -0.3 * y3 + u2.ar1
+vecm <- ca.jo(data.frame(y1,y2,y3))
+summary(vecm)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Johansen 방법의 예 1-2}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+(vecm.r2 <- cajorls(vecm, r=2))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Johansen 방법의 예 2}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+x <- merge(x1, x2)
+p1 <- x["2009/2010",1]
+p2 <- x["2009/2010",2]
+summary(ca.jo(data.frame(p1,p2)))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Johansen 방법의 예 3}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+library(urca)
+require("quantmod")
+d1 <- getSymbols("005380.KS", auto.assign=FALSE)
+d2 <- getSymbols("005385.KS", auto.assign=FALSE)
+x1 <- xts(d1$"005380.KS.Close")
+x2 <- xts(d2$"005385.KS.Close")
+x <- merge(x1, x2)
+p1 <- x["2009/2010",1]
+p2 <- x["2009/2010",2]
+summary(ca.jo(data.frame(p1,p2)))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\section{페어 트레이딩}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{페어 트레이딩/통계적 차익거래}
+  \begin{itemize}
+    \item 주가가 공적분 관계에 있는 복수 주식의 스프레드/포트폴리오 매매
+    \item 스프레드/포트폴리오가 정상상태이므로 회귀특성(mean-reverting)
+    \item 과매도/과매수 상태에서 매수/매도하는 contrarian 매매
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{페어 트레이딩 종목의 예}
+  \begin{columns}[c]
+    \column{0.35\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE,results=hide>>=
+require("quantmod")
+d1 <- getSymbols("005380.KS",
+  auto.assign=FALSE)
+d2 <- getSymbols("005385.KS",
+  auto.assign=FALSE)
+x1 <- xts(d1$"005380.KS.Close")
+x2 <- xts(d2$"005385.KS.Close")
+x <- merge(x1, x2)
+p1 <- x["2009/2010",1]
+p2 <- x["2009/2010",2]
+m <- lm(p2 ~ p1,
+  na.action=na.omit)
+s <- (p2 - coef(m)[2] * p1)
+plot.xts(cbind(p1, p2, s))
+@
+      \end{tcolorbox}
+    \column{0.65\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=8,height=8>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{페어 트레이딩 분석의 예}
+  \begin{columns}[c]
+    \column{0.25\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE,results=hide>>=
+plot(p1, p2,
+     type='o')
+@
+      \end{tcolorbox}
+    \column{0.75\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=8,height=8>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{페어 트레이딩 분석의 예}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+<<echo=FALSE,results=hide,fig=TRUE,width=8,height=8>>=
+s <- (p2 - coef(m)[2] * p1)
+plot(s)
+@
+    \column{0.5\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=8,height=8>>=
+hist(s, breaks=100)
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\subsection{페어 트레이딩 절차}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{페어 트레이딩 절차}
+  \begin{enumerate}
+    \item 페어트레이딩 종목 및 비중 선정
+    \begin{itemize}
+      \item 공적분 테스트 방법 이용
+    \end{itemize}
+    \item 스프레드 시계열 모형
+    \begin{itemize}
+      \item AR 모형 / OU 모형 사용
+    \end{itemize}
+    \item 과매도/과매수 시점 결정
+    \begin{itemize}
+      \item First Passage Time 분포 결정
+    \end{itemize}
+    \item 구조적 변화 (Structural Breakpoint) 모니터링
+    \begin{itemize}
+      \item 지속적인 공적분 테스트 
+      \item 스프레드 변화 요인 감시
+      \item 공적분 관계를 만들어내는 근본적 원인 감시
+    \end{itemize}
+  \end{enumerate}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{스프레드 시계열 모형}
+  \begin{itemize}
+    \item Ornstein?Uhlenbeck 모형
+    \begin{itemize}
+      \item 연속시간모형 (continuous time stochastic process)
+      \begin{eqnarray*}
+        dX_t = \rho (\theta - X_t) dt + \sigma dW_t
+      \end{eqnarray*}
+    \end{itemize}
+    \item ARMA 모형
+    \begin{itemize}
+      \item 이산시간모형 (discrete time stochastic process)
+      \begin{eqnarray*}
+        x_t - x_{t-1} = \theta (1 - e^{-\rho}) + (e^{-\rho} - 1)x_t - 1 + e_t
+      \end{eqnarray*}
+      \begin{eqnarray*}
+        e_t \sim N(0, \sigma_e^2 ) 
+          = N\left(0, \left( 1 - e^{-2\rho} \dfrac{\sigma^2}{2\rho} \right)^2 \right)
+      \end{eqnarray*}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{스프레드 시계열 모형 추정}
+  \begin{itemize}
+    \item 선형 회귀
+      \begin{eqnarray*}
+        \Delta x_t \sim x_{t-1}
+      \end{eqnarray*}
+      \begin{eqnarray*}
+        x_t - x_{t-1} = a + b x_{t-1} + z_t
+      \end{eqnarray*}
+    \item OU process 계수
+      \begin{eqnarray*}
+        \theta &=& -a/b \\
+        \rho &=& -\log(1+b)  \\
+        \sigma_e &=&  \sigma_z \sqrt{\dfrac{\log(1+b)}{(1+b)^2-1}}
+      \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{매매 시점 결정}
+  \begin{itemize}
+    \item First-Passage Time (Hitting Time)
+    \begin{itemize}
+      \item 시계열값이 특정값에서 0로 돌아오는데 걸리는 시간
+    \end{itemize}
+    \item First-Passage Time Distributions
+    \begin{itemize}
+      \item Ornstein?Uhlenbeck 모형
+      \begin{itemize}
+        \item 2007, Stefan Rampertshammer, An Ornstein-Uhlenbeck Framework for Pairs Trading
+        \item $x$ : 매매를 시작하는 시점의 스프레드 
+        \begin{eqnarray*}
+            F(t,x) = 
+              \dfrac{|x|}{\sqrt{2\pi}\sigma} 
+              \left(\dfrac{\rho}{\sinh (\rho t)}\right)^{\dfrac{2}{3}}
+              \exp\left\{-\dfrac{\rho x^2 e^{-\rho t}}{2\sigma^2\sinh (\rho t)} + 
+                        \dfrac{\rho t}{2} \right\}
+        \end{eqnarray*}
+      \end{itemize}
+    \end{itemize}
+    \item 매매 시점의 결정
+    \begin{itemize}
+      \item $x$가 커지면 수익은 증가하나 매매횟수가 줄고 구조적 변화 리스크 증가
+      \item 수치 최적화 필요
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{페어 트레이딩의 어려움}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{페어 트레이딩의 어려움}
+  \begin{itemize}
+    \item short 물량 확보
+    \item uptick rule에 따른 매매 시점 확보 
+    \item short market impact
+    \item spread 비용
+    \item 구조적 변화
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\end{document}
+
+

@@ -1,0 +1,1120 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\input{../template_lecture.Rnw}
+\begin{document}
+\SweaveOpts{concordance=TRUE, keep.source=TRUE}
+<<echo=FALSE>>=
+options(width=60)
+@
+
+\title{제1강: 통계 및 시계열처리의 의미와 R의 소개}
+\subtitle{금융 통계 및 시계열 분석}
+\author{TRADE INFORMATIX}
+\date{2014년 1월 7일}
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]
+  \frametitle{Outline}
+  \tableofcontents
+\end{frame}
+%===================================================================================================
+
+\section{통계 및 시계열처리의 의미}
+
+\subsection{자료와 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{통계 및 시계열처리의 의미}
+  \begin{tcolorbox}[boxsep=2mm,title=자료와 모형]
+    통계학은 실세계의 자료를 추상적 기호로 파악하는 작업 
+  \end{tcolorbox}
+  \begin{itemize}
+    \item 자료(Data)
+    \begin{itemize}
+      \item 정적인 자료 (static data)
+      \item 시계열 자료 (time series)
+    \end{itemize}
+    \item 모형(Model)
+    \begin{itemize}
+      \item 자료를 표현하기 위한 추상적(abstract)이고 이상적(ideal)인 기호
+      \item 정적인 자료 $\rightarrow$ 확률분포 (Probability Distribution)
+      \item 동적인 자료 $\rightarrow$ 공분산 (Covariance)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{통계 및 시계열처리의 의미}
+  \begin{tcolorbox}[boxsep=2mm,title=플라톤의 이데아론]
+    \begin{itemize}
+      \item 동굴 속의 그림자 비유
+      \item 현실의 사물은 이데아의 특성을 나타내지만 이데아를 완벽히 재현할 수는 없다.
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{figure}
+    \begin{centering}
+      \includegraphics[width=0.6\textwidth, height=0.7\textheight]{A.png}
+    \end{centering}
+  \end{figure}
+\end{frame}
+%===================================================================================================
+
+\section{R의 소개}
+
+\subsection{R과 S/S-plus}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R이란?}
+  \begin{itemize}
+    \item S/S+ 언어의 무료 오픈소스 구현 (GPL)
+    \begin{itemize}
+      \item S: AT{\&}T 벨 연구소에서 개발한 통계용 프로그래밍 언어
+      \item S+: TIBCO Software에서 개발한 S 프로그래밍 언어의 상용 버전
+    \end{itemize}
+    \item 통계계산용 프로그래밍 언어와 환경(environment)
+    \item 언어 정의와 쉘 기능, 그래픽스 출력 기능 통합
+    \item 강력한 패키지 개발 지원 기능, 2013년 11월 현재 5000개 이상의 패키지 제공
+    \item 윈도우즈, 맥킨토시, 리눅스 등 다양한 플랫폼에서 사용가능
+  \end{itemize}
+  \begin{figure}
+    \begin{centering}
+      \includegraphics[width=0.6\textwidth, height=0.5\textheight]{R.png}
+    \end{centering}
+  \end{figure}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 참고 자료}
+  \begin{itemize}
+    \item web 
+    \begin{itemize}
+      \item \url{http://www.R-project.org} R 프로젝트 홈페이지. R 프로그램. 패키지 다운로드
+      \item \url{http://cran.r-project.org/manuals.html} R 영문 매뉴얼
+      \item \url{http://r-project.kr/} 한국 R 사용자 모임
+      \item \url{http://ihelp.r-forge.r-project.org//lang.html} 
+            R 도큐멘트 한글화 작업
+    \end{itemize}
+    \item 도서
+    \begin{itemize}
+      \item 빅데이터 분석 도구 R 프로그래밍, 노만 매트로프 지음, 권정민 옮김
+      \item R Cookbook, 폴 티터 지음, 이제원 옮김
+      \item RStudio 따라잡기, 마크 P. J. 판 데르 루, 에드윈 데 용에 지음, 정사범 옮김
+      \item 등 한글 도서 30여종 출판
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===================================================================================================
+
+\subsection{RStudio와 RStudio Server}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{RStudio}
+  \begin{itemize}
+    \item 무료 오픈소스 통합개발환경(IDE: Integrated Development Environment)
+    \item R 콘솔, bash 콘솔, 에디터, 워크스페이스 뷰, 히스토리, 파일 뷰, 패키지 뷰, 헬프 뷰, 플롯 뷰 등 제공
+    \item svn, git 소스 콘트롤 시스템 통합
+    \item 데스크탑 버전 및 서버 버전 제공
+  \end{itemize}
+  \begin{figure}
+    \begin{centering}
+      \includegraphics[width=0.65\textwidth, height=0.55\textheight]{RStudio.png}
+    \end{centering}
+  \end{figure}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{RStudio Server}
+  \begin{itemize}
+    \item 리눅스 서버에 설치
+    \item 리눅스 서버의 사용자 계정과 연동
+    \item 웹브라우저를 통해 데스크탑 버전과 동일한 GUI 사용
+    \item 사용자는 R 패키지나 데이터의 설치 
+    \item 서버에 설치된 패키지 및 데이터베이스의 공동 이용 가능
+  \end{itemize}
+  \begin{figure}
+    \begin{centering}
+      \includegraphics[width=0.9\textwidth, height=0.5\textheight]{figA01.pdf}
+    \end{centering}
+  \end{figure}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 설치}
+  \begin{itemize}
+    \item \url{http://CRAN.R-project.org}에서 다운로드 
+    \item 윈도우즈 버전은 \url{http://cran.r-project.org/bin/windows/base/}에서 다운로드 
+    \item 윈도우즈 버전은 더블클릭으로 간단설치
+  \end{itemize}
+\end{frame}
+%===================================================================================================
+
+\subsection{R의 기초 사용법}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 가동과 종료}
+  \begin{itemize}
+  \item 가동
+    \begin{itemize}
+      \item R 아이콘 더블클릭 
+      \item 콘솔창에서 {\tt R} 명령
+    \end{itemize}
+  \item 종료
+    \begin{itemize}
+      \item R 콘솔에서 {\tt q()} 명령
+      \item 동작중인 명령의 비상 종료: {\tt ctrl + c}
+      \item R 프로그램의 비상 종료: {\tt ctrl + d}
+      \item 콘솔화면 지우기 : {\tt ctrl + L}
+      \item 종료시에는 워크스페이스를 저장할지 물어봄 (y 이면 저장)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 가동과 종료 실습}
+  \begin{tcolorbox}\footnotesize
+    \begin{Verbatim}
+    
+R version 2.15.2 (2012-10-26) -- "Trick or Treat"
+Copyright (C) 2012 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: x86_64-redhat-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Workspace loaded from ~/.RData]
+
+> q()
+Save workspace image? [y/n/c]: y
+#
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Quant-Book RStudio 로그인}
+  \begin{itemize}
+    \item 웹브라우저에서 주소 \url{http://quant-book.com:8787}
+    \item 로그인 아이디와 패스워드 입력
+  \end{itemize}
+  \begin{figure}
+    \begin{centering}
+      \includegraphics[width=0.6\textwidth, height=0.5\textheight]{rstudiologin.png}
+    \end{centering}
+  \end{figure}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 도움말 사용법}
+  \begin{itemize}
+    \item 공식 매뉴얼 \url{http://cran.r-project.org/manuals.html}
+    \item {\tt help.start()} : 도움말 홈 화면
+    \item {\tt help.search()} : 도움말 검색
+    \item {\tt help()} : 특정 명령어에 대한 도움말
+      \begin{itemize}
+        \item 명령문 앞에 {\tt ?} 붙이기와 동일
+      \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}
+    \begin{Verbatim}
+    
+> help.start()    
+> help.search("plot")  
+> help("plot")
+> ?plot
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R의 계산기능}
+  \begin{itemize}
+    \item 계산 기능
+      \begin{tcolorbox}
+<<>>=
+sqrt(25) + 2
+@
+      \end{tcolorbox}
+    \item 변수(오브젝트)에 값 대입: {\tt =} 기호와 {\tt <-}, {\tt ->} 기호 모두 사용 가능
+      \begin{tcolorbox}
+<<>>=
+x <- 25
+y <- sqrt(x) + 2
+@
+      \end{tcolorbox}
+    \item 변수(오브젝트)에 있는 값 조회
+      \begin{tcolorbox}
+<<>>=
+print(x)
+y
+@
+    \end{tcolorbox}
+  \end{itemize}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R의 기본 연산자}
+  \begin{center}
+    \begin{tabularx}{\textwidth}{|XX|XX|}
+    \toprule
+    기호 & 의미 & 기호 & 의미   \\ 
+    \midrule
+    \verb;x + y;    & 덧셈        & {\tt x \& y}  & 논리 AND      \\
+    \verb;x - y;    & 뺄셈        & {\tt x | y}   & 논리 OR       \\
+    \verb;x * y;    & 곱셈        & {\tt !x}      & 논리 NOT      \\
+    \verb;x / y;    & 실수 나눗셈 & {\tt x == y}  & 같음          \\
+    \verb;x ^ y;    & 거듭제곱    & {\tt x != y}  & 다음          \\
+    {\tt x \%\% y}  & 나머지      & {\tt x <= y}  & 작거나 같음   \\
+    {\tt x \%/\% y} & 정수 나눗셈 & {\tt x >= y}  & 크거나 같음   \\
+    \bottomrule
+    \end{tabularx}
+  \end{center}
+  {\footnotesize \begin{itemize}
+    \item 산술 연산 \url{http://stat.ethz.ch/R-manual/R-devel/library/base/html/Arithmetic.html}
+    \item 삼각 함수 \url{http://stat.ethz.ch/R-manual/R-devel/library/base/html/Trig.html}
+    \item 쌍곡선 함수 \url{http://stat.ethz.ch/R-manual/R-devel/library/base/html/Hyperbolic.html}
+    \item 로그/지수 함수\url{http://stat.ethz.ch/R-manual/R-devel/library/base/html/Log.html}
+    \item 논리 함수 \url{http://stat.ethz.ch/R-manual/R-devel/library/base/html/Logic.html}
+    \item 기타 함수\url{http://stat.ethz.ch/R-manual/R-devel/library/base/html/MathFun.html}
+  \end{itemize}}
+\end{frame}
+%===================================================================================================
+
+
+\section{R 데이터 구조}
+
+\subsection{오브젝트}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 오브젝트}
+  \begin{itemize}
+    \item 오브젝트 
+      \begin{itemize}
+        \item R에서 데이터를 저장하는 변수
+        \item 워크스페이스에(Workspace)에 저장됨
+      \end{itemize}
+    \item 오브젝트 이름 규칙
+      \begin{itemize}
+        \item 영문 대소문자, 숫자 사용
+        \item 대소문자 구분
+        \item R 키워드 사용 불가
+        \item .(period 마침표) 사용 가능
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===================================================================================================
+
+\subsection{워크스페이스}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 워크스페이스}
+  \begin{itemize}
+    \item 워크스페이스 : 데이터(오브젝트)가 저장되는 공간
+    \item {\tt ls()} : 저장된 변수의 목록보기
+    \item {\tt rm()} : 저장된 변수를 삭제하기
+    \item {\tt rm(list=ls())} : 모든 변수를 삭제하기
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+ls()
+rm(y)
+ls()
+rm(list=ls())
+ls()
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{워크스페이스를 파일로 저장하고 불러오기}
+  \begin{itemize}
+    \item {\tt save(list, file)} 워크스페이스 중 원하는 오브젝트들을 원하는 이름의 파일에 저장
+    \item {\tt load(file)} 파일에 저장된 오브젝트를 워크스페이스로 로딩
+    \item {\tt save.image()} 워크스페이스 전체를 {\tt .RData} 파일에 저장
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+x <- 1; y <- 2; z <- 3
+save(x, y, file="mydata")
+rm(list=ls())
+ls()
+load("mydata")
+ls()
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{디렉토리 명령}
+  \begin{itemize}
+    \item {\tt getwd()} 현재 디렉토리 
+    \item {\tt setwd(dirname)} 디렉토리 옮기기
+    \item {\tt dir.create(dirname)} 디렉토리 생성
+    \item {\tt unlink(dirname, recursive = TRUE)} 디렉토리 삭제
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+    \begin{Verbatim}
+    
+> getwd()
+[1] "/home/user"
+> dir()
+character(0)
+> dir.create("mydir")
+> dir()
+[1] "mydir"
+> setwd("mydir")
+> getwd()
+[1] "/home/user/mydir"
+> setwd("..")
+> getwd()
+[1] "/home/user"
+> unlink("mydir", recursive = TRUE)
+> dir()
+character(0)
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 명령어 히스토리}
+  \begin{itemize}
+    \item {\tt history()} : 과거 명령어 목록 보기
+    \item {\tt savehistory(filename)} : 히스토리를 파일에 저장
+    \item {\tt loadhistory(filename))} : 파일에 저장된 히스토리 불러오기
+  \end{itemize}
+  \begin{tcolorbox}
+    \begin{Verbatim}
+
+> history()
+> savehistory("myhistory")
+> loadhistory("myhistory")
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 자료형의 분류}
+  \begin{itemize}
+    \item R은 제너럴 프로그래밍 언어이기 때문에 자료형(data type)이 존재
+    \item 그러나 R 오브젝트의 자료형은 다른 언어와 달리 분류 방법이 단일하지 않고 복잡함
+    \item R 오브젝트의 자료형 분류 방법
+    \begin{itemize}
+      \item ``일반적인 카테고리 분류''에 따른 자료형. 가장 널리 쓰임
+      \item {\tt typeof} 명령으로 파악되는 자료형. 
+      \item {\tt mode} 명령으로 파악되는 자료형.
+      \item {\tt storage.mode} 명령으로 파악되는 자료형.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 자료형의 ``일반적인 분류'' - 기본}
+  \begin{itemize}
+    \item R의 자료형을 "수학적 개념"에 따라 묶거나 분리해 놓은 개념
+    \item typeof 자료형과 1대1 일치하지 않음
+    \item ``일반적인 분류''가 같으면 사용방법이 유사하므로 익히기에 편리함
+  \end{itemize}
+  \begin{tabularx}{\textwidth}{lXl}
+  \toprule
+  이름  & 의미 & typeof \\ 
+  \midrule
+  벡터(vector)              & 동일 자료형 원소의 1차원 행렬     & 기본 벡터 자료형  \\ 
+  리스트(list)              & 다른 자료형 원소의 1차원 행렬     & 리스트  \\ 
+  \bottomrule
+  \end{tabularx}
+  \begin{center}
+    \begin{tikzpicture}
+      [grow=east,
+       every node/.style={fill=red!30,rounded corners},
+       edge from parent/.style={red,-,thick,draw}]
+      \node {R 자료형}
+      child {node {벡터}}
+      child {node {리스트}};
+    \end{tikzpicture}  
+  \end{center}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 자료형의 ``일반적인 카테고리 분류'' - 고급}
+  \begin{itemize}
+    \item 메트릭스(2차원)/어레이(다차원)는 차원(dim)을 가지는 벡터 
+    \item 팩터는 레벨(level)을 가지는 벡터 
+    \item 데이터 프레임은 길이가 같은 벡터를 원소로 가지는 리스트
+  \end{itemize}
+  \begin{tabularx}{\textwidth}{lXl}
+  \toprule
+  이름  & 의미 & typeof \\ 
+  \midrule
+  매트릭스(matrix)          & 동일 자료형 원소의 2차원 행렬     & 기본 벡터 자료형  \\ 
+  어레이(array)             & 동일 자료형 원소의 n차원 행렬     & 기본 벡터 자료형  \\ 
+  팩터 (factor)             & level을 가지는 정수형 1차원 행렬  & 정수형 벡터 자료형  \\ 
+  데이터프레임 (data.frame) & 다른 자료형 원소의 2차원 행렬     & 벡터의 리스트 \\ 
+  \bottomrule
+  \end{tabularx}
+  \begin{center}
+    \begin{tikzpicture}
+      [grow=east,
+       every node/.style={fill=red!30,rounded corners},
+       edge from parent/.style={red,-,thick,draw}]
+      \node {R 자료형}
+      child {node {벡터}
+        child {node {다차원}
+          child {node {매트릭스}}
+          child {node {어레이}}
+        }
+        child {node {레벨}
+          child {node {팩터}}
+        }
+      }
+      child {node {리스트}
+        child {node {데이터프레임}}
+      };
+    \end{tikzpicture}  
+  \end{center}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{typeof 자료형}
+  \begin{itemize}
+    \item {\tt typeof} 명령어로 파악되는 자료형
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+x <- "R"; y <- 3.14; z <- TRUE
+typeof(x); typeof(y); typeof(z)
+@
+  \end{tcolorbox}
+  \begin{center}
+    \begin{tabularx}{\textwidth}{|XX|XX|}
+    \toprule
+    typeof & 의미 & typeof & 의미   \\ 
+    \midrule
+    {\tt "character"} & 문자열 벡터 & {\tt "list"}        & 리스트    \\
+    {\tt "logical"}   & 논리값 벡터 & {\tt "symbol"}      & 심볼      \\
+    {\tt "integer"}   & 정수 벡터   & {\tt "closure"}     & 함수      \\
+    {\tt "double"}    & 실수 벡터   & {\tt "expression"}  & 표현식    \\
+    {\tt "complex"}   & 복소수 벡터 & {\tt "environment"} & 환경      \\
+    {\tt "raw"}       & 바이트 벡터 & {\tt "S4"}          & S4 클래스 \\
+    {\tt "NULL"}      & 널 (null)   & {\tt "..."}         & 가변인수  \\
+    \bottomrule
+    \end{tabularx}
+  \end{center}
+\end{frame}
+%===================================================================================================
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{``일반적인 분류''와 typeof 비교}
+  \begin{itemize}
+    \item typeof 분류 방법에는 벡터, 매트릭스, 어레이, 데이터프레임이라는 자료형이 존재하지 않음.
+    \item 벡터 자료형은 logical vector, integer vector 등의 6가지 기본(atomic)벡터를 합쳐서 일컫는 용어.
+    \item 팩터 자료형은 레벨(level) 속성(attribute)를 가지고 
+          클래스(class) 속성이 {\tt "factor"}인 정수형 벡터
+    \item 매트릭스와 어레이는 벡터의 일종. 다만 차원(dimension) 속성(attribute)이 다른 벡터.
+    \item 데이터프레임은 길이가 같은 벡터를 원소로 가지는 리스트. 클래스(class) 속성이 {\tt "data.frame"}으로 명시.
+  \end{itemize}
+\end{frame}
+%===================================================================================================
+
+\subsection{R 벡터}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터}
+  \begin{itemize}
+    \item R의 가장 기본적인 자료형
+    \item R에는 스칼라 자료형이 존재하지 않음. 모든 스칼라 값은 길이가 1인 벡터.
+    \item 기본 벡터 : 일반적인 벡터 자료형에 해당하는 6가지 typeof 자료형
+    \begin{itemize}
+      \item {\tt "character"}
+      \item {\tt "logical"}
+      \item {\tt "integer"}
+      \item {\tt "double"}
+      \item {\tt "complex"}
+      \item {\tt "raw"}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 생성(creation)}
+  \begin{itemize}
+    \item {\tt ":"} 1씩 증가/감소하는 순차적인 벡터 생성
+    \item {\tt seq(from, to, by)} 순차적인 벡터 생성
+    \item {\tt c()} 일반적인 벡터의 붙이기(concatenation)
+    \item {\tt rep()} 반복
+    \item {\tt paste()}
+  \end{itemize}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 생성(creation) 예 1}
+  \begin{itemize}
+    \item {\tt from:to} 에서 from이나 to가 정수가 아니라도 상관없음
+    \item {\tt from:to} 에서 to가 from과 정수차이가 아니면 내림(증가시) 혹은 올림(감소시)
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+1:4
+pi:6 
+6:pi
+seq(17) # same as 1:17
+seq(1, 9, by = 2)
+seq(1, 6, by = 3)
+seq(1, 9, by = pi)
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 생성 예 2}
+  \begin{itemize}
+    \item {\tt c()} 명령은 임의의 벡터를 합칠수 있다.
+    \item 합치는 벡터의 자료형이 다르면 가장 일반적인 자료형의 벡터가 된다.
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+c(1,7:9)
+c("X1", "X2", "X3")
+typeof(1:3)
+c(1:3, 3.14)
+typeof(c(1:3, 3.14))
+c("james", 3)
+typeof(c("james", 3))
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 생성 예 3}
+  \begin{itemize}
+    \item {\tt rep(x, times, each, length.out)} 명령은 x 벡터를 times 만큼 반복
+    \item {\tt times}가 길이 2 이상이면 각각의 원소를 times 원소만큼 반복
+    \item {\tt each}가 지정되면 모든 원소가 각각 {\tt each}만큼 반복
+    \item {\tt times}와 {\tt each}가 모두 지정되면 
+          {\tt each}만큼 각각의 원소가 반복된 벡터가 다시 {\tt times}만큼 반복
+    \item {\tt length.out}이 지정되면 그만큼만 출력
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+rep(1:4, 2)
+rep(1:4, c(3,2,2,1))
+rep(1:4, c(2,2,2,2))
+rep(1:4, each = 2)
+rep(1:4, each = 2, len = 4)
+rep(1:4, each = 2, times = 3)
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 생성 예 4}
+  \begin{itemize}
+    \item {\tt paste(..., sep, collapse)} 명령은 문자열을 붙이는 명령
+    \item 입력 벡터가 문자열이 아니면 문자열로 변환
+    \item 입력 벡터의 길이가 2이상이면 각각의 원소에 대해 붙임. 
+          이때 두 개 이상의 입력 벡터의 길이가 서로 다르면 적은 벡터를 반복함
+    \item {\tt sep}은 각 원소를 붙일때 사이에 들어가는 문자. 디폴트는 {\tt sep=" "}
+    \item {\tt collapse} 값이 지정되면 이를 이용하여 출력 벡터의 원소를 다시 합침
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+paste(1:12) 
+paste(1:12, collapse="+") 
+paste("a", 1:3)
+paste(c("a", "b"), 1)
+paste(c("a", "b"), 1:5)
+paste(c("a", "b"), 1:4, c("x", "y", "z"))
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R의 인덱싱(Indexing)}
+  \begin{itemize}
+    \item 인덱싱은 벡터/리스트 등의 오브젝트의 특정 원소 혹은 특정 원소집합을 접근가능
+    \item 벡터 인덱싱은 {\tt []} 기호 {\tt [[]]}혹은 로 접근가능
+    \item {\tt []} 기호 {\tt [[]]} 안에는 정수벡터, 논리벡터, 이름(문자열 벡터)이 들어갈 수 있음
+    \item 리스트 인덱싱의 경우에는 추가적으로 {\tt \$} 기호를 사용 가능
+  \end{itemize}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 정수 벡터 인덱싱}
+  \begin{itemize}
+    \item {\tt []} 안에 길이 1인 정수 벡터 {\tt n}이 있으면 n번째 원소를 가리킴
+    \item {\tt []} 안에 길이 2 이상인 정수 벡터가 있으면 그 정수 해당하는 원소들만 잘라냄 (slicing)
+    \item 인덱스가 음수이면 반전 선택. 즉 그 인덱스를 제외한 나머지 원소 인덱싱
+    \item 정수를 이용한 벡터 인덱싱의 경우에는 {\tt []}와 {\tt [[]]}이 동일 기능
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+x <- 1:10
+x
+x[1]
+x[2:4]
+x[c(3,5,6,9)]
+x[-1:-2]
+x[[1]]
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 논리 벡터 인덱싱}
+  \begin{itemize}
+    \item 길이가 같은 논리 벡터를 이용한 인덱싱도 가능
+    \item 논리 벡터 인덱스 길이가 벡터 길이보다 작으면 없는 인덱스는 {\tt TRUE}로 가정
+    \item 논리 벡터 인덱스 길이가 벡터 길이보다 길면 {\tt TRUE}의 경우 {\tt NA}원소 추가(append), 
+          {\tt FALSE}의 경우 무시 
+    \item 벡터 원소중 특정 조건을 만족하는 원소를 뽑아내는 질의(query)에 유용
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+x <- 1:10
+x[c(T,T,T,T,F,F,F,F,T,F)] # same length
+x[c(T,T,T,T,F,F,F,F,T)] # shorter
+x[c(T,T,T,T,F,F,F,F,T,F,T)] # longer with T
+x[c(T,T,T,T,F,F,F,F,T,F,F)] # longer with F
+x[x>5]
+x[(x>5)&(x%%2==0)]
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 이름(names)}
+  \begin{itemize}
+    \item 벡터를 포함한 모든 R 오브젝트는 이름(names) 속성을 설정하여 각각의 원소에 이름을 붙일 수 있음.
+    \item 이름 속성의 길이가 벡터 길이보다 길면 에러발생. 작으면 나머지 이름은 {\tt NA}
+    \item 이름을 이용한 인덱싱 가능
+  \end{itemize}
+  \begin{tcolorbox}\small
+<<>>=
+x <- 1:10
+names(x) <- paste("x", 1:10, sep="")
+x
+names(x)
+names(x) <- c("x1", "x2")
+x
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 이름(문자열) 벡터 인덱싱}
+  \begin{itemize}
+    \item 이름이 있는 경우 문자열 벡터 인덱싱 가능
+    \item {\tt [[]]} 인덱싱은 이름 리턴값에서 이름 속성을 제거
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+x <- 1:10
+names(x) <- paste("x", 1:10, sep="")
+x["x1"]
+x[c("x1", "x3")]
+x[[1]]
+x[["x1"]]
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 원소 추가 및 삭제}
+  \begin{itemize}
+    \item 원칙적으로 R 벡터의 길이를 바꾸는 것은 불가능
+    \item {\tt c()} 명령어와 인덱스를 사용하여 재생성
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+x <- 1:10
+y <- x[c(1:5, 7)]
+y
+z <- c(x, 11)
+z
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 속성(attribute)}
+  \begin{itemize}
+    \item {\tt NULL}을 제외한 R 오브젝트는 속성(attribute)을 가질 수 있음
+    \item {\tt names}는 속성 중의 하나
+    \item {\tt attributes()} 명령으로 R 오브젝트가 가진 속성들 모두 나열
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+x <- 1:10
+attributes(x)
+names(x) <- paste("x", 1:10, sep="")
+x
+attributes(x)
+attributes(x) <- NULL
+x
+attributes(x)
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 속성 (계속)}
+  \begin{itemize}
+    \item {\tt attr(x, attrname)} 명령으로 R 오브젝트의 개별 속성을 설정하거나 볼 수 있음
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+x <- 1:10
+attributes(x)
+attr(x, "myattr")
+attr(x, "myattr") <- "myattr_value"
+attr(x, "myattr")
+attributes(x)
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 특별 속성(special attributes)}
+  \begin{itemize}
+    \item R 오브젝트는 4가지의 특별 속성을 가짐
+    \begin{itemize}
+      \item {\tt names} 원소의 이름
+      \item {\tt dim} 차원 (매트릭스, 어레이 정의에 사용)
+      \item {\tt dimnames} 차원 인덱싱을 위한 각 차원의 이름
+      \item {\tt class} OOP를 위한 클래스 속성
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 벡터의 차원(dim)}
+  \begin{itemize}
+    \item R 벡터는 {\tt dim} 속성에 의해 {\tt class} 속성이 {\tt matrix}/{\tt array} 로 자동 설정
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+x <- 1:12
+dim(x)
+dim(x) <- c(3,4)
+x
+class(x)
+dim(x) <- c(2,3,2)
+x
+class(x)
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+\subsection{R 매트릭스}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 매트릭스}
+  \begin{itemize}
+    \item {\tt matrix(data, nrow, ncol, byrow=TRUE)} : 매트릭스 생성
+    \item {\tt data, nrow, ncol}는 각각 초기화 데이터, 행수, 열수
+    \item {\tt byrow=TRUE}이면 행순서로 초기화, {\tt byrow=FALSE}이면 열순서로 초기화
+    \item {\tt [row,col]} 방식으로 인덱싱. row/col 값이 생략되면 그 행/열 전체를 가리킴
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+x <- matrix(nrow=2, ncol=3)
+x
+x[1,1] <- 1; x[1,2] <- 2; x[1,3] <- 3; x[2,1] <- 4; x[2,2] <- 5; x[2,3] <- 6;
+x
+matrix(1:6, nrow=2)
+matrix(1:6, nrow=2, byrow=FALSE)
+x[1,]
+x[,1]
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 매트릭스 행/열 추가}
+  \begin{itemize}
+    \item {\tt rbind} : 매트릭스 행 방향 합치기
+    \item {\tt cbind} : 매트릭스 열 방향 합치기
+    \item 크기가 맞지 않으면 크기가 작은 인수를 재사용(recycle)
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+rbind(1:3, 4:6)
+cbind(1, 1:3)
+x <- matrix(1:6, nrow=2)
+x <- rbind(x, 7:9)
+x
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{행렬 연산}\footnotesize
+  \begin{tabularx}{\textwidth}{|lX|lX|}
+  \toprule
+  연산 & 의미 & 연산 & 의미   \\ 
+  \midrule
+  {\tt t(A)}                & 전치 행렬 A'    & {\tt solve(A, b)} & x = Ab의 해    \\
+  {\tt A * B}               & 원소 단위 곱셈  & {\tt A \%*\% B}   & 행렬 곱셈 \\
+  {\tt A \%o\% B}           & 외적  AB'       & {\tt crossprod(A,B)}  & 내적  A'B  \\
+  {\tt diag(k)} (스칼라 k)  & 대각성분 k 단위행렬 
+    & {\tt diag(x)} (벡터 x)  &  대각성분 x를 가지는 대각행렬  \\
+  {\tt diag(A)} (행렬 A)    &  행렬 A의 대각성분 & {\tt det(A)} & 행렬식(determinant) \\
+  {\tt eigen(A)}  & 고유(Eigenvalue) 분해 & {\tt svd(A)}    & 특이치(singular value) 분해 \\
+  {\tt qr(A)}  & QR분해(QR Decomposition) & {\tt chol(A)}   & 콜레스키(Choleski) 분해  \\
+  \bottomrule
+  \end{tabularx}
+\end{frame}
+%===================================================================================================
+
+\subsection{R 어레이}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 어레이}
+  \begin{itemize}
+    \item {\tt array(data = NA, dim = length(data), dimnames = NULL)} : 어레이 생성
+    \item {\tt x, dim, dimnames}는 각각 초기화 데이터, 차원벡터, 차원이름
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+array(1:3, c(2,4)) 
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{차원이름(dimnames)}
+  \begin{itemize}
+    \item {\tt rownames} : 매트릭스의 행 이름 설정 가능
+    \item {\tt colnames} : 매트릭스의 열 이름 설정 가능
+    \item {\tt dimnames} : 매트릭스, 어레이의 각 차원에 대한 이름 설정 가능 (리스트 자료형)
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+x <- matrix(1:6, c(2,3)) 
+rownames(x) <- paste("row", 1:2)
+colnames(x) <- paste("col", 1:3)
+x
+dimnames(x)
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+\subsection{R 리스트}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 리스트}
+  \begin{itemize}
+    \item 벡터는 같은 자료형의 모임. 리스트는 다른 자료형의 모임
+    \item {\tt list()} 명령으로 생성. 보통 원소 이름을 넣지만 필수는 아니다.
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+x <- list(name="Fred", wife="Mary", no.children=3, child.ages=c(4,7,9))
+x
+names(x)
+y <- list(1, "a")
+y
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 리스트의 인덱싱}
+  \begin{itemize}
+    \item 리스트의 단일 원소 인덱싱은 {\tt \$} {\tt [[]]} 기호를 이용한다. 
+    \item 리스트의 원소는 순서를 가지므로 이름이 아닌 정수로도 인덱싱 가능
+    \item {\tt []} 기호로 인덱싱하면 원소가 아닌 부분집합인 리스트를 출력한다.
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+x <- list(name="Fred", wife="Mary", no.children=3, child.ages=c(4,7,9))
+x$name
+x$"name"
+x[["name"]]
+typeof(x[[1]])
+x["name"]
+x[1]
+typeof(x[1])
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 리스트 원소 추가/삭제}
+  \begin{itemize}
+    \item 리스트의 원소 추가/삭제는 인덱싱을 이용
+    \item 삭제시에는 해당 원소에 {\tt NULL} 값을 설정
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+x <- list(name="Fred", wife="Mary", no.children=3, child.ages=c(4,7,9))
+x$age <- 40
+x
+x$wife <- NULL
+x
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+\subsection{R 팩터}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 팩터}
+  \begin{itemize}
+    \item 팩터는 유한개의 원소를 가지는 상태값(finite state)을 나타내는 자료형
+    \item 실제로는 정수 벡터이지만 levels 속성값을 표시되는 문자열로 표현
+    \item {\tt levels()} 명령어 : level 이름을 표시/변경
+    \item {\tt nlevels()} 명령어 : level 수
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+bloodtype <- factor(c("A", "B", "O", "A", "AB", "O", "A", "B"))
+bloodtype
+attributes(bloodtype)
+unclass(bloodtype)
+levels(bloodtype)
+levels(bloodtype) <- c("A type", "AB type", "B type", "O type")
+bloodtype
+nlevels(bloodtype)
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+\subsection{R 데이터프레임}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 데이터프레임}
+  \begin{itemize}
+    \item 데이터 프레임은 길이가 같은 벡터들을 원소로 가지는 리스트
+    \item R 통계 패키지에서 가장 일반적으로 사용되는 자료형
+    \item {\tt data.frame()} 명령어 사용. 
+          문자열이 팩터로 변환되는 것을 막으려면 {\tt stringsAsFactors=FALSE} 지정 
+          혹은 인수에 {\tt I()} 명령 사용
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+x <- 1:3
+y <- c("A", "B", "C")
+z <- c(T,T,F)
+df <- data.frame(x,I(y),z,stringsAsFactors=FALSE)
+df
+names(df)
+class(df)
+dim(df)
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 데이터프레임 인덱싱}
+  \begin{itemize}
+    \item 데이터 프레임은 행방향으로는 벡터 특성, 열방향으로는 리스트 특성을 가짐.
+    \begin{itemize}
+      \item \verb|df$column1| 또는 {\tt df[['column1']]} 인덱싱 가능, 결과는 벡터
+    \end{itemize}
+    \item 매트릭스와 같은 {\tt [row, col]} 인덱싱 사용 가능
+    \begin{itemize}
+      \item {\tt df[, 'column1']} : 열방향 슬라이싱, 결과는 벡터
+      \item {\tt df['column1']} : 열방향 슬라이싱, 결과는 데이터프레임
+      \item {\tt df[1, ]} : 행방행 슬라이싱, 결과는 데이터프레임
+    \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\tiny
+<<>>=
+df <- data.frame(matrix(1:6, nrow=2))
+df
+df$X1
+df[['X1']]
+df[,'X1']
+class(df[,'X1'])
+df['X1']
+class(df['X1'])
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 데이터프레임 검색}
+  \begin{itemize}
+    \item 특정 조건을 만족하는 행(row)만 슬라이싱 가능
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+df <- data.frame(matrix(1:20, ncol=2))
+df[(df$X1 > 4) & (df$X2 %% 2 == 0),]
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 데이터프레임 행/열 증가}
+  \begin{itemize}
+    \item 행/열 증가는 {\tt rbind()}, {\tt cbind()} 사용
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+df <- data.frame(matrix(1:6, nrow=3))
+rbind(df, c(10,11))
+cbind(df, X3=c(10,11,12))
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+\end{document}
+

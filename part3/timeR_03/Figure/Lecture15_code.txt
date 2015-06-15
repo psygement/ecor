@@ -1,0 +1,1037 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\input{../template_lecture.Rnw}
+\begin{document}
+\SweaveOpts{concordance=TRUE, keep.source=TRUE}
+<<echo=FALSE>>=
+options(width=100)
+load("~/FSA/AB/dlm_data.RData")
+@
+
+\title{제15강: Factor Analysis \& PCA}
+\subtitle{금융 통계 및 시계열 분석}
+\author{TRADE INFORMATIX}
+\date{2014년 2월 28일}
+\maketitle
+
+\begin{frame}[fragile]
+\frametitle{목차}
+\tableofcontents
+\end{frame}
+
+\section{Factor Analysis}
+
+\subsection{팩터 모형(Factor Model)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{팩터 모형(Factor Model)}
+  \begin{itemize}
+    \item 복수의 주식 수익률 시계열이 몇 개의 공통된 원인(common factor) 시계열에 의존
+    \item 팩터 모형 유형
+    \begin{itemize}
+      \item Macroeconomic Factor Model
+      \begin{itemize}
+        \item 거시경제 지표를 common factor로 사용
+        \item GDP 증가율, 이자율, 인플레이션, 실업률 등
+      \end{itemize}      
+      \item Fundamental Factor Model
+      \begin{itemize}
+        \item 개별 회사의 펀더멘탈 지표를 common factor로 사용
+        \item 회사 크기, book value, market value, 섹터 등
+      \end{itemize}      
+      \item Stochastic Factor Model
+      \begin{itemize}
+        \item 관측되지 않는 common factor를 통계적으로 산출
+      \end{itemize}      
+    \end{itemize}
+    \item 팩터 모형의 활용
+    \begin{itemize}
+      \item 리스크 관리
+      \item 포트폴리오 최적화
+      \item 복수 시계열 예측
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{팩터 모형}
+  \begin{itemize}
+    \item 선형 수익률 모형
+    \begin{eqnarray*}
+      r_{it} &=& \alpha_i + \beta_{i1} f_{1t} + \cdots \beta_{im} f_{mt} + e_{it}
+    \end{eqnarray*}
+    \begin{itemize}
+      \item $t = 1, \ldots, T$ : 시간 index
+      \item $i = 1, \ldots, k$ : 종목 index
+      \item $j = 1, \ldots, m$ : 팩터 index
+      \item $r_{it}$ : 수익률 시계열 
+      \item $\alpha_i$: intercept
+      \item $f_{jt}$: factor
+      \item $\beta_{it}$: factor loading
+      \item $e_i$: specific factor
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{팩터 모형의 행렬 표현 1}
+  \begin{itemize}
+    \item cross-section 행렬 표현 
+    \begin{eqnarray*}
+      r_{t} &=& \alpha + \beta f_{t} + e_{t} \\
+      \begin{pmatrix}
+        r_{1t} \\ r_{2t} \\ \vdots \\ r_{kt}
+      \end{pmatrix}
+      &=&
+      \begin{pmatrix}
+        \alpha_{1} \\ \alpha_{2} \\ \vdots \\ \alpha_{k}
+      \end{pmatrix}
+      +
+      \begin{pmatrix}
+        \beta_{11} & \beta_{12} & \cdots & \beta_{1m} \\
+        \beta_{21} & \beta_{22} & \cdots & \beta_{2m} \\
+        \vdots     & \vdots     & \ddots & \vdots     \\
+        \beta_{k1} & \beta_{k1} & \cdots & \beta_{km}
+      \end{pmatrix}
+      \begin{pmatrix}
+        f_{1t} \\ f_{2t} \\ \vdots \\ f_{mt}
+      \end{pmatrix}
+      +
+      \begin{pmatrix}
+        e_{1t} \\ e_{2t} \\ \vdots \\ e_{mt}
+      \end{pmatrix}
+    \end{eqnarray*}
+    \item time series 행렬 표현
+    \begin{eqnarray*}
+      R_i &=& \alpha_i 1_T + F \beta_i^T + E_i \\
+      \begin{pmatrix}
+        r_{i1} \\ r_{i2} \\ \vdots \\ r_{iT}
+      \end{pmatrix}
+      &=&
+      \alpha_i
+      \begin{pmatrix}
+        1 \\ 1 \\ \vdots \\ 1
+      \end{pmatrix}
+      +
+      \begin{pmatrix}
+        f_{11} & f_{21} & \cdots & f_{m1} \\
+        f_{12} & f_{22} & \cdots & f_{m2} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        f_{1T} & f_{2T} & \cdots & f_{mT} \\
+      \end{pmatrix}
+      \begin{pmatrix}
+        \beta_{11} \\ \beta_{12} \\ \vdots \\ \beta_{1m}
+      \end{pmatrix}
+      +
+      \begin{pmatrix}
+        e_{i1} \\ e_{i2} \\ \vdots \\ e_{iT}
+      \end{pmatrix}
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{팩터 모형의 행렬 표현 2}
+  \begin{itemize}
+    \item Augmented 행렬 표현 
+    \begin{eqnarray*}
+      r_t &=& \xi g_t + e_t =
+      \begin{pmatrix}
+        \alpha & \beta
+      \end{pmatrix}
+      \begin{pmatrix}
+        1 \\ f_t
+      \end{pmatrix}
+      + e_t
+    \end{eqnarray*}
+    \begin{eqnarray*}
+      R &=& G\xi^T + E \\
+      \begin{pmatrix}
+        r_1^T \\ r_2^T \\ \vdots \\ r_T^T 
+      \end{pmatrix}
+      &=&
+      \begin{pmatrix}
+        g_1^T \\ g_2^T \\ \vdots \\ g_T^T 
+      \end{pmatrix}
+      \begin{pmatrix}
+        \alpha^T \\ \beta^T
+      \end{pmatrix}
+      + 
+      \begin{pmatrix}
+        e_1^T \\ e_2^T \\ \vdots \\ e_T^T 
+      \end{pmatrix}
+      \\
+      &=&
+      \begin{pmatrix}
+        1 & f_1^T \\ 1 & f_2^T \\ \vdots \\ 1 & f_T^T 
+      \end{pmatrix}
+      \begin{pmatrix}
+        \alpha^T \\ \beta^T
+      \end{pmatrix}
+      + 
+      \begin{pmatrix}
+        e_1^T \\ e_2^T \\ \vdots \\ e_T^T 
+      \end{pmatrix}
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{팩터 모형 가정}
+  \begin{itemize}
+    \item Common Factor는 $m$차원 정상신호
+    \begin{eqnarray*}
+      E[f_t] &=& \mu_f \\
+      \text{Cov}[f_t] &=& \sigma_f 
+    \end{eqnarray*}
+    \item Specific Factor는 서로 독립인 $k$차원 White Noise
+    \begin{eqnarray*}
+      E[e_{it}] &=& 0 \;\; \text{for all $i$ and $t$} \\
+      \text{Cov}[e_{it}, e_{js}] &=& D = 
+        \begin{cases}
+          \sigma_i^2 & \text{if $i=j$ and $t=s$} \\
+          0 & \text{otherwise} 
+        \end{cases}
+    \end{eqnarray*}
+    \item Specific Factor와 Common Factor는 서로 독립
+    \begin{eqnarray*}
+      \text{Cov}[f_{it}, e_{js}] &=& 0 \;\; \text{for all $i, j, t, s$} 
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{팩터모형의 추정문제}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{팩터모형의 추정문제}
+  \begin{itemize}
+    \item factor가 관측 가능한 경우에는 단순히 factor loading을 추정하는 문제
+    \item factor가 관측 불가능한 경우에는 주어진 beta 값을 이용하여 추정하거나
+          통계적인 factor 추정
+    \item Macroeconomic Factor Model
+    \begin{itemize}
+      \item 거시경제지표를 factor로 사용
+      \item factor가 관측 가능하므로 단순 factor loading 추정문제
+    \end{itemize}
+    \item Fundamental Factor Model
+    \begin{itemize}
+      \item 펀더멘털지표는 팩터모형 가정에 맞지않음 
+      \item 따라서 펀더멘털지표를 factor loading으로 가정하여 반대로 factor를 추정
+      \item 팩터추정 문제는 파라미터 추정이 아닌 state 시계열 추정문제
+    \end{itemize}
+    \item PCA (Principal Component Analysis)
+    \begin{itemize}
+      \item 다수의 전체 수익률 시계열의 움직임을 통계적으로 가장 잘 설명할 수 있는
+            소수의 시계열 common factor 추정
+      \item factor와 factor loading을 동시에 추정
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\section{Macroeconomic Factor Model}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Macroeconomic Factor Model}
+  \begin{itemize}
+    \item 관측 가능한 거시경제지표를 Common Factor로 사용
+    \item Multivariate Linear Regression 문제
+    \begin{eqnarray*}
+      \hat{\xi}^T &=& (G^TG)^{-1}(G^TR)
+    \end{eqnarray*}
+    \item Residual = Specific Factor
+    \begin{eqnarray*}
+      \hat{E} &=& R - G\hat{\xi}^T
+    \end{eqnarray*}
+    \item Residual Covariance matrix 
+    \begin{eqnarray*}
+      \hat{D} &=& \text{diag}(\hat{\sigma}_1^2, \hat{\sigma}_2^2, \cdots, \hat{\sigma}_k^2)
+    \end{eqnarray*}
+    \item 개별 specific factor의 크기 $\hat{\sigma}_i^2$는 $\hat{E}^T\hat{E}$의 
+          $(i,i)$번째 대각 원소
+    \item $\hat{E}^T\hat{E}$의 비대각원소(off-diagonal element)의 값이 0가 아니면 
+          모형 가정에 오류
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{Market Model}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Market Model}
+  \begin{itemize}
+    \item 대표적 Single Factor Macroeconomic Factor Model
+    \item 시장 초과수익률을 개별 종목 초과수익률에 대한 common factor로 표현
+    \begin{eqnarray*}
+      r_{it} = \alpha_i + \beta_i r_{mt} + e_{it}
+    \end{eqnarray*}
+    \begin{itemize}
+      \item $r_{it}$  : 개별종목의 초과수익률
+      \item $r_{mt}$  : 시장의 초과수익률
+      \item $\alpha_i$  : 개별종목의 alpha
+      \item $\beta_i$  : 개별종목의 beta
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Market Model의 예}
+  \begin{itemize}
+    \item S\&P과 시총상위 13종목의 월간수익률 (1990.1-2003.12)
+    \item 무위험이자율 : Treasury 3개월
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+library("FinTS")
+data(m.fac9003)
+xmtx <- cbind(rep(1,168), as.matrix(m.fac9003[,14]))
+colnames(xmtx) <- c("Alpha", "Beta")
+head(xmtx)
+rtn <- as.matrix(m.fac9003[,1:13])
+head(rtn)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Market Model의 예}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+xit.hat <- solve(t(xmtx) %*% xmtx, t(xmtx) %*% rtn)
+E.hat <- rtn - xmtx %*% xit.hat
+D.hat <- diag(crossprod(E.hat)/(168-2))
+sigma.hat <- sqrt(D.hat)
+r.square <- 1 - diag(t(E.hat)%*%E.hat)/diag(t(rtn)%*%rtn)
+t(rbind(xit.hat, sigma.hat, r.square))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Market Model의 예}
+  \begin{tcolorbox}\scriptsize
+<<fig, eval=FALSE>>=
+layout(matrix(1:2))
+barplot(xit.hat[2,], ylab="Beta", main="Market Model")
+barplot(r.square, ylab="R square")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Market Model의 활용}
+  \begin{itemize}
+    \item Market Model을 이용한 Correlation 추정
+    \begin{eqnarray*}
+      \text{Cov}[r_t] = \beta \Sigma \beta^T + D
+    \end{eqnarray*}
+    \item 포트폴리오 최적화
+    \begin{eqnarray*}
+      \min_{\omega} \sigma_p^2 = \omega^T \Sigma \omega \;\; (\omega^T \boldsymbol{1} = 1)
+    \end{eqnarray*}
+    \begin{eqnarray*}
+      \omega^{\ast} = 
+      \dfrac{\Sigma^{-1}\boldsymbol{1}}{\boldsymbol{1}^T\Sigma^{-1}\boldsymbol{1}}
+    \end{eqnarray*}
+    \begin{itemize}
+      \item $\omega$ : 포트폴리오 비중
+      \item $\sigma_p$ : 포트폴리오 변동성
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Correlation Matrix 추정}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+library(lattice)
+beta <- t(xit.hat[2,])
+cov.r <- var(xmtx[,2]) * t(beta) %*% beta + diag(D.hat)
+sd.r <- sqrt(diag(cov.r))
+corr.r <- cov.r/outer(sd.r,sd.r)
+print(corr.r, digits=3)
+print(cor(rtn), digits=3)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Correlation Matrix 추정}
+  \begin{tcolorbox}\scriptsize
+<<fig, eval=FALSE>>=
+library(ellipse)
+par(mfrow=c(1,2), oma=c(2,0,2,0))
+ord <- order(corr.r[1,])
+ordered.cor.r <- corr.r[ord, ord]
+plotcorr(ordered.cor.r, col=cm.colors(11)[5*ordered.cor.r + 6], main="Correlation 1")
+ord <- order(cor(rtn)[1,])
+ordered.cor.rtn <- cor(rtn)[ord, ord]
+plotcorr(ordered.cor.rtn, col=cm.colors(11)[5*ordered.cor.rtn + 6], main="Correlation 2")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{포트폴리오 최적화}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+w.gmin.model1 <- solve(cov.r) %*% rep(1, nrow(cov.r))
+w.gmin.model1 <- w.gmin.model1/sum(w.gmin.model1)
+w.gmin.model2 <- solve(var(rtn)) %*% rep(1, nrow(cov.r))
+w.gmin.model2 <- w.gmin.model2/sum(w.gmin.model2)
+w.gmin.models <- t(cbind(w.gmin.model1, w.gmin.model2))
+rownames(w.gmin.models) <- c("model 1", "model 2")
+print(w.gmin.models, digit=2)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+barplot(w.gmin.models, beside=TRUE)
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{Multifactor Model}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multifactor Model}
+  \begin{itemize}
+    \item Chen, Roll, and Ross Model (1986)
+    \begin{itemize}
+      \item stock return response for unexpected change of macroeconomic indicators
+      \item 경제지표를 Vector ARMA 모형 등으로 추정한 후 
+      \item 추정치와 달라지는 부분 즉 잔차를 surprise factor로 설정
+      \item surprise factor에 대한 beta 계산
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multifactor Model 예제}
+  \begin{itemize}
+    \item 2 factor 모형 예제
+    \item 13 개 주식종목 초과수익률을 다음 팩터로 분석
+    \begin{itemize}
+      \item CPI(Consumer Price Index)
+      \item Civilian employment numbers
+    \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+library(vars)
+data(m.cpice16.dp7503)
+y1 <- as.data.frame(m.cpice16.dp7503)
+var3.fit <- VAR(y1, 3)
+res <- residuals(var3.fit)
+rownames(res) <- rownames(y1[-(1:3),])
+res <- res[178:333,]
+xmtx <- as.matrix(cbind(rep(1,156), res))
+colnames(xmtx)[1] <- "alpha"
+rtn <- m.fac9003[1:156,1:13]
+rownames.rtn <- as.character(time(rtn))
+rtn <- as.matrix(rtn)
+rownames(rtn) <- rownames.rtn
+head(rtn)
+head(xmtx)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multifactor Model 예제}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+xit.hat <- solve(t(xmtx) %*% xmtx, t(xmtx) %*% rtn)
+E.hat <- rtn - xmtx %*% xit.hat
+D.hat <- diag(crossprod(E.hat)/(156-3))
+sigma.hat <- sqrt(D.hat)
+r.square <- 1 - diag(t(E.hat)%*%E.hat)/diag(t(rtn)%*%rtn)
+t(rbind(xit.hat, sigma.hat, r.square))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multifactor Model 예제}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+par(mar=c(2,6,1,1))  
+layout(matrix(1:3))
+barplot(xit.hat[2,], ylab="CPI Surprise Beta", main="2-Factor Model")
+barplot(xit.hat[3,], ylab="CEN Surprice Beta")
+barplot(r.square, ylab="R square")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\section{Fundamental Factor Model}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Fundamental Factor Model}
+  \begin{itemize}
+    \item 개별 종목의 fundamental 지표를 사용하여 수익률을 설명
+    \item 문제
+    \begin{itemize}
+      \item fundamental 지표는 Factor Model의 기본적인 가정을 따르지 않음
+    \end{itemize}
+    \item 해결방법 1 : Fama-French 방법
+    \begin{itemize}
+      \item Factor Hedge Portfolio를 수립하여 그 수익률을 팩터로 사용
+      \item Factor에 따른 종목 순위를 계산하여 
+            상위 30\% 종목 Long, 하위 30\% 종목 Short하여
+            Factor Hedge Portfolio 수립
+    \end{itemize}
+    \item 해결방법 2 : BARRA 방법
+    \begin{itemize}
+      \item fundamental 지표를 factor가 아닌 beta로 사용하고 factor 시계열을 추정
+      \begin{eqnarray*}
+        r_t = \beta f_t + e_t
+      \end{eqnarray*}
+      \item 추정된 factor는 Factor Mimicking Portfolio의 수익률이 됨
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{BARRA Industry Factor Model}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{BARRA Industry Factor Model}
+  \begin{itemize}
+    \item 종목이 속한 industry에 의한 수익률 factor 계산
+      \begin{eqnarray*}
+        r_t = \beta_1 f_{t1} + \beta_2 f_{t2} + \cdots + \beta_m f_{tm} + e_t
+      \end{eqnarray*}
+      \begin{eqnarray*}
+        \beta_{ij} = 
+        \begin{cases}
+        1 & \text{종목 $i$가 industry $j$에 속한 경우} \\
+        0 & \text{종목 $i$가 industry $j$에 속하지 않은 경우}
+        \end{cases}
+      \end{eqnarray*}
+    \item Factor Mimicking Portfolio
+    \begin{itemize}
+      \item 해당 팩터에 대한 포트폴리오의 exposure합이 1이 되면서 
+            specific error에 의한 포트폴리오 변동성을 최소화하는 포트폴리오
+      \item industry 팩터의 경우, 그 industry에 속한 종목으로만 포트폴리오를 구성
+      \begin{eqnarray*}
+        \min_{\omega} ( \dfrac{1}{2} \omega^T D \omega)
+      \end{eqnarray*}
+      \begin{eqnarray*}
+        \omega^T \beta = 1
+      \end{eqnarray*}
+      \item Factor Mimicking Portfolio의 해(solution): Weighted OLS
+      \begin{eqnarray*}
+        \omega^T = (\beta^TD^{-1}\beta)^{-1}(\beta^TD^{-1})
+      \end{eqnarray*}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{BARRA Industry Factor Model 추정}
+  \begin{itemize}
+    \item factor realization은 Factor Mimicking Portfolio의 수익률
+      \begin{eqnarray*}
+        f = H r_t = (\beta^T D^{-1}\beta)^{-1}(\beta^TD^{-1}) r_t
+      \end{eqnarray*}
+    \item Multi-Step 추정법 사용
+    \begin{enumerate}
+      \item 단순 OLS 추정으로 factor realization 구함
+      \begin{eqnarray*}
+        \hat{f}_{t,o} = (\beta^T\beta)^{-1}(\beta^T) r_t
+      \end{eqnarray*}
+      \item 단순 OLS 추정factor realization의 residual로 $D$ 추정
+      \begin{eqnarray*}
+        \hat{D}_o &=& \text{diag} 
+          \left( \dfrac{1}{T-1} \sum_{t=1}^T \hat{e}_{t,o}\hat{e}_{t,o}^T \right) \\
+        \hat{e}_{t,o} &=& r_t - \beta \hat{f}_{t,o}
+      \end{eqnarray*}
+      \item 추정된 $\hat{D}_o$를 이용하여 Weighted OLS 추정치 계산
+      \begin{eqnarray*}
+        \hat{f}_{t,g} = (\beta^T\hat{D}_o^{-1}\beta)^{-1}(\beta^T\hat{D}_o^{-1}) r_t
+      \end{eqnarray*}
+      \item 다시 residual을 이용하여 specific error 추정
+      \begin{eqnarray*}
+        \hat{D}_g &=& \text{diag} 
+          \left( \dfrac{1}{T-1} \sum_{t=1}^T \hat{e}_{t,g}\hat{e}_{t,g}^T \right) \\
+        \hat{e}_{t,g} &=& r_t - \beta \hat{f}_{t,g}
+      \end{eqnarray*}
+    \end{enumerate}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{BARRA Industry Factor Model 추정 예제}
+  \begin{itemize}
+    \item 미국 주식 16종목의 월 수익률과 이자율
+    \item 1978-01-01 - 1987-12-01
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+library(fEcofin)               
+library(PerformanceAnalytics)  
+library(zoo)
+data(berndtInvest)
+berndt.df = berndtInvest[, -1]
+rownames(berndt.df) = as.character(berndtInvest[, 1])
+returns.mat = as.matrix(berndt.df[, c(-10, -17)])
+asset.names = colnames(returns.mat)
+head(returns.mat)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{BARRA Industry Factor Model 추정 예제}
+  \begin{itemize}
+    \item industry beta 생성
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+n.stocks = ncol(returns.mat)
+tech.dum = oil.dum = other.dum = matrix(0,n.stocks,1)
+rownames(tech.dum) = rownames(oil.dum) = rownames(other.dum) = asset.names
+tech.dum[c(4,5,9,13),] = 1
+oil.dum[c(3,6,10,11,14),] = 1
+other.dum = 1 - tech.dum - oil.dum
+B.mat = cbind(tech.dum,oil.dum,other.dum)
+colnames(B.mat) = c("TECH","OIL","OTHER")
+B.mat
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{BARRA Industry Factor Model 추정 예제}
+  \begin{itemize}
+    \item factor realization 추정
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+returns.mat = t(returns.mat)
+F.hat = solve(crossprod(B.mat))%*%t(B.mat)%*%returns.mat
+F.hat.zoo = zoo(t(F.hat), as.Date(colnames(F.hat)))
+E.hat = returns.mat - B.mat%*%F.hat
+diagD.hat = apply(E.hat, 1, var)
+Dinv.hat = diag(diagD.hat^(-1))
+H.hat = solve(t(B.mat)%*%Dinv.hat%*%B.mat)%*%t(B.mat)%*%Dinv.hat
+colnames(H.hat) = asset.names
+F.hat.gls = H.hat%*%returns.mat
+F.hat.gls.zoo = zoo(t(F.hat.gls), as.Date(colnames(F.hat.gls)))
+returns.mat = t(returns.mat)
+t(H.hat)
+colSums(t(H.hat))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{BARRA Industry Factor Model 추정 예제}
+  \begin{itemize}
+    \item factor realization 추정 결과
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+par(mfrow=c(3,1))
+plot(merge(F.hat.zoo[,1], F.hat.gls.zoo[,1]), plot.type="single",
+     main = "OLS and GLS estimates of TECH factor", col=c("black", "blue"), lwd=2, ylab="Return")
+legend(x = "bottomleft", legend=c("OLS", "GLS"), col=c("black", "blue"), lwd=2); abline(h=0)
+plot(merge(F.hat.zoo[,2], F.hat.gls.zoo[,2]), plot.type="single",
+     main = "OLS and GLS estimates of OIL factor", col=c("black", "blue"), lwd=2, ylab="Return")
+legend(x = "bottomleft", legend=c("OLS", "GLS"), col=c("black", "blue"), lwd=2); abline(h=0)
+plot(merge(F.hat.zoo[,3], F.hat.gls.zoo[,3]), plot.type="single",
+     main = "OLS and GLS estimates of OTHER factor", col=c("black", "blue"), lwd=2, ylab="Return")
+legend(x = "bottomleft", legend=c("OLS", "GLS"), col=c("black", "blue"), lwd=2); abline(h=0)
+par(mfrow=c(1,1))
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{BARRA Industry Factor Model 추정 예제}
+  \begin{itemize}
+    \item Covariance Matrix 추정
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+cov.ind = B.mat%*%var(t(F.hat.gls))%*%t(B.mat) + diag(diagD.hat)
+cor.ind = cov2cor(cov.ind)
+rownames(cor.ind) = colnames(cor.ind)
+r.square.ind = 1 - diagD.hat/diag(cov.ind)
+ind.fm.vals = cbind(B.mat, sqrt(diag(cov.ind)), sqrt(diagD.hat), r.square.ind)
+colnames(ind.fm.vals) = c(colnames(B.mat), "fm.sd", "residual.sd", "r.square")
+ind.fm.vals
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{BARRA Industry Factor Model 추정 예제}
+  \begin{itemize}
+    \item 포트폴리오 최적화
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+w.gmin.ind = solve(cov.ind)%*%rep(1,nrow(cov.ind))
+w.gmin.ind = w.gmin.ind/sum(w.gmin.ind)
+w.gmin.sample = solve(var(returns.mat))%*%rep(1,nrow(cov.ind))
+w.gmin.sample = w.gmin.sample/sum(w.gmin.sample)
+colnames(w.gmin.sample) = "sample"
+par(mfrow=c(2,1))
+barplot(t(w.gmin.ind), horiz=F, main="Industry FM Weights", col="blue", cex.names = 0.75, las=2)
+barplot(t(w.gmin.sample), horiz=F, main="Sample Weights", col="blue", cex.names = 0.75, las=2)
+par(mfrow=c(1,1))
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\section{PCA \& Statistical Factor Models}
+
+\subsection{PCA(Principal Component Analysis)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{PCA(Principal Component Analysis)}
+  \begin{itemize}
+    \item Orthogonal Transaform
+    \begin{itemize}
+      \item 선형변환에 의한 포트폴리오들의 수익률 시계열이 서로 독립
+      \begin{eqnarray*}
+        y_i &=& \omega_i^T r = \sum_{j=1}^k w_{ij} r_j 
+      \end{eqnarray*}
+    \end{itemize}
+    \item solution
+    \begin{itemize}
+      \item 수익률 Covariance Matrix의 eigenvector가 포트폴리오 비중
+      \item 수익률 Covariance Matrix의 eigenvalue는 variance $\lambda_i$
+      \begin{eqnarray*}
+        \text{Var}(y_i) &=& \lambda_i \\
+        \text{Cov}(y_i, y_j) &=& 0  \;\; \text{if $i \neq $}
+      \end{eqnarray*}
+    \end{itemize}
+    \item Proportion of Variance
+    \begin{itemize}
+      \item 전체 Covariance Matrix 중 해당 component로 설명되는 부분
+      \begin{eqnarray*}
+        \dfrac{\text{Var}(y_i)}{\sum_{i=1}^k \text{Var}(r_i)} = 
+        \dfrac{\lambda_i}{\sum_{i=1}^k \lambda_i} = 
+      \end{eqnarray*}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R의 PCA 명령}
+  \begin{itemize}
+    \item {\tt princomp(x)}
+    \begin{itemize}
+      \item {\tt x} : 수익률 시계열 matrix/dataframe
+    \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+(pc.fit = princomp(returns.mat))
+summary(pc.fit)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{PCA Component Plot}
+  \begin{tcolorbox}\scriptsize
+<<fig, eval=FALSE>>=
+chart.TimeSeries(cbind(-pc.fit$scores[, 1, drop=FALSE], berndt.df[, "MARKET",drop=F]),
+                 legend.loc="bottomleft")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{PCA Eigenvalue Scree Plot}
+  \begin{itemize}
+    \item 각 component가 가지는 eigenvalue 비교
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig, eval=FALSE>>=
+plot(pc.fit)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{PCA BiPlot}
+  \begin{itemize}
+    \item 가장 비중이 큰 2개의 component에 대해 각 시계열/샘플이 가지는 비중을 표시
+  \end{itemize}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=10>>=
+biplot(pc.fit)
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{Statistical Factor Model}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Statistical Factor Model}
+  \begin{itemize}
+    \item 전체 주식 종목 수 $k$보다 적은 $m (m<k)$개 팩터로 Covariance Matrix를 복제
+      \begin{eqnarray*}
+        r - \mu = \beta f + e
+      \end{eqnarray*}
+      \begin{eqnarray*}
+        \Sigma_r = \beta\beta^T + D
+      \end{eqnarray*}
+      \begin{eqnarray*}
+        \text{Var}(r_i) &=& \sum_{j=1}^m\beta_{ij}^2 + \sigma_i^2 \\
+        \text{Cov}(r_i, r_j) &=& \sum_{k=1}^m\beta_{ik}\beta_{jk} \\
+        \text{Cov}(r_i, f_j) &=& \beta_{ij}
+      \end{eqnarray*}
+    \item communality
+    \begin{itemize}
+      \item $i$번째 주식의 수익률 변동성 중 팩터에 의해 설명되는 부분
+      \begin{eqnarray*}
+        \sum_{j=1}^m\beta_{ij}^2
+      \end{eqnarray*}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Statistical Factor Model 추정}
+  \begin{itemize}
+    \item PCA 추정법
+    \begin{itemize}
+      \item PCA 분석으로 찾은 가장 큰 $m$개의 eigenvector를 beta로 이용하는 방법
+      \begin{eqnarray*}
+        \beta = \left[ \sqrt{\lambda_1} e_1 | \cdots | \sqrt{\lambda_m} e_m \right]
+      \end{eqnarray*}
+      \item PCA 분석으로 추정한 factor realization을 이용하여 역으로 beta 추정
+    \end{itemize}
+    \item MLE 추정법
+    \begin{itemize}
+      \item beta 제한조건하에서 covariance matrix 를 복제하는 beta 추정
+      \begin{eqnarray*}
+        \beta^T D^{-1} \beta = \Delta
+      \end{eqnarray*}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Statistical Factor Model 예제}
+  \begin{itemize}
+    \item 가장 큰 single eigenvector를 이용하는 PCA 방법
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+p1 = pc.fit$loadings[, 1]
+p1 = p1/sum(p1)
+p1
+barplot(p1, horiz=F, main="Factor mimicking weights", col="blue", cex.names = 0.75, las=2)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Statistical Factor Model 예제}
+  \begin{itemize}
+    \item factor realization 
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+f1 = returns.mat %*% p1
+chart.TimeSeries(f1, main="First principal component factor", colorset="blue")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Statistical Factor Model 예제}
+  \begin{itemize}
+    \item beta 추정
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+n.obs = nrow(returns.mat)
+X.mat = cbind(rep(1,n.obs), f1)
+colnames(X.mat) = c("intercept", "Factor 1")
+XX.mat = crossprod(X.mat)
+G.hat = solve(XX.mat)%*%crossprod(X.mat,returns.mat)
+beta.hat = G.hat[2,]
+E.hat = returns.mat - X.mat%*%G.hat
+diagD.hat = diag(crossprod(E.hat)/(n.obs-2))
+sumSquares = apply(returns.mat, 2, function(x) {sum( (x - mean(x))^2 )})
+R.square = 1 - (n.obs-2)*diagD.hat/sumSquares
+cbind(beta.hat, diagD.hat, R.square)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Statistical Factor Model 예제}
+  \begin{itemize}
+    \item beta 추정
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+n.obs = nrow(returns.mat)
+X.mat = cbind(rep(1,n.obs), f1)
+colnames(X.mat) = c("intercept", "Factor 1")
+XX.mat = crossprod(X.mat)
+G.hat = solve(XX.mat)%*%crossprod(X.mat,returns.mat)
+beta.hat = G.hat[2,]
+E.hat = returns.mat - X.mat%*%G.hat
+diagD.hat = diag(crossprod(E.hat)/(n.obs-2))
+sumSquares = apply(returns.mat, 2, function(x) {sum( (x - mean(x))^2 )})
+R.square = 1 - (n.obs-2)*diagD.hat/sumSquares
+cbind(beta.hat, diagD.hat, R.square)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Statistical Factor Model 예제}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+par(mfrow=c(1,2))
+barplot(beta.hat, main="Beta values", col="blue", cex.names = 0.75, las=1)
+barplot(R.square, main="R-square values", col="blue", cex.names = 0.75, las=1)
+par(mfrow=c(1,1))
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Statistical Factor Model 예제}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+cov.pc1 = as.numeric(var(f1))*beta.hat%*%t(beta.hat) + diag(diagD.hat)
+cor.pc1 = cov2cor(cov.pc1)
+rownames(cor.pc1) = colnames(cor.pc1)
+ord <- order(cor.pc1[1,])
+ordered.cor.pc1 <- cor.pc1[ord, ord]
+plotcorr(ordered.cor.pc1, col=cm.colors(11)[5*ordered.cor.pc1 + 6])
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Statistical Factor Model 예제}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+w.gmin.pc1 = solve(cov.pc1)%*%rep(1,nrow(cov.pc1))
+w.gmin.pc1 = w.gmin.pc1/sum(w.gmin.pc1)
+colnames(w.gmin.pc1) = "principal.components"
+par(mfrow=c(2,1))
+barplot(t(w.gmin.pc1), horiz=F, main="Principal Component Weights", col="blue", cex.names = 0.75, las=2)
+barplot(t(w.gmin.sample), horiz=F, main="Sample Weights", col="blue", cex.names = 0.75, las=2)
+par(mfrow=c(1,1))
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\end{document}
+
+
+

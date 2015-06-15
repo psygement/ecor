@@ -1,0 +1,816 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\input{../template_lecture.Rnw}
+\begin{document}
+\SweaveOpts{concordance=TRUE, keep.source=TRUE}
+<<echo=FALSE>>=
+options(width=60)
+@
+
+\title{제10강: 시계열분석 2}
+\subtitle{금융 통계 및 시계열 분석}
+\author{TRADE INFORMATIX}
+\date{2014년 2월 11일}
+\maketitle
+
+\begin{frame}[fragile]
+\frametitle{목차}
+\tableofcontents
+\end{frame}
+
+\section{비정상 시계열 분석}
+
+\subsection{비정상 시계열}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{비정상 시계열 (Non-stationary Time Series)}
+  \begin{itemize}
+    \item 비정상 시계열 (Non-stationary Time Series)
+    \begin{itemize}
+      \item 시간에 따라 평균(mean), 공분산(covariance) 등이 변화
+    \end{itemize}
+    \item 비정상 시계열의 예
+    \begin{itemize}
+      \item GDP, CPI 등 경제성장과 함께 증가하는 수치
+      \item 누적 거래량 등 시간에 따라 누적된 수치
+      \item 자연현상, 에너지 사용량 등 강한 계절성을 가지는 수치
+      \item 변동성의 크기가 변화하는 수치
+    \end{itemize}
+    \item 모형 방법론
+    \begin{itemize}
+      \item 성분(Component) 모형 
+      \item 분산변동(Heteroskedastic) 모형
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{비정상 시계열의 예: 추세}
+  \begin{tcolorbox}
+<<fig, eval=FALSE>>=
+require(astsa, quietly=TRUE)
+data(gnp)
+plot(gnp, main="US GNP")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{비정상 시계열의 예: 계절성}
+  \begin{tcolorbox}
+<<fig, eval=FALSE>>=
+require(astsa, quietly=TRUE)
+data(gas)
+N <- length(gas)
+gas2 <- window(gas, start=1975)
+plot(gas2, type='l', main="Natural Gas Price")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{정상상태 테스트}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{정상상태 테스트(Stationary Test)}
+  \begin{itemize}
+    \item 시계열이 정상상태 조건을 만족하는지 검사
+    \item Unit Root Test
+    \item 종류
+    \begin{itemize}
+      \item ADF(Augmented Dickey-Fuller) Test
+      \item PP(Phillps-Peron) Test
+      \item ERS(Elliot-Rothenberg-Stock) Test
+      \item SP(Schmidt-Phillips) Test
+      \item KPSS(Kwiatkowski-Phillips-Schmidt-Shin) Test
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{(Augmented) Dickey-Fuller Test}
+  \begin{itemize}
+    \item Original DF Test
+    \begin{itemize}
+      \item AR(1) 시계열의 계수 $a_1$이 1인지 테스트
+      \item 실제로는 $\Delta x_t$와 $x_{t-1}$의 회귀분석 계수가 0인지 테스트
+      \begin{eqnarray*}
+        x_t &=& a_1 x_{t-1} + w_t \\
+        x_t - x_{t-1} &=& a_1 x_{t-1} - x_{t-1} + w_t \\
+        \Delta x_t &=& (1-a_1) x_{t-1} + w_t 
+      \end{eqnarray*}
+      \item residual의 autocorrelation 문제
+    \end{itemize}
+    \item Augmented DF Test
+    \begin{itemize}
+      \item AR(p) 시계열 모형 이용
+      \begin{eqnarray*}
+        \Delta x_t &=& (1-a_1) x_{t-1} + \sum_{j=1}^p c_j \Delta x_j + w_t 
+      \end{eqnarray*}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R에서 ADF 테스트 사용}
+  \begin{itemize}
+    \item 다양한 패키지에서 구현
+    \begin{itemize}
+      \item fUnitRoots 패키지의 {\tt adftest}
+      \item tseries 패키지의 {\tt adf.test}
+      \item urca 패키지의 {\tt ur.df}
+      \item uroot 패키지의 {\tt ADF.test}
+    \end{itemize}
+    \item {\tt ur.df(x, type, lags=1, selectlags)}
+    \begin{itemize}
+      \item {\tt x)} : 시계열 자료
+      \item {\tt type)} : 추세성분을 추가하는 경우 {\tt "trend"}
+      \item {\tt lags} : residual autocorrelation 모형차수
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ADF 테스트 예 1}
+  \begin{columns}[c]
+    \column{0.3\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+require(urca, quietly=TRUE)
+data(Raotbl3)
+attach(Raotbl3)
+x <- ts(lc,
+        start=c(1966,4),
+        end=c(1991,2),
+        frequency=4)
+plot(x)
+@
+      \end{tcolorbox}
+    \column{0.7\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=8,height=8>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ADF 테스트 예 2}
+  \begin{columns}[c]
+    \column{0.6\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+m <- ur.df(x, lags=1)
+plot(m)
+summary(m)
+@
+      \end{tcolorbox}
+    \column{0.4\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=5,height=8>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ADF 테스트 예 3}
+  \begin{columns}[c]
+    \column{0.6\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+m <- ur.df(x, lags=3)
+plot(m)
+summary(m)
+@
+      \end{tcolorbox}
+    \column{0.4\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=5,height=8>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ADF 테스트 예 4}
+  \begin{columns}[c]
+    \column{0.6\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+m <- ur.df(x, lags=3, type="trend")
+plot(m)
+summary(m)
+@
+      \end{tcolorbox}
+    \column{0.4\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=5,height=8>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Pillips-Perron Test}
+  \begin{itemize}
+    \item Non-parametric test로 AR차수지정이 필요하지 않음
+    \begin{eqnarray*}
+      \Delta x_t &=& \mu + \alpha x_{t-1} + w_t 
+    \end{eqnarray*}
+    \item 데이터 수가 적을 경우 정확성이 떨어짐
+    \begin{itemize}
+      \item tseries 패키지의 {\tt pp.test}
+      \item urca 패키지의 {\tt ur.pp}
+    \end{itemize}
+    \item {\tt ur.pp(x, model)}
+    \begin{itemize}
+      \item {\tt x)} : 시계열 자료
+      \item {\tt model)} : 추세성분을 추가하는 경우 {\tt "trend"}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{PP 테스트 예}
+  \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+m <- ur.pp(x)
+summary(m)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+
+\section{성분 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{성분 모형 (Component Model)}
+  \begin{itemize}
+    \item 다양한 비정상 특성을 보이는 시계열을 특성별로 나누어 모형화하는 방법
+    \begin{itemize}
+      \item 추세 (trend)
+      \begin{itemize}
+        \item 결정론적(deterministric) 추세
+        \item 확률적(stochastic) 추세
+      \end{itemize}
+      \item 계절성 (seasonality)
+      \begin{itemize}
+        \item 결정론적 계절성 
+        \item 확률적 계절성 
+      \end{itemize}
+      \item 확률론적 정상 신호
+      \begin{itemize}
+        \item ARMA
+      \end{itemize}
+    \end{itemize}
+    \item 추세 조합 방법
+      \begin{itemize}
+        \item Additive Model
+        \item Multiplicative Model
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\section{결정론적 추세 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{결정론적 추세 모형}
+  \begin{itemize}
+    \item 회귀분석을 이용, 추세 성분을 표시하는 결정론적 함수을 추정
+    \item 보통 1차(linear) 혹은 2차(quadratic) 회귀분석 사용
+    \item 비선형성을 보정하기 위한 log 변환(transformation) 등을 사용할 수 있음
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{결정론적 추세 모형의 예 1: 선형 추세 + ARMA}
+  \begin{columns}[c]
+    \column{0.48\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+require(forecast, quietly=TRUE)
+(m1 <- lm(gnp~time(gnp)))
+(m2 <- arima(m1$residuals, order=c(1, 0, 1)))
+layout(matrix(1:3))
+plot(gnp, main="US GNP and Linear Trend")
+lines(m1$model$"time(gnp)", m1$fitted.values,
+      col="red")
+plot(m1$model$"time(gnp)", fitted(m2),
+     type='l', main="Trend Residuals")
+lines(m1$model$"time(gnp)", fitted(m2),
+      col="red")
+plot(m1$model$"time(gnp)", m2$residuals,
+     type='l', main="Last Residuals")
+@
+      \end{tcolorbox}
+    \column{0.52\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=5,height=8>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{결정론적 추세 모형의 예 2: 2차 추세 + ARMA}
+  \begin{columns}[c]
+    \column{0.48\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+require(forecast, quietly=TRUE)
+(m1 <- lm(gnp~time(gnp)+I(time(gnp)^2)))
+(m2 <- arima(m1$residuals, order=c(1, 0, 1)))
+layout(matrix(1:3))
+plot(gnp, main="US GNP and Linear Trend")
+lines(m1$model$"time(gnp)", m1$fitted.values,
+      col="red")
+plot(m1$model$"time(gnp)", fitted(m2),
+     type='l', main="Trend Residuals")
+lines(m1$model$"time(gnp)", fitted(m2),
+      col="red")
+plot(m1$model$"time(gnp)", m2$residuals,
+     type='l', main="Last Residuals")
+@
+      \end{tcolorbox}
+    \column{0.52\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=5,height=8>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{선형 추세 + ARMA 모형을 이용한 예측}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+N <- length(gnp); y <- gnp[-N]; x <- time(gnp)[-N]; 
+m1 <- lm(y~x)
+m2 <- arima(m1$residuals, order=c(1, 0, 1))
+new <- data.frame(x=time(gnp)[N])
+(p1 <- predict(m1, new))
+(p2 <- predict(m2, n.ahead=1))
+(p <- p1 + p2$pred)
+gnp[N]
+plot(window(gnp, start=2000),
+     type='o',
+     xlab="year", ylab="gnp",
+     main="GNP Prediction")
+points(time(gnp)[N], p)
+@
+      \end{tcolorbox}
+    \column{0.5\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=5,height=6>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{2차 추세 + ARMA 모형을 이용한 예측}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+N <- length(gnp); y <- gnp[-N]; x <- time(gnp)[-N]; 
+m1 <- lm(y~x+I(x^2))
+m2 <- arima(m1$residuals, order=c(1, 0, 1))
+new <- data.frame(x=time(gnp)[N])
+(p1 <- predict(m1, new))
+(p2 <- predict(m2, n.ahead=1))
+(p <- p1 + p2$pred)
+gnp[N]
+plot(window(gnp, start=2000),
+     type='o',
+     xlab="year", ylab="gnp",
+     main="GNP Prediction")
+points(time(gnp)[N], p)
+@
+      \end{tcolorbox}
+    \column{0.5\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=5,height=6>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\section{결정론적 계절성 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{결정론적 계절성 모형}
+  \begin{itemize}
+    \item 사이클 모형 (Cycle Model)
+    \begin{itemize}
+      \item 단일 주기를 가지는 경우
+    \end{itemize}
+    \item 주파수 모형 (Harmonics Model)
+    \begin{itemize}
+      \item 복수의 sin/cos 주기신호의 조합으로 표시
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 사이클 모형 명령 1}
+  \begin{itemize}
+    \item {\tt monthplot} (forecast 패키지) : 연단위 평균과 월 패턴을 같이 플롯
+    \item {\tt seasonplot} (forecast 패키지) : 월 간격으로 플롯
+  \end{itemize}
+  \begin{columns}[c]
+    \column{0.38\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig, eval=FALSE>>=
+require(astsa, quietly=TRUE)
+data(gas)
+N <- length(gas)
+gas2 <- window(gas, start=1975)
+layout(matrix(1:3))
+monthplot(gas2,
+          main="monthplot")
+seasonplot(gas2,
+           main="seasonplot")
+boxplot(gas2~cycle(gas2),
+        main="boxplot")
+@
+      \end{tcolorbox}
+    \column{0.62\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=7,height=9>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 사이클 모형 명령 2}
+  \begin{itemize}
+    \item {\tt cycle} : 1년 주기의 시계열의 월 팩터 시계열 생성
+    \item {\tt aggregate} : 연간 총합 시계열 생성
+  \end{itemize}
+      \begin{tcolorbox}\scriptsize
+<<>>=
+cycle(gas2)
+aggregate(gas2)
+@
+      \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 사이클 모형 추정}
+  \begin{itemize}
+    \item {\tt lm} 명령 사용
+    \item 설명계수: {\tt 0}, {\tt time}, {\tt factor(cycle)}
+  \end{itemize}
+      \begin{tcolorbox}\scriptsize
+<<>>=
+(m <- lm(gas2 ~ 0 + time(gas2) + factor(cycle(gas2))))
+@
+      \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 사이클 모형 예측}
+  \begin{itemize}
+    \item {\tt lm} 명령 사용
+    \item 설명계수 {\tt 0}, {\tt time} {\tt factor(cycle)}
+  \end{itemize}
+  \begin{columns}[c]
+    \column{0.4\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+gas3 <- window(gas2, end=c(1993,12))
+t <- time(gas3)
+c <- factor(cycle(gas3))
+m <- lm(gas3 ~ 0 + t + c)
+new <- data.frame(t=rep(1994, 12),
+                  c=factor(1:12))
+p <- ts(predict(m, new),
+        start=c(1994,1),
+        freq=12)
+plot(window(gas2, type='o',
+            start=c(1992,1),
+            end=c(1994,12)),
+     main="Gas Price Forecast",
+     ylab="price")
+lines(p, col="red", lwd=4)
+points(p, col="red", pch=0)
+abline(v=1994, lwd=3, lty="dotted")
+@
+      \end{tcolorbox}
+    \column{0.6\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=7,height=9>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\section{확률적 추세 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{확률적 추세 모형: Integrated 모형, ARIMA 모형}
+  \begin{itemize}
+    \item order-$d$ Integrated 모형, I(d)
+    \begin{itemize}
+      \item $d$ 번 차분(difference)하면 정상(stationary)상태가 되는 시계열
+      \item 차분 정상 (difference-stationary) 모형
+      \item 정상시계열은 0차 integrated 모형, I(0)
+    \end{itemize}
+    \item Unit Root 프로세스, I(1)
+      \begin{itemize}
+        \item 1차 Integrated 모형
+        \item $\Delta x_t = x_{t+1} - x_{t}$가 정상
+      \end{itemize}
+    \item ARIMA(p,d,q) 모형 (Auto-Regressive Integrated Moving Average)
+    \begin{itemize}
+      \item $d$ 번 차분(difference)하면 ARMA(p,q) 모형이되는 시계열
+      \item 특성방정식의 해 중 $d$개가 1, 나머지는 절대값이 1보다 큼
+      \begin{equation}
+        \theta_p(B)(1-B)^d x_t = \phi_q (B) w_t
+      \end{equation}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{랜덤워크(Random Walk)}
+  \begin{itemize}
+    \item 랜덤워크
+    \begin{itemize}
+      \item ARIMA(0,1,0) 모형
+      \begin{equation}
+        x_t - x_{t-1} = w_t  \; \; \text{or,}  \; \; x_t = x_{t-1} + w_t
+      \end{equation}
+      여기에서 $w_t \sim N(0, \sigma)$
+      \item 평균은 0이지만 분산은 시간에 따라 증가
+      \begin{equation}
+        E[x_t] = 0
+      \end{equation}
+      \begin{equation}
+        \text{Var}[x_t] = \sigma^2 t
+      \end{equation}
+      \item unit root process의 특별한 경우
+      \end{itemize}
+    \item drift가 있는 랜덤워크
+    \begin{equation}
+      x_t = x_{t-1} + \mu + w_t = x_0 + \mu t + \sum_{i=0}^t w_t
+    \end{equation}
+    \begin{itemize}
+      \item 결정론적 추세가 있는 랜덤워크
+      \item 단기/일중 주가 모형
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARIMA 모형의 시뮬레이션}
+  \begin{itemize}
+    \item {\tt arima.sim(model, n)}
+    \begin{itemize}
+      \item {\tt model=list(order, ar, ma)} : 차수 및 계수 벡터
+      \item {\tt n} : 시뮬레이션 갯수
+    \end{itemize}
+  \end{itemize}
+  \begin{columns}[c]
+    \column{0.4\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+set.seed(1)
+m <- list(order = c(1,1,0), ar = 0.7)
+x <- arima.sim(m, 100)
+plot(x, main="ARIMA(1,1,0)")
+@
+      \end{tcolorbox}
+    \column{0.6\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=7,height=9>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARIMA 모형의 추정}
+  \begin{itemize}
+    \item {\tt arima(x, order)}
+    \begin{itemize}
+      \item {\tt x} : 시계열 자료
+      \item {\tt order=c(p,d,q)} : 차수
+    \end{itemize}
+    \item {\tt auto.arima(x)} : forecast 패키지
+    \begin{itemize}
+      \item {\tt x} : 시계열 자료
+    \end{itemize}
+  \end{itemize}
+  \begin{columns}[c]
+    \column{0.55\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+m <- auto.arima(gnp)
+summary(m)
+plot(gnp)
+lines(fitted(m), col="red", lwd=2, lty=2)
+legend("topleft", col=c("black", "red"),
+       lty=1:2,
+       c("us gnp", "fitted values"))
+@
+      \end{tcolorbox}
+    \column{0.45\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=7,height=9>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARIMA 모형을 이용한 예측}
+  \begin{columns}[c]
+    \column{0.55\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+m <- auto.arima(window(gnp, end=2000))
+p <- predict(m, n.ahead=10)
+plot(window(gnp, start=1996),
+     ylim=c(7000, 10000))
+lines(p$pred, col="red", lwd=2, lty=2)
+points(p$pred, col="red", pch=2)
+legend("topleft", col=c("black", "red"),
+       lty=1:2,
+       c("us gnp", "prediction"))
+@
+      \end{tcolorbox}
+    \column{0.45\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=7,height=9>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\section{확률적 계절성 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{확률적 계절성 모형: SARIMA 모형}
+  \begin{itemize}
+    \item Seasonal ARIMA 모형 : ARIMA(p,d,q)(P,D,Q)[S]
+    \begin{equation}
+      \theta_P(B^s)\theta_p(B)(1-B^s)^D(1-B)^d x_t = \phi_Q(B^s)\phi_q(B) w_t
+    \end{equation}
+    \begin{itemize}
+      \item ARIMA(p,d,q) 모형에 주기 s의 ARIMA(P,D,Q) 모형을 결합
+    \end{itemize}
+    \item 주기 s의 ARIMA(P,D,Q) 모형
+    \begin{itemize}
+      \item s의 배수만큼 과거의 신호만을 이용한 모형
+      \item $x_t$는 $x_{t-s}, x_{t-s2}, \cdots, w_t, w_{t-s}$ 등에만 영향을 받음 
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{SARIMA 모형의 추정}
+  \begin{itemize}
+    \item {\tt arima(x, order, seasonal)}
+    \begin{itemize}
+      \item {\tt seasonal=list(order=c(P,D,Q),period))} : 계절성 차수
+    \end{itemize}
+    \item {\tt auto.arima(x, d, D, max.p, max.q, max.P, max.Q, seasonal)}
+    \begin{itemize}
+      \item {\tt d, D} : integration 차수
+      \item {\tt max.p, max.q, max.P, max.Q} : 최대 가능 ARMA 차수
+      \item {\tt seasonal} : {\tt TRUE}이면 계절성 추가
+    \end{itemize}
+  \end{itemize}
+  \begin{columns}[c]
+    \column{0.55\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+m <- auto.arima(gas2)
+summary(m)
+plot(gas2)
+lines(fitted(m), col="red", lwd=2, lty=2)
+legend("topleft", col=c("black", "red"),
+       lty=1:2,
+       c("gas price", "fitted values"))
+@
+      \end{tcolorbox}
+    \column{0.45\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=7,height=9>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{SARIMA 모형을 이용한 예측}
+  \begin{columns}[c]
+    \column{0.55\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<fig,fig=FALSE>>=
+m <- auto.arima(window(gas2, end=c(1993,12)))
+p <- predict(m, n.ahead=12)
+plot(window(gas2, type='o',
+            start=c(1994,1), end=c(1994,12)))
+lines(p$pred, col="red", lwd=2, lty=2)
+points(p$pred, col="red", pch=2)
+legend("topleft", col=c("black", "red"),
+       lty=1:2,
+       c("us gnp", "prediction"))
+@
+      \end{tcolorbox}
+    \column{0.45\textwidth}
+      \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=7,height=9>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\section{Transfer Function 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Transfer Function 모형}
+  \begin{itemize}
+    \item ARMAX 모형
+    \item ARMA 모형과 형식은 같으나 random innovation이 아닌 
+          기지의(known) 외부 입력 시계열을 가진다.
+    \begin{equation}
+      \theta_p(B) x_t = \phi_q(B) x_t + \psi_r(B) w_t
+    \end{equation}
+    \item $\theta_p(B)^{-1}\phi_q(B)$는 외부입력에 대한 Impulse Response Function
+    \item TSA 패키지의 {\tt arima} 혹은 {\tt arimax} 명령을 사용
+    \item {\tt arimax(x, order, xreg)}
+    \begin{itemize}
+      \item {\tt xreg} : 외부 입력 시계열
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+
+\end{document}
+
+

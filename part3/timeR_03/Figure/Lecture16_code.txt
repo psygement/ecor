@@ -1,0 +1,569 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\input{../template_lecture.Rnw}
+\begin{document}
+\SweaveOpts{concordance=TRUE, keep.source=TRUE}
+<<echo=FALSE>>=
+options(width=100)
+@
+
+\title{제16강: HMM(Hidden Markov Model)}
+\subtitle{금융 통계 및 시계열 분석}
+\author{TRADE INFORMATIX}
+\date{2014년 3월 4일}
+\maketitle
+
+\begin{frame}[fragile]
+\frametitle{목차}
+\tableofcontents
+\end{frame}
+
+\section{혼합 모형(Mixuture Model)}
+
+\subsection{독립적 혼합 모형(Independent Mixuture Model)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{독립적 혼합 모형(Independent Mixuture Model)}
+  \begin{itemize}
+    \item 복수의 연속확률분포 중 하나를 확률적으로 선택하는 조합 방법
+    \item 분포 선택은 독립적인 이산 확률분포를 사용
+    \begin{eqnarray*}
+      p(x) = \text{Pr}(X=x) 
+      = \sum_{i=1}^m \text{Pr}(C=i)\cdot \text{Pr}(X=x|C=i) = \sum_{i=1}^m \delta_i p_i(x)
+    \end{eqnarray*}
+    \begin{itemize}
+      \item $p(x)$ : 전체 Independent Mixuture 분포
+      \item $p_i(x)$ : Independent Mixuture의 각 성분(component)이 되는 개별적인 연속 확률분포
+      \item $\delta_i$ : miximg parameter. 특정시간에 대해 모든 성분 중 특정한 $p_i(x)$가 선택될 확률
+      \item $\sum\delta_i = 1$ : miximg parameter에 대한 확률 제한 조건
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{독립적 혼합 모형의 예}
+  \begin{itemize}
+    \item Binomial Normal-Mixuture 모형
+    \begin{itemize}
+      \item 각 성분은 Normal 연속 분포이고
+      \item 성분을 선택하는 이산분포는 Binomial 분포
+    \end{itemize}
+  \end{itemize}
+  \begin{figure}
+    \begin{centering}
+      \includegraphics[width=0.8\textwidth]{NormalMixture.png}
+    \end{centering}  
+  \end{figure}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Mixture 모형의 파라미터 추정}
+  \begin{itemize}
+    \item Maximum Likelihood Estimation 사용
+    \item $n$개의 샘플에 대한 Mixture 모형의 Likelihood 함수
+    \begin{eqnarray*}
+      L(\theta_1, \cdots, \theta_m, \delta_1, \cdots, \delta_m | x_1, \cdots, x_n)
+      = \prod_{j=1}^n\sum_{i=1}^m \delta_i p_i(x_j, \theta)
+    \end{eqnarray*}
+    \item 덧셈과 곱셈이 혼합되어 있는 복잡한 함수
+    \item 일반적인 Log-Differentication 방법 사용 불가
+    \item miximg parameter 제한 조건 준수
+    \item Constrained Non-linear Optimization 또는 EM 알고리즘 사용
+    \item Zero-Variance Spike 문제
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\section{히든 마코프 모형(Hidden Markov Model)}
+
+\subsection{마코프 체인(Markov Chain)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{마코프 체인(Markov Chain)}
+  \begin{itemize}
+    \item 다음과 같은 마코프(Markov) 특성을 가지는 이산시간 확률 프로세스
+    \begin{eqnarray*}
+      \text{Pr}(C_{t+1}|C_t, \cdots, C_1) = \text{Pr}(C_{t+1}|C_t)
+    \end{eqnarray*}
+    \item 전이확률(Transition Probability)
+    \begin{itemize}
+      \item 특정 시간 $t$동안 특정한 한 상태 $i$에서 특정한 다른 상태 $j$로 전이할 확률
+    \end{itemize}
+    \begin{eqnarray*}
+      \gamma_{ij}(t) = \text{Pr}(C_{s+t}=j|C_{s}=i) 
+    \end{eqnarray*}
+    \item 전이확률행렬(Transition Probability Matirx)
+    \begin{eqnarray*}
+      \Gamma(t) = \{ \gamma_{ij}(t) \} \;\;\; \Gamma = \Gamma(1)
+    \end{eqnarray*}
+    \item Chapman-Kolmogorov Equation
+    \begin{itemize}
+      \item 시간$t+u$의 전이확률행렬은 시간$t$의 전이확률행렬과 시간$u$의 전이확률행렬의 곱
+    \end{itemize}
+    \begin{eqnarray*}
+      \Gamma(t+u) = \Gamma(t)\Gamma(u)
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{마코프 체인(Markov Chain) (계속)}
+  \begin{itemize}
+    \item Unconditional Probability  
+    \begin{itemize}
+      \item $t$라는 시점에 특정한 이산 상태에 있을 확률, 즉 특정한 component가 선택될 확률
+    \end{itemize}
+    \begin{eqnarray*}
+      u(t) = ( \text{Pr}(C_t=1), \text{Pr}(C_t=2), \cdots, \text{Pr}(C_t=m))
+    \end{eqnarray*}
+    \begin{eqnarray*}
+      u(t+1) = u(t) \Gamma 
+    \end{eqnarray*}
+    \item Stationary Distribution
+    \begin{itemize}
+      \item 시간이 지나도 uncoditional probability가 변하지 않는 경우
+    \end{itemize}
+    \begin{eqnarray*}
+      \delta = \delta \Gamma
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{히든 마코프 모형(Hidden Markov Model)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{히든 마코프 모형(Hidden Markov Model)}
+  \begin{itemize}
+    \item Hidden Markov Model
+    \begin{itemize}
+      \item 연속 확률 분포를 선택하는 파라미터 프로세스(Parameter Process)가 
+            마코프 체인(Markov Chain)이고 
+            연속확률분포가 그 시점의 파라미터 프로세스의 샘플값에만 의존하는 
+            Mixture Model
+      \item 연속확률분포의 샘플값만 측정가능
+    \end{itemize}
+    \begin{eqnarray*}
+      \text{Pr}(C_t|C_{t-1}, \cdots, C_1) = \text{Pr}(C_t|C_{t-1}) \\
+      \text{Pr}(X_t|X_t, \cdots, X_1, C_t, \cdots, C_1) = \text{Pr}(X_t|C_t)
+    \end{eqnarray*}
+  \end{itemize}
+  \begin{figure}
+    \begin{centering}
+      \includegraphics[width=0.6\textwidth]{HMM.png}
+    \end{centering}  
+  \end{figure}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{히든 마코프 모형 시뮬레이션}
+  \begin{itemize}
+    \item RHmm 패키지 사용
+    \item {\tt distributionSet} 명령으로 연속분포 집합 생성
+    \item {\tt HMMSet} 명령으로 HMM 오브젝트 생성
+    \item {\tt HMMSim} 명령으로 시뮬레이션
+    \item {\tt distributionSet(dis="NORMAL", mean, variance)} 
+    \begin{itemize}
+      \item {\tt dis}: 연속분포 모형 {\tt 'NORMAL', 'DISCRETE', 'MIXTURE'}
+      \item {\tt mean}, {\tt variance}: {\tt dis='NORMAL'}인 경우 파라미터
+    \end{itemize}
+    \item {\tt HMMSet(initProb, transMat, distribution)} 
+    \begin{itemize}
+      \item {\tt initProb}: 초기 이산확률분포
+      \item {\tt transMat}: 확률전이행렬(Probability Transition Matrix)
+      \item {\tt distribution}: {\tt distributionSet} 명령으로 생성한 연속분포 집합
+    \end{itemize}
+    \item {\tt HMMSim(nSim, HMM)} 
+    \begin{itemize}
+      \item {\tt nSim}: 시뮬레이션 횟수
+      \item {\tt HMM}: {\tt HMMSet} 명령으로 생성한 HMM 오브젝트
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{히든 마코프 모형 시뮬레이션 예}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+library("RHmm")
+set.seed(2)
+n_1d_3s <- distributionSet("NORMAL", mean=c(1, 0.05, -2), var=c(1, 2, 4))
+initProb3 <- rep(1,3)/3
+transMat3 <- rbind(c(0.9, 0.09, 0.01), c(0.05, 0.9, 0.05), c(0.05, 0.1, 0.85))
+hmm_1d_3s <- HMMSet(initProb3, transMat3, n_1d_3s)
+simul <- HMMSim(2500, hmm_1d_3s)
+hist(simul$obs, breaks=50)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=8>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{히든 마코프 모형 시뮬레이션 예}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+par(mfrow=c(3,1))
+plot(simul$obs, type='l', main="HMM Simulation", ylab="Return Observations")
+plot(simul$states, type='l', ylab="Discrete States")
+plot(100*exp(cumsum(simul$obs/100.0)), type='l', ylab="Price Observations")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=8>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\section{히든 마코프 모형의 추정}
+
+\subsection{HMM 파라미터 추정 문제}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{HMM 파라미터 추정 문제}
+  \begin{itemize}
+    \item 관측된 $n$개의 확률변수 샘플 $\{X_i\}, (i=1,\cdots,n)$로부터 
+          component 연속확률분포의 파라미터와 
+          Mixing Paramter Process인 Markov Chain의 파라미터를 동시에 
+          추정하는 문제
+    \item Mixing Paramter Process는 Probability Transition Matrix의 형태로 추정
+    \item Probability Transition Matrix는 $m^2$의 파라미터를 가지지만 
+          실제로는 각 행의 합이 1이므로 $m(m-1)$의 파라미터가 된다.
+    \begin{eqnarray*}
+      L(\theta_1, \cdots, \theta_m, \gamma_{11}, \cdots, \gamma_{mm} | x_1, \cdots, x_n)
+    \end{eqnarray*}
+    \item Maximum Likelihood Estimation 방법론 이용
+    \item 다양한 제한조건이 존재
+    \item EM Mothod (Baum-Welch Method) 사용
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{HMM Likelihood}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{HMM Likelihood}
+  \begin{itemize}
+    \item 샘플 $\{ x_1, x_2, \cdots, x_T \}$가 주어졌을 때 이 샘플에 대한 
+          Likelihood 함수 $L_T$는 다음과 같이 주어진다.
+    \begin{eqnarray*}
+      L_T &=& u(1) P(x_1) \Gamma P(x_2) \Gamma P(x_3) \cdots \Gamma P(x_T) 1^T \\
+          &=& u(1) P(x_1) \prod_{s=2}^m \Gamma P(x_s) 1^T
+    \end{eqnarray*}
+    \begin{itemize}
+      \item $u(1)$ : $t=1$에서의 component 선택 확률
+      \begin{eqnarray*}
+        u(1) = ( \text{Pr}(C_1=1), \text{Pr}(C_1=2), \cdots, \text{Pr}(C_1=m))
+      \end{eqnarray*}
+      \item $P(x)$ : 각각의 component분포가 $x$이 될 확률을 대각성분으로 가지는 대각행렬 
+      \begin{eqnarray*}
+        P(x) = \text{diag}\left( p_1(x), p_2(x), \cdots, p_m(x) \right)
+      \end{eqnarray*}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{HMM MLE의 어려움}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{HMM MLE의 어려움}
+  \begin{itemize}
+    \item 제한 조건 문제
+    \begin{itemize}
+      \item Probability Transition Matrix의 모든 원소는 0과 같거나 크다
+      \begin{eqnarray*}
+        \gamma_{ij} \geq 0 \;\; \text{for all } i,j
+      \end{eqnarray*}
+      \item Probability Transition Matrix의 각 행의 값의 합은 1
+      \begin{eqnarray*}
+        \sum_{i=1}^m\gamma_{ij} = 1
+      \end{eqnarray*}
+      \item 제한 조건 문제를 풀기 위해 다음과 같은 변환 사용
+      \begin{eqnarray*}
+        \gamma_{ij} &=& \dfrac{\rho_{ij}}{\sum_{k=1}^m \rho_{ik}}  \\
+        \rho_{ij} &=& 
+          \begin{cases}
+            e^{\tau_{ij}} & \text{if } i \neq j \\
+            1 & \text{if } i = j 
+          \end{cases} \\
+        \tau_{ii} &=& 0
+      \end{eqnarray*}
+      \item $\{ \tau_{ij} \}$ 행렬을 추정한 뒤 $\Gamma = \{ \gamma_{ij} \}$행렬로 변환
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{EM Algorithm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{EM Algorithm}
+  \begin{itemize}
+    \item 관측할 수 없는 discrete state를 추정한 후 이를 이용하여 다시 
+          모형 파라미터를 추정하는 것을 반복
+    \begin{itemize}
+      \item E-step: discrete state $C^{(T)}$를 추정
+      \begin{eqnarray*}
+        \hat{u}(t) = \text{Pr}(C_t=j|X^{(T)})
+      \end{eqnarray*}
+      \item M-step: 추정된 $u(t)$가 맞다는 가정하에 MLE 방법으로 파라미터 추정
+      \begin{eqnarray*}
+        \arg\max\limits_{\theta} L_T(\theta|X^{(T)},C^{(T)})
+      \end{eqnarray*}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{HMM 추정 명령}
+  \begin{itemize}
+    \item RHmm 패키지 사용
+    \item {\tt HMMFit(obs, dis="NORMAL", nStates=2)} 
+    \begin{itemize}
+      \item {\tt obs}: 관측값
+      \item {\tt dis}: 연속분포 모형 {\tt 'NORMAL', 'DISCRETE', 'MIXTURE'}
+      \item {\tt nStates}: 이산분포 state 수
+    \end{itemize}
+    \item 출력
+    \begin{itemize}
+      \item {\tt HMM}: HMM 파라미터
+      \begin{itemize}
+        \item {\tt initProb}: 초기확률분포
+        \item {\tt transMat}: 전이확률행렬
+        \item {\tt distribution}: 연속확률분포 집합의 파라미터
+        \begin{itemize}
+          \item {\tt mean}: mean
+          \item {\tt var}: variance
+        \end{itemize}
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{HMM 추정 예}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+(m <- HMMFit(simul$obs, "NORMAL", 3))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\subsection{Decoding}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Decoding}
+  \begin{itemize}
+    \item 추정된 HMM 파라미터를 이용하여 마코프 체인의 discrete state를 
+          추정하는 것을 {\bf 디코딩(Decoding)}이라 한다.
+    \begin{itemize}
+      \item Local Decoding
+      \begin{itemize}
+        \item 특정 시간 $t$에서 각 discrete state가 될 확률을 구하는 문제
+      \end{itemize}
+      \item Global Decoding (Path Finding)
+      \begin{itemize}
+        \item 가장 Likelihood가 높은 마코프 체인의 discrete state 경로를 
+              재현하는 문제
+        \item 비터비(Viterbi) 알고리즘 사용
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Local Decoding 명령}
+  \begin{itemize}
+    \item RHmm 패키지 사용
+    \item {\tt forwardBackward(HMM, obs)} 
+    \begin{itemize}
+      \item {\tt HMM}: {\tt HMMFit} 명령으로 생성한 HMM 오브젝트
+      \item {\tt obs}: 관측값
+    \end{itemize}
+    \item 출력
+    \begin{itemize}
+      \item {\tt Alpha}: $\alpha$
+      \item {\tt Beta}: $\beta$
+      \item {\tt LLH}: Log-Likelihood
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Local Decoding 예}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+fb <- forwardBackward(m, simul$obs)
+local <- exp(fb$Alpha+fb$Beta-fb$LLH)
+par(mfrow=c(2,1))
+plot(simul$states[1:100], type='o', main="Local Decoding", ylab="Real State")
+plot(local[1:100,1], type='l', col="red", ylab="State Probabilities")
+lines(local[1:100, 2], col="green")
+lines(local[1:100, 3], col="blue")
+legend("topleft", c("1", "2", "3"), col=c("red", "green", "blue"), lty=1)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=8>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Global Decoding 명령}
+  \begin{itemize}
+    \item RHmm 패키지 사용
+    \item {\tt viterbi(HMM, obs)} 
+    \begin{itemize}
+      \item {\tt HMM}: {\tt HMMFit} 명령으로 생성한 HMM 오브젝트
+      \item {\tt obs}: 관측값
+    \end{itemize}
+    \item 출력
+    \begin{itemize}
+      \item {\tt states}: state path
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Global Decoding 예}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+vitpath <- viterbi(m, simul$obs)
+states <- vitpath$states
+states[states==1] <- 0; states[states==3] <- 1; states[states==0] <- 3
+plot(simul$states[1:500], type='o', main="Global Decoding", ylab="State")
+lines(states[1:500], col="red", lwd=3, pch=4)
+legend("topleft", c("real", "estimated"), col=c("black", "red"), lty=1)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=8>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{실제 주가에 HMM 응용}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{실제 주가에 HMM 응용}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+library(quantmod)
+library(TTR)
+x <- getSymbols("KRX:005930", src="google", auto.assign=FALSE)
+p <- x$"KRX:005930.Close"
+r <- na.fill(coredata(ROC(p)),0)
+(sec.m <- HMMFit(r, "NORMAL", 2))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{실제 주가에 HMM 응용}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+sec.path <- viterbi(sec.m, r)
+plot(p, main="HMM Modeling for Samsung Electronics")
+points(p[sec.path$states == 1], pch=6, col="blue")
+points(p[sec.path$states == 2], pch=2, col="red")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=8>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{실제 주가에 HMM 응용}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+library(quantmod)
+library(TTR)
+x <- getSymbols("INDEXKRX:KOSPI200", src="google", auto.assign=FALSE)
+p <- x$"INDEXKRX:KOSPI200.Close"
+r <- na.fill(coredata(ROC(p)),0)
+(sec.m <- HMMFit(r, "NORMAL", 2))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{실제 주가에 HMM 응용}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+sec.path <- viterbi(sec.m, r)
+plot(p, main="HMM Modeling for KOSPI200")
+points(p[sec.path$states == 1], pch=6, col="blue")
+points(p[sec.path$states == 2], pch=2, col="red")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=8>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+% \section{}
+% 
+% \subsection{}
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \begin{frame}[fragile]{}
+%   \begin{itemize}
+%     \item 
+%     \begin{itemize}
+%       \item 
+%     \end{itemize}
+%   \end{itemize}
+% \end{frame}
+% %===============================================================================
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \begin{frame}[fragile]{}
+%   \begin{tcolorbox}\scriptsize
+% <<fig>>=
+% @
+%   \end{tcolorbox}
+%   \begin{center}
+% <<echo=FALSE,results=hide,fig=TRUE,width=12,height=8>>=
+% <<fig>>
+% @
+%   \end{center}
+% \end{frame}
+% %===============================================================================
+
+\end{document}
+
+
+

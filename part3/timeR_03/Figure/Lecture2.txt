@@ -1,0 +1,1425 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\input{../template_lecture.Rnw}
+\begin{document}
+\SweaveOpts{concordance=TRUE, keep.source=TRUE}
+<<setup,echo=FALSE>>=
+options(width=60)
+pdf.options(useDingbats=TRUE)
+@
+
+\title{제2강: R 스크립트 프로그래밍과 패키지 사용/제작법}
+\subtitle{금융 통계 및 시계열 분석}
+\author{TRADE INFORMATIX}
+\date{2014년 1월 10일}
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]
+  \frametitle{Outline}
+  \tableofcontents
+\end{frame}
+%===============================================================================
+
+\section{스크립트 프로그래밍}
+
+\subsection{함수 제작}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{함수 제작}
+  \begin{itemize}
+    \item \verb|function.name <- function(arg1, arg2, ...) { expression }|
+    \item \verb|return()|이 없으면 마지막으로 계산된 expression 값을 리턴
+    \item \verb|...|는 가변길이 인수(variable length arguments)
+    \item \verb|function(arg1=arg1_default)| 과 같이 인수의 디폴트 값 이용 가능
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+func.add <- function(x, y) {
+  ans.sum <- x + y
+  ans.sum
+}
+func.add(1, 2)
+func.inc <- function(x, y=1) {
+  ans.sum <- x + y
+  return(ans.sum)
+}
+func.inc(1)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{함수의 인수(parameter) 매칭}
+  \begin{itemize}
+    \item 인수 매칭은 이름(name)과 위치(position)를 이용
+    \item \verb|function.name(x=1, y=2)|처럼 이름을 지정하여 함수를 호출하면 
+          이름 정보를 이용하여 인수 매칭. 
+          이름을 지정할 경우 인수의 위치는 어디에 오든 상관없음
+    \item 이름 지정으로 매칭된 인수를 제외한 나머지 인수는 위치에 따라 매칭
+    \item \verb|...|로 받은 인수는 \verb|list(...)|로 해석(parsing)
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+func1 <- function(a, b, c, d) {
+  ans <- sprintf("a=%s, b=%s, c=%s, d=%s", 
+                 as.character(a), as.character(b), 
+                 as.character(c), as.character(d))
+ return(ans)
+}
+func1(1,2,3,4)
+func1(b=1,2,c=3,4)
+func2 <- function(...) {
+  args <- list(...)
+  ans <- paste(names(args), args, sep="=", collapse=",")
+  return(ans)
+}
+func2(a=1, b=2, c=3)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\subsection{흐름 제어}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{흐름 제어(Flow Control)}
+  \begin{itemize}
+    \item {\tt if (condition) \{ true-expression \} else \{ false-expression\}} : 조건 분기
+    \item {\tt ifelse(vector, true-value, false-value)} : 벡터 조건 처리
+    \item {\tt switch (expression, input1=output1, input2=output2)}  : 복수 조건 분기
+    \item {\tt for (var in sequence) \{ expression \}} : 반복
+    \item {\tt while (condition) \{ expression \}} : 조건 반복
+    \item {\tt next} : 이하 생략하고 다음 반복문 실행
+    \item {\tt break} : 루프 탈출
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{if else}
+  \begin{itemize}
+    \item {\tt if (condition) \{ true-expression \} else \{ false-expression \} } 
+    \item 조건 분기
+    \item {\tt condition}이 {\tt TRUE}이면 {\tt true-expression}이 실행, \\
+          {\tt condition}이 {\tt FALSE}이면 {\tt false-expression}이 실행 
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+x <- c(2,7,1,8,9)
+if (length(x) %% 2 == 0) {
+  median_value <- (sort(x)[length(x)/2]+sort(x)[1+length(x)/2])/2  
+} else {
+  median_value <- sort(x)[ceiling(length(x)/2)]
+} 
+median_value
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ifelse}
+  \begin{itemize}
+    \item {\tt ifelse(vector, true-value, false-value)}
+    \item 내재 루프(implicit loop)에 의한 벡터 조건 처리
+    \item {\tt vector}와 같은 크기의 벡터 출력
+    \item {\tt vector}의 모든 원소에 대해 \\
+          원소값이 {\tt TRUE} 이면 출력벡터의 해당 원소값은 {\tt true-value}에 해당하는 값이, \\
+          원소값이 {\tt FALSE} 이면 출력벡터의 해당 원소값은 {\tt false-value}에 해당하는 값이 출력 
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+x <- c(6:-4)
+sqrt(ifelse(x >= 0, x, NA))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{switch}
+  \begin{itemize}
+    \item 복수 조건 분기
+    \item {\tt switch (expression, input1=output1, input2=output2, ...)} 
+    \item {\tt vector}의 모든 원소에 대해 \\
+          {\tt expression} 값이 {\tt input1} 이면 {\tt output1} 값이, \\
+          {\tt expression} 값이 {\tt input2} 이면 {\tt output2} 값이 출력
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+f1 <- function(type) {
+ if (type == "mean") 1
+ else if (type == "median") 2
+ else if (type == "trimmed") 3
+}
+f2 <- function(type) {
+ switch(type,
+        mean = 1,
+        median = 2,
+        trimmed = 3)
+}
+c(f1('mean'), f1('median'), f1('trimmed'))
+c(f2('mean'), f2('median'), f2('trimmed'))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{for}
+  \begin{itemize}
+    \item {\tt for (var in sequence) \{ expression \}}
+    \item 벡터/리스트 {\tt sequence}의 모든 원소에 대해 순차적 루프 반복
+    \item {\tt sequence} 의 각 원소를 {\tt var}에 할당한 후 {\tt expression} 실행
+  \end{itemize}
+  \begin{tcolorbox}
+<<>>=
+x <- seq(1, 10, by=2)
+x.squared = NULL
+for (i in 1:length(x) ) {
+  x.squared[i] <- x[i]^2
+}
+x.squared
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{while}
+  \begin{itemize}
+    \item {\tt while (condition) \{ expression \}}
+    \item 조건 반복. {\tt condition} 값이 {\tt TRUE}이면 {\tt expression} 실행
+    \item {\tt next} : 이하 생략하고 다음 반복문 실행
+    \item {\tt break} : 루프 탈출
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+x <- 0
+while(x<5) {print(x<-x+1)}
+x <- 0
+while(x < 5) {x <- x+1; if (x == 3) next; print(x); }
+x <- 0
+while(x < 5) {x <- x+1; if (x == 3) break; print(x);}
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\subsection{디버깅}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{디버깅(debugging)}
+  \begin{itemize}
+    \item 함수 단위로 디버깅
+    \item 디버그 설정이 된 함수는 호출되면 디버그 모드로 들어감
+    \item \verb|debug(function.name)|으로 함수 디버그 설정, \verb|undebug(function.name)| 으로 디버그 해제.
+    \item 함수 내부에 \verb|browser()| 명령을 삽입하여 원하는 위치에서 디버그 모드에 들어갈 수 있음 (브레이크 포인트)
+    \item \verb|setBreakpoint(srcfile, line)|으로 외부에서 브레이크 포인트 설정 가능
+    \item 디버그 모드 명령
+      \begin{itemize}
+        \item \verb|n| (next) : 다음 라인으로 진행 
+        \item \verb|c| (continue) : 다음 브레이크포인트로 진행 
+        \item \verb|where| : 현재 코드 표시
+        \item \verb|Q| (Quite) : 중지
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{디버그 예제}
+  \begin{itemize}
+    \item 함수 정의
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+f1 <- function(x) {
+  x1 <- 2 * x
+  x2 <- 4 + x1
+  x4 <- f2(x2)
+  return(x4)
+}
+
+f2 <- function(x2) {
+  x3 <- x2 / 2
+  browser()
+  x4 <- x3 - 2
+  return(x4)
+}
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{디버그 예제 (계속)}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+> debug(f1)
+> f1(1)
+debugging in: f1(1)
+debug at ~/temp1.R#1: {
+    x1 <- 2 * x
+    x2 <- 4 + x1
+    x4 <- f2(x2)
+    return(x4)
+}
+Browse[2]> n
+debug at ~/temp1.R#2: x1 <- 2 * x
+Browse[2]> n
+debug at ~/temp1.R#3: x2 <- 4 + x1
+Browse[2]> ls()
+[1] "x"  "x1"
+Browse[2]> where
+where 1: f1(1)
+
+Browse[2]> c
+Called from: f2(x2)
+Browse[1]> where
+where 1 at ~/temp1.R#4: f2(x2)
+where 2: f1(1)
+
+Browse[1]> n
+debug at ~/temp1.R#11: x4 <- x3 - 2
+Browse[2]> ls()
+[1] "x2" "x3"
+Browse[2]> Q
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{RStudio의 디버깅 기능}
+  \begin{itemize}
+    \item RStudio는 GUI에 의한 디버그 모드 기능을 제공
+    \begin{itemize}
+      \item 에디터 화면 클릭: 디버그 포인트 지정/해제
+      \item TraceBack 화면 제공: 현재 실행지점 표시
+      \item Next (F10)
+      \item Continue (Shift+F5)
+      \item Stop (Shift+F8)      
+    \end{itemize}
+  \end{itemize}
+  \begin{figure}
+    \begin{centering}
+      \includegraphics[width=0.5\textwidth, height=0.5\textheight]{debug_breakpoints.png}
+      \includegraphics[width=0.5\textwidth, height=0.5\textheight]{debug_session.png}
+    \end{centering}
+  \end{figure}
+\end{frame}
+%===============================================================================
+
+
+\subsection{예외 처리}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{예외처리(Exception Handling)}
+  \begin{itemize}
+    \item \verb|warning()| : warning 강제 발생
+    \item \verb|stop()| : error 강제 발생
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+> mylog <- function(x) {
++   if (x == 0) {
++     warning("log of zero is minus infinity!") 
++     return(-Inf)
++   } else {
++     if (x < 0) {
++       stop("log of negative value is not allowed!")
++     }
++   }
++ }
+> mylog(0)
+[1] -Inf
+Warning message:
+In mylog(0) : log of zero is minus infinity!
+> mylog(-1)
+Error in mylog(-1) : log of negative value is not allowed!
+> log("a")
+Error in log("a") : Non-numeric argument to mathematical function    
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{예외처리(Exception Handling)}
+  \begin{itemize}
+    \item \verb|try(expression, silent=TRUE)|: 단순 에러출력 방지
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+> inputs = list(1, -5, 'oops', 0, 10)
+> for(input in inputs) {
++     print(paste("log of", input, "=", log(input)))
++ }
+[1] "log of 1 = 0"
+[1] "log of -5 = NaN"
+Error in log(input) : Non-numeric argument to mathematical function
+In addition: Warning message:
+In log(input) : NaNs produced
+    \end{Verbatim}
+<<>>=
+inputs = list(1, -5, 'oops', 0, 10)
+for(input in inputs) {
+  try(print(paste("log of", input, "=", log(input))))
+}
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{예외처리(Exception Handling)}
+  \begin{itemize}
+    \item \verb|tryCatch(expression, warning, error, finally)|
+    \item \verb|warning|, \verb|error|, \verb|finally| 에는 각각 \\
+          warning 발생시의 핸들러, error 발생시의 핸들러, final 핸들러
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+robustLog = function(x) {
+  tryCatch(log(x),
+    warning=function(w) {
+      print(paste("negative argument", x)); 
+      log(-x)
+    },
+    error=function(e) {
+      print(paste("non-numeric argument", x)); 
+      NaN
+    }) 
+}
+inputs = list(1, -5, 'oops', 0, 10)
+for(input in inputs) {
+  print(paste("robust log of", input, "=", robustLog(input)))
+}
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\section{객체지향 프로그래밍}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{객체지향(OOP: Object Oriented Programming) 프로그래밍}
+  \begin{itemize}
+    \item R도 다형성(polymorphism) 구현을 위한 OOP 구조가 있음 (S3 구현과 S4 구현)
+    \item S3 구현은 클래스 정의 없이 리스트에 class 속성을 지정하는 방법
+    \item S4 구현은 클래스 정의를 위한 메소드 제공
+  \end{itemize}
+  \begin{center}
+    \begin{tabularx}{\textwidth}{lXl}
+    \toprule
+                      & S3 구현방식                      & S4 구현방식       \\ 
+    \midrule
+    클래스 정의       & 별도의 클래스 정의 없음          & {\tt setClass()}  \\
+                      & (리스트 생성시 멤버 설정)        &                   \\
+    인스턴스 생성     & 리스트 생성후 클래스 속성 설정   & {\tt new()}       \\
+    멤버 referencing  & {\tt \$}                         & {\tt $@$}         \\
+    generic 함수 나열 & {\tt methods()}                  & {\tt showMethods()} \\
+    generic 함수 구현 & 함수이름 이용 {\tt f.classname}  & {\tt setMethod()} \\
+    generic 선언      & {\tt useMethod()} 명령 이용      & {\tt setGeneric()}\\
+    \bottomrule
+    \end{tabularx}
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{S3 클래스 구현}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{S3 클래스 구현}
+  \begin{itemize}
+    \item 리스트 지정후 class 속성에 원하는 클래스 이름 설정
+    \item generic 함수를 이용하면 함수 인수의 클래스에 따라 
+          \verb|func.classname| 이 호출. 
+    \begin{itemize}
+      \item 예: generic 함수인 \verb|print|에 \verb|myclass| 클래스 
+            인스턴스를 넣으면 실제로는 \verb|print.myclass|가 호출됨
+    \end{itemize}
+    \item generic 함수는 내부적으로 \verb|UseMethod()| 명령 호출
+    \item \verb|methods()| 명령으로 generic 함수에 연결된 클래스 메소드 확인 가능
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+> print
+function (x, ...) 
+UseMethod("print")
+<bytecode: 0x6d556b8>
+<environment: namespace:base>
+> methods(print)
+  [1] print.abbrev*                              
+  [2] print.acf*                                 
+  [3] print.anova                                
+  [4] print.Anova*                               
+  [5] print.anova.loglm*                         
+  [6] print.aov*        
+  (...omitted...)
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{S3 클래스 구현 (계속)}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+> x <- list(name="john", age=40)
+> x
+$name
+[1] "john"
+
+$age
+[1] 40
+
+> attr(x, "class") <- "employee"
+> x
+$name
+[1] "john"
+
+$age
+[1] 40
+
+attr(,"class")
+[1] "employee"
+> print.employee <- function(x) {
++   cat("name:", x$name, "\n")
++   cat("age:", x$age, "\n")
++ }
+> x # print(x)
+name: john 
+age: 40 
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\subsection{S4 클래스 구현}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{S4 클래스 구현}
+  \begin{itemize}
+    \item S4 클래스 본격적인 클래스 구현 방법을 제공
+    \item S4 클래스의 generic 함수의 예 : {\tt show()}
+    \item \verb|setClass(class.name, representation())| : 클래스 정의
+    \begin{itemize}
+      \item \verb|representation()| 함수에 멤버의 이름과 자료형을 입력
+    \end{itemize}    
+    \item \verb|new(class.name)| : 클래스 인스턴스 생성
+    \item \verb|setMethod(generic.func.name, class.name, func.obj)| : generic 함수 구현
+    \item \verb|showMethods(generic.func.name)| : generic 함수의 구현 목록 확인 가능
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+> show
+standardGeneric for "show" defined from package "methods"
+
+function (object) 
+standardGeneric("show")
+<bytecode: 0x1c2a4b28>
+<environment: 0x1c210ba8>
+Methods may be defined for arguments: object
+Use  showMethods("show")  for currently available ones.
+(This generic function excludes non-simple inheritance; see ?setIs)
+
+> showMethods(show)
+Function: show (package methods)
+object="ANY"
+object="classGeneratorFunction"
+object="classRepresentation"
+object="envRefClass"
+
+(...omitted...)
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{S4 클래스 구현 (계속)}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+> setClass("employee", representation(name="character", age="integer"))
+> x <- new("employee", name="john")
+> x@age <- as.integer(40)
+> x
+An object of class "employee"
+Slot "name":
+[1] "john"
+
+Slot "age":
+[1] 40
+> show.employee <- function(object) {
++   cat("name:", object@name, "\n")
++   cat("age:", object@age, "\n")  
++ }
+> setMethod("show", "employee", show.employee)
+[1] "show"
+> show(x)
+name: john 
+age: 40 
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+
+\section{패키지 프로그래밍}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{패키지}
+  \begin{itemize}
+    \item
+      {\bf R 패키지}는 관련된 
+      \begin{itemize}
+        \item 함수
+        \item 문서
+        \item 데이터셋
+      \end{itemize}
+      등을 모아놓은 것을 말한다.
+      일반적인 프로그래밍 랭귀지의 라이브러리에 해당
+    \item 데이터, 함수, 문서 3가지를 모두 제공함으로써 
+          재현가능한 연구 결과(reproducible research) 제공
+    \item R을 시동하면 자동으로 로드되는 기본 패키지
+      \begin{itemize}
+        \item base, methods, utils, datasets, graphics, grDevices, stats
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 패키지 설치/업데이트 명령어}
+  \begin{itemize}
+    \item 설치된 패키지의 확인
+      \begin{tcolorbox}
+        \begin{Verbatim}
+        
+library()
+installed.packages()        
+        \end{Verbatim}
+      \end{tcolorbox}
+    \item CRAN에서 지원하는 패키지의 설치
+      \begin{tcolorbox}
+        \begin{Verbatim}
+        
+install.packages("packagename")        
+        \end{Verbatim}
+      \end{tcolorbox}
+    \item CRAN에서 지원하지 않는 기타 패키지 설치
+      \begin{tcolorbox}
+        \begin{Verbatim}
+        
+install.packages("packagename", repo=repoaddress)     
+        \end{Verbatim}
+      \end{tcolorbox}
+    \item 패키지 업데이트
+      \begin{tcolorbox}
+        \begin{Verbatim}
+        
+update.packages()    
+        \end{Verbatim}
+      \end{tcolorbox}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 패키지 로드/언로드 명령어}
+  \begin{itemize}
+    \item 패키지 로드
+      \begin{tcolorbox}
+        \begin{Verbatim}
+        
+library(packagename)      
+        \end{Verbatim}
+      \end{tcolorbox}
+    \item 패키지 언로드
+      \begin{tcolorbox}
+        \begin{Verbatim}
+        
+detach("package:packagename", unload=TRUE)      
+        \end{Verbatim}
+      \end{tcolorbox}
+    \item 현재 로드된 패키지 목록의 확인
+      \begin{tcolorbox}
+        \begin{Verbatim}
+        
+search()    
+        \end{Verbatim}
+      \end{tcolorbox}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{데이터셋}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{데이터셋}
+  \begin{itemize}
+    \item 현재 로드된 모든 라이브러리가 제공하는 데이터셋 목록 확인
+      \begin{tcolorbox}
+        \begin{Verbatim}
+        
+data()  
+        \end{Verbatim}
+      \end{tcolorbox}
+    \item 특정 패키지(로드되었든 로드되지 않았든 상관없음)가 제공하는 데이터셋 목록 확인
+      \begin{tcolorbox}
+        \begin{Verbatim}
+        
+data(package="packagename")
+        \end{Verbatim}
+      \end{tcolorbox}
+    \item 현재 로드된 라이브러리가 제공하는 데이터셋을 워크스페이스에 로드
+      \begin{tcolorbox}
+        \begin{Verbatim}
+        
+data(dataname)
+data("dataname", package="packagename")
+        \end{Verbatim}
+      \end{tcolorbox}
+      \begin{itemize}
+        \item 라이브러리가 로드되면 포함된 데이터셋은 바로 사용가능하지만 워크스페이스에는 로드되지 않음. 
+              {\tt data} 명령을 사용하여 명시적으로 워크스페이스에 로드해야 함
+        \item 이미 로드된 라이브러리에 포함된 데이터셋을 워크스페이스에 로드하는 경우에는 
+              라이브러리 이름을 명시할 필요가 없으며 데이터셋 이름에 따옴표 필요 없음
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\subsection{데이터 입출력}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{콘솔에서 데이터 입력}
+  \begin{itemize}
+    \item {\tt scan(what, sep)} 명령: 오브젝트 값 입력. 입력을 마치려면 공백 + 엔터(enter)
+    \begin{itemize}
+      \item {\tt what=double()} : 오브젝트 타입 지정
+      \item {\tt sep=""} : 디폴트 원소 구분자는 공백(space) 
+    \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+> x <- scan()
+1: 1 2 3
+4: 
+Read 3 items
+> typeof(x)
+[1] "double"
+> y <- scan(what=integer())
+1: 1 2 3
+4: 
+Read 3 items
+> typeof(y)
+[1] "integer"
+> z <- scan(what=character())
+1: 1 2 3
+4: 
+Read 3 items
+> z
+[1] "1" "2" "3"
+> typeof(z)
+[1] "character"
+> a <- scan(what="", sep=",")
+1: a b c, d e, f g h
+4: 
+Read 3 items
+> a
+[1] "a b c"  " d e"   " f g h"        
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{파일에서 데이터 읽기(Import)}
+  \begin{itemize}
+    \item {\tt read.table(file, header, sep)} 명령: 파일에서 데이타 읽기
+    \begin{itemize}
+      \item {\tt file} : 데이터 파일 패스
+      \item {\tt header=FALSE} : {\tt TRUE}이면 첫 행은 헤더라인
+      \item {\tt sep=""} : 디폴트 원소 구분자는 공백(space)
+    \end{itemize}
+    \item {\tt read.csv(file)} 명령: csv 파일에서 데이타 읽기
+  \end{itemize}
+  \vspace{0.3em}
+  \begin{Verbatim}[frame=single,framesep=2mm]
+bash-3.2$ cat test1.dat  
+index   x    y    z
+  122   1  2.4  4.8
+  123   2  4.2  8.4
+  124   3  3.6  3.7  
+  \end{Verbatim}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+> x <- read.table("test1.dat", header=T)
+> x
+  index x   y   z
+1   122 1 2.4 4.8
+2   123 2 4.2 8.4
+3   124 3 3.6 3.7
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{파일로 데이터 쓰기(Export)}
+  \begin{itemize}
+    \item {\tt write.table(x, file, sep)} 명령: 파일로 데이타 쓰기
+    \item {\tt write.csv(x, file)} 명령: CSV 파일로 데이타 쓰기
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+> x
+  index x   y   z
+1   122 1 2.4 4.8
+2   123 2 4.2 8.4
+3   124 3 3.6 3.7
+> write.table(x, "test2.dat")
+> write.csv(x, "test2.csv")
+    \end{Verbatim}
+  \end{tcolorbox}
+  \vspace{0.3em}
+  \begin{Verbatim}[frame=single,framesep=2mm]
+bash-3.2$ cat test2.dat
+"index" "x" "y" "z"
+"1" 122 1 2.4 4.8
+"2" 123 2 4.2 8.4
+"3" 124 3 3.6 3.7
+bash-3.2$ cat test2.csv
+"","index","x","y","z"
+"1",122,1,2.4,4.8
+"2",123,2,4.2,8.4
+"3",124,3,3.6,3.7
+  \end{Verbatim}
+\end{frame}
+%===============================================================================
+
+\subsection{R 패키지 제작}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 패키지 작성 순서}
+  \begin{enumerate}
+    \item package.skeleton 명령으로 패키지 디렉토리 구조 생성
+    \item DESCRIPTION 파일 작성
+    \item R/script-name.R 스크립트 파일들 작성
+    \item man/document-name.Rd 문서화 파일들 작성
+    \item R CMD check 명령으로 패키지 check
+    \item R CMD install 명령으로 패키지 build/install
+  \end{enumerate}
+\end{frame}
+%===============================================================================
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 패키지 디렉토리 구조 생성}
+  \begin{itemize}
+    \item 패키지 구조
+      \begin{description}[style=multiline, leftmargin=3cm]
+        \item[DESCRIPTION 파일]  (필수) 패키지의 정보를 서술
+        \item[R 서브디렉토리]    (필수) 스크립트
+        \item[man 서브디렉토리]  (필수) 문서 및 헬프 정보
+        \item[data 서브디렉토리] (옵션) 데이타
+      \end{description}    
+    \item {\tt package.skeleton} 명령
+  \end{itemize}
+  \begin{tcolorbox}
+    \begin{Verbatim}
+    
+> package.skeleton(name="mypackage")
+Creating directories ...
+Creating DESCRIPTION ...
+Creating NAMESPACE ...
+Creating Read-and-delete-me ...
+Saving functions and data ...
+Making help files ...
+Done.
+Further steps are described in './mypackage/Read-and-delete-me'
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{DESCRIPTION 파일 작성}
+  \begin{itemize}
+    \item DESCRIPTION 파일: 패키지의 핵심 정보를 서술하는 파일
+    \begin{description}[style=multiline, leftmargin=3cm]
+      \item[Package]     (필수) 패키지이름
+      \item[Version]     (필수) 버전
+      \item[License]     (필수) 라이센스
+      \item[Description] (필수) 설명
+      \item[Title]       (필수) 문서 제목
+      \item[Author]      (필수) 저자
+      \item[Maintainer]  (필수) 관리자
+    \end{description}    
+    \item DESCRIPTION 파일의 예
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+Package: mypackage
+Type: Package
+Title: my test package
+Version: 0.1-0
+Date: 2013-09-04
+Author: Kildong Hong
+Maintainer: Kildong Hong <hong.kildong@gmail.com>
+Description: long description about my first test package
+License: GPL-2
+    \end{Verbatim}
+  \end{tcolorbox}  
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{스크립트 파일 작성}
+  \begin{itemize}
+    \item R 서브디렉토리 아래에 임의의 이름의 .R 파일 작성
+    \item 파일내에서 object (변수, 함수 등) 생성
+    \item 스크립트의 예 : {\tt ~/mypackage1/R/myadd.R}
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+myadd <- function(x) {
+  x + 1
+}
+    \end{Verbatim}
+  \end{tcolorbox}  
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{문서화 파일 작성}
+  \begin{itemize}
+    \item man 서브디렉토리 아래에 임의의 이름의 .Rd 파일 작성
+    \item 파일내에서 패키지/함수/데이터셋 등에 대한 문서화 
+    \item 문서화 파일의 예 : {\tt ~/mypackage1/man/myadd.Rd}
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim} 
+    
+\name{myadd}
+\alias{myadd}
+\title{myadd}
+\description{myadd function returns x + 1}
+\usage{myadd(x)}
+\arguments{
+  \item{x}{input argument. numeric value}
+}
+\details{myadd function returns x + 1}
+\value{x + 1}
+\examples{
+myadd(1)
+}
+    \end{Verbatim}
+  \end{tcolorbox}  
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{패키지 체크}
+  \begin{itemize}
+    \item 콘솔에서 {\tt R CMD check packagename} 명령
+    \item 스크립트 코드 및 문서화 파일의 오류 체크 
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+* using R version 2.15.2 (2012-10-26)
+* using platform: x86_64-redhat-linux-gnu (64-bit)
+* using session charset: UTF-8
+* checking for file ‘mypackage/DESCRIPTION’ ... OK
+(... omitted ...)
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... OK
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking examples ... OK
+* checking PDF version of manual ... OK
+
+R CMD check succeeded
+    \end{Verbatim}
+  \end{tcolorbox}  
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{패키지 빌드 및 설치}
+  \begin{itemize}
+    \item 체크가 완료되면  {\tt R CMD INSTALL packagename} 명령으로 빌드 및 설치
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+* installing *source* package ‘mypackage’ ...
+** R
+** preparing package for lazy loading
+** help
+  converting help for package ‘mypackage’
+*** installing help indices
+    finding HTML links ...    myadd                                   html  
+ done
+** building package indices
+** testing if installed package can be loaded
+
+* DONE (mypackage)
+    \end{Verbatim}
+  \end{tcolorbox}  
+  \begin{itemize}
+    \item 설치후  {\tt library(packagename)} 명령으로 로드하여 확인
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+> library(mypackage)
+> myadd(1)
+[1] 2
+    \end{Verbatim}
+  \end{tcolorbox}  
+\end{frame}
+%===============================================================================
+
+\section{추가적인 데이터구조}
+
+\subsection{날짜/시간}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{날짜/시간}
+  \begin{itemize}
+    \item \verb|Date| 기본적으로 제공하는 날짜 자료형
+      \begin{itemize}
+        \item 날짜까지만 표현 가능
+      \end{itemize}  
+    \item \verb|POSIXct, POSIXlt| 기본적으로 제공하는 날짜/시간 자료형
+      \begin{itemize}
+        \item POSIX 표준에 따른 날짜/시간 자료형
+        \item 1970-01-01 자정 기준으로 초단위 표현(소숫점, 음수 가능)
+        \item 시간대를 표시하는 {\tt tzone} 속성을 가짐
+        \item \verb|POSIXct|는 초단위 double 벡터
+        \item \verb|POSIXlt|는 년/월/일/초/요일 등의 원소를 가지는 리스트
+      \end{itemize}  
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+> d1 <- as.Date("2013/01/01")
+> d1
+[1] "2013-01-01"
+> typeof(d1)
+[1] "double"
+> class(d1)
+[1] "Date"
+> format.Date(d1, "%Y %m %d")
+[1] "2013 01 01"
+> d2 <- as.Date("2013-01-02")
+> d1 > d2
+[1] FALSE
+> d2 + 1
+[1] "2013-01-03"
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Date 자료형}
+  \begin{itemize}
+    \item \verb|as.Date(date.string, format='%m/%d/%Y')| 문자열에서 날짜 자료형 생성 
+    \item \verb|format.Date(date, format)| 날짜 자료형을 문자열로 변환    
+    \item \verb|Sys.Date()| 현재 날짜 출력
+    \item +/-/비교 연산 가능. Date 자료형의 차이는 {\tt difftime} 자료형 
+    \item {\tt difftime} 자료형의 숫자값은 {\tt as.numeric(dt, units)} 명령으로 계산
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+    \begin{Verbatim}
+    
+> d1 <- as.Date("2013/01/01")
+> typeof(d1)
+[1] "double"
+> class(d1)
+[1] "Date"
+> format.Date(d1, "%Y %m %d")
+[1] "2013 01 01"
+> d2 <- as.Date("2013-01-02")
+> d1 > d2
+[1] FALSE
+> d2 + 1
+[1] "2013-01-03"
+> d <- d2 - d1
+> d
+Time difference of 1 days
+> str(td)
+Class 'difftime'  atomic [1:1] 1
+  ..- attr(*, "units")= chr "days"
+> as.numeric(d)
+[1] 1
+> as.numeric(d, units="hours")
+[1] 24
+    \end{Verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{POSIXct/POSIXlt 자료형}
+  \begin{itemize}
+    \item \verb|Date| 기본적으로 제공하는 날짜/시간 자료형
+      \begin{itemize}
+        \item \verb|as.POSIXct(datetime, tz)|, \verb|as.POSIXlt(datetime)| :
+              문자열에서 POSIXct/POSIXlt 자료형 생성 
+        \item \verb|format.POSIXct(t, format)|, \verb|format.POSIXlt(t, format)| : 
+              날짜 자료형을 문자열로 변환   
+        \item \verb|Sys.time()| 현재 날짜/시간
+        \item \verb|year|, \verb|mon|, \verb|year|, \verb|mday|, \verb|hour| 
+              등의 원소는 년/월/일/시/분 등을 나타내지만 기준 시점이 다르기때문에 사용이 어렵다.
+        \item 이런 속성은 \verb|as.numeric(format.POSIXct())|을 사용하여 구하는 것이 더 쉬움
+      \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+t1 <- as.POSIXct("2013-01-01")
+t1
+unclass(t1)
+t2 <- as.POSIXlt(t1)
+c(t2$year, t2$mon)
+as.numeric(c(format.POSIXct(t1, "%Y"), format.POSIXct(t1, "%m")))
+@
+  \end{tcolorbox}
+\end{frame}
+
+%===============================================================================
+
+\subsection{시계열 자료형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{시계열(time-series) 자료형}
+  \begin{itemize}
+    \item R에서 시계열 자료의 처리를 위해 제공하는 패키지와 자료형들은 다음과 같다.
+      \begin{itemize}
+        \item \verb|base| 패키지의 \verb|ts| 클래스
+        \item \verb|zoo| (Zeilies's Ordered Observations) 패키지의 \verb|zoo|, \verb|zooreg| 클래스
+        \item \verb|xts| 패키지의 \verb|xts| 클래스
+        \item \verb|tseries| 패키지의 \verb|irts| 클래스
+        \item \verb|Rmetrics| 패키지의 \verb|timeSeries| 클래스
+        \item \verb|its| 패키지의 \verb|its| 클래스
+      \end{itemize}
+    \item 이러한 자료들은 vector/matrix/data.frame과 달리 자료의 시간을 나타내는 
+          \verb|index| 속성, 주기(frequency) 등의 추가 속성, 시계열 처리에 유용한 method를 가진다.
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ts 클래스}
+  \begin{itemize}
+    \item 년/분기/월 단위의 시계열 표시에 적합
+    \item \verb|ts(data, frequency, start, end)|
+      \begin{itemize}
+        \item \verb|data| 시계열 자료가 되는 벡터/매트릭스/데이터프레임
+        \item \verb|frequency| 시계열 주기 (연간:1, 분기:4, 월간:12)
+        \item \verb|start| 시작 날짜, 연(year)의 경우에는 길이 1인 정수벡터, 년/월의 경우에는 길이 2인 정수벡터
+      \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+ts(1:10, start=1997)
+ts(1:12, frequency=4, start=1997)
+ts(1:20, frequency=12, start=c(1997, 5))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ts 클래스 메소드}
+  \begin{itemize}
+    \item \verb|start()|, \verb|end()| : 시작일/종료일 속성
+    \item \verb|frequency()|, \verb|deltat()| : 빈도 및 주기 
+    \item \verb|window(ts, start, end)| : 전체 시계열 중 일부 구간 
+    \item \verb|lag(ts, k)| : 시계열 k 단위만큼 지연
+    \item \verb|diff(ts, lag)| : lag 단위 시계열 값의 차이 
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+ts <- ts(1:8, frequency=12, start=c(2000, 3))
+ts
+lag(ts, k=2)
+diff(ts, lag=1)
+c(start(ts), end(ts), frequency(ts), deltat(ts))
+window(ts, start=c(2000, 5), end=c(2000, 8))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ts 클래스 메소드 (계속)}
+  \begin{itemize}
+    \item \verb|cbind(ts1, ts2)| : 두 시계열 합치기
+    \item \verb|ts.union(ts1, ts2)| : \verb|cbind(ts1, ts2)|와 동일
+    \item \verb|ts.intersect(ts1, ts2)| : 데이터가 없는 부분 생략
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+ts1 <- ts(1:8, frequency=12, start=c(2000, 3))
+ts2 <- ts(80:91, frequency=12, start=c(2000, 1))
+cbind(ts1, ts2)
+ts.intersect(ts1, ts2)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{zoo 클래스}
+  \begin{itemize}
+    \item 주간/일간 시계열 자료 표현 가능
+    \item \verb|zoo(x, order.by)|, \verb|as.zoo(x)| 명령어로 생성/변환
+      \begin{itemize}
+        \item \verb|x| :시계열 자료 벡터/매트릭스/데이터프레임
+        \item \verb|order.by| : 인덱스 벡터. \verb|Date|/\verb|POSIXct| 자료형
+        \item 인덱스 벡터의 길이는 자료 벡터/매트릭스의 행(row)수와 같아야 함
+      \end{itemize}
+    \item \verb|ts|와 같이 \verb|start, end, window, lag, diff| 메소드 가능
+    \item \verb|index()| : 인덱스 추출
+    \item \verb|coredata()| : 자료 추출
+    \item \verb|[]|을 이용한 인덱싱 가능
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{zoo 사용 예제}
+<<setup,echo=FALSE>>=
+options(width=100)
+@
+  \begin{tcolorbox}\footnotesize
+<<>>=
+library(zoo)
+x <- seq(5.0, length=12, by=0.3)
+t <- as.Date("2013-02-22") + 1:12
+z1 <- zoo(x, order.by=t)
+z1
+z2 <- as.zoo(x)
+index(z2) <- t
+z2
+index(z1)
+coredata(z1)
+z1[as.Date("2013-02-25") + 0:2]
+@
+  \end{tcolorbox}
+<<setup,echo=FALSE>>=
+options(width=60)
+@
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{xts 클래스}
+  \begin{itemize}
+    \item \verb|xts(x, order.by)|, \verb|as.xts(x)| 명령어로 생성/변환
+    \item 날짜/시간 문자열을 이용한 인덱싱
+    \item binary search 를 사용한 빠른 인덱싱
+    \item \verb|first|, \verb|last|, \verb|periodicity|, \verb|endpoints|, \verb|to.period| 
+          등의 다양한 추가 메소드
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+library(xts)
+data(sample_matrix)
+x1 <- xts(sample_matrix, order.by=as.Date(rownames(sample_matrix)))
+head(x1)
+x2 <- as.xts(sample_matrix, dateFormat='Date')
+head(x2)
+x2['/2007-01-07']
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+
+\section{금융 데이터 관련 패키지}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{금융 데이터 관련 패키지}
+  \begin{itemize}
+    \item TTR
+      \begin{itemize}
+        \item 기술적 분석 (Technical indicator)
+      \end{itemize}
+    \item quantmod
+      \begin{itemize}
+        \item 금융 시계열 자료 임포트 및 차팅
+      \end{itemize}
+    \item Quandl
+      \begin{itemize}
+        \item 금융 시계열 자료 임포트
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{TTR}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{TTR 패키지}
+  \begin{itemize}
+    \item Technical Trading Rules
+    \item 50여개 이상의 기술적 분석 기능 및 보조 기능 제공
+      \begin{itemize}
+        \item adjRatios, ADX, ATR, BBands, CCI, chaikinAD, chaikinVolatility, adjRatios, CLV,
+              CMF, CMO, DonchianChannel, DPO, DVI, EMV, GMMA, KST, lags, MACD, MFI, OBV, PBands, 
+              ROC, rollSFM, RSI, runPercentRank, runSum, SAR, SMA, stoch, TDI, TRIX, VHF,
+              volatility, williamsAD, WPR, ZigZag 등
+      \end{itemize}
+    \item 다양한 자료형 사용 가능
+      \begin{itemize}
+        \item vector, matrix, dta.frame, ts, zoo, xts, timeSeries, its 등
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{quantmod}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{quantmod 패키지}
+  \begin{itemize}
+    \item Quantitative Financial Modelling Framework
+    \item 기능
+      \begin{itemize}
+        \item 인터넷/데이터베이스를 이용한 금융 자료 임포트
+        \item 차트 및 시각화(visualization)
+        \item TTR 패키지의 기술적 분석 인디케이터 기능 이용 가능
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{quantmod 패키지의 데이터 임포트 기능}
+  \begin{itemize}
+    \item \verb|getSymbols(symbol, src, auto.assign=TRUE)|
+    \item \verb|auto.assign=TRUE| 일때는 symbol이름을 가진 변수를 워크스페이스에 생성
+    \item \verb|auto.assign=FALSE| 일때는 자료 리턴
+    \item src에 따라 자료를 임포트하는 source 지정
+    \item 인터넷 사이트에서 임포트하는 경우
+      \begin{itemize}
+        \item src=yahoo : 야후 금융 사이트
+        \item src=google : 구글 금융 사이트
+        \item src=oanda : oanda 외환 사이트
+        \item src=FRED : FRED 데이터베이스
+      \end{itemize}
+    \item 파일/데이터베이스에서 임포트하는 경우
+      \begin{itemize}
+        \item src=RData : RData 파일
+        \item src=csv : csv 파일
+        \item src=SQLite : SQLite 데이터베이스 파일
+        \item src=MySQL : MySQL 데이터베이스
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{quantmod 패키지의 차트 기능 예 1: 캔들차트}
+  \begin{tcolorbox}\scriptsize
+<<fig1,results=hide>>=
+library(quantmod)
+getSymbols("AAPL")
+chartSeries(AAPL, subset='201305/', theme='white')
+@
+  \end{tcolorbox}
+  \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=10,height=5>>=
+<<fig1>>
+@  
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{quantmod 패키지의 차트 기능 예 2: 볼랜드 밴드}
+  \begin{tcolorbox}\scriptsize
+<<fig2,results=hide>>=
+library(quantmod)
+getSymbols("AAPL")
+chartSeries(AAPL, subset='201305/', theme='white', TA=c(addBBands()))
+@
+  \end{tcolorbox}
+  \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=10,height=5>>=
+<<fig2>>
+@  
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{quantmod 패키지의 차트 기능 예 3: MACD}
+  \begin{tcolorbox}\scriptsize
+<<fig3,results=hide>>=
+library(quantmod)
+getSymbols("AAPL")
+chartSeries(AAPL, subset='201305/', theme='white', TA=c(addBBands(),addMACD(32,50,12)))
+@
+  \end{tcolorbox}
+  \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=10,height=5>>=
+<<fig3>>
+@  
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{Quandl}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Quandl 패키지}
+  \begin{itemize}
+    \item Quandl : 7백만개 이상의 금융/경제/사회 지표 및 수치 자료를 검색할 수 있는 웹사이트
+    \item Quandl 웹사이트 주소 : \url{http://www.quandl.com/}
+    \item Quandl 웹사이트의 자료를 다운로드 가능
+      \begin{itemize}
+        \item \verb|Quandl.search()| 자료 검색
+        \item \verb|Quandl()| 자료 다운로드
+      \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+library(Quandl)
+Quandl.search("Oil", source = "NSE")
+ts = Quandl("NSE/OIL",type = "ts")
+head(ts)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+
+\end{document}
+

@@ -1,0 +1,951 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\input{../template_lecture.Rnw}
+\begin{document}
+\SweaveOpts{concordance=TRUE, keep.source=TRUE}
+<<echo=FALSE>>=
+options(width=60)
+load("~/FSA/AB/dlm_data.RData")
+@
+
+\title{제13강: 변동성 모형}
+\subtitle{금융 통계 및 시계열 분석}
+\author{TRADE INFORMATIX}
+\date{2014년 2월 21일}
+\maketitle
+
+\begin{frame}[fragile]
+\frametitle{목차}
+\tableofcontents
+\end{frame}
+
+\section{변동성 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{S\&P500 수익률}
+  \begin{tcolorbox}\scriptsize
+<<fig, eval=FALSE>>=
+library("FinTS")
+data(sp500)
+plot(sp500, type='l', main="S&P500 Returns")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{수익률 시계열의 상관관계 특성}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{수익률 시계열의 상관관계 특성}
+  \begin{itemize}
+    \item 수익률 자체는 auto-correlation이 없다.
+    \item 수익률의 크기는 강한 auto-correlation이 있다.
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig, eval=FALSE>>=
+layout(matrix(1:2, 1, 2, byrow=TRUE))
+acf(coredata(sp500), lag.max=100)
+pacf(coredata(sp500)**2, lag.max=100)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{수익률 시계열의 변동성 특성}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{수익률 시계열의 변동성 특성}
+  \begin{enumerate}
+    \item 변동성 클러스터링(clustering)
+    \begin{itemize}
+      \item 일단 변동성이 높아지면 일정기간동안 변동성이 높게 유지된다.
+    \end{itemize}
+    \item 변동성 변화는 정상(stationary) 특성을 가진다 
+    \begin{itemize}
+      \item 변동성의 변동성(volatility of volatility)는 일정하게 유지된다.
+    \end{itemize}
+    \item 레버리지 효과(leverage effect)
+    \begin{itemize}
+      \item 변동성이 증가할 때는 빠르게 증가하고 감소할 때는 천천히 감소한다.
+    \end{itemize}
+  \end{enumerate}
+\end{frame}
+%===============================================================================
+
+\subsection{ARCH 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH 모형}
+  \begin{itemize}
+    \item Conditional Heteroskedasticity 특성
+    \begin{itemize}
+      \item 변동성이 이전 시간까지의 변동성 정보에 의존한다.
+    \end{itemize}
+    \begin{eqnarray*}
+      E[r_t] &=& \mu \\
+      \sigma_t^2 &=& \text{Var}(r_t) = E[(r_t - \mu)^2|F_{t-1}] 
+    \end{eqnarray*}
+    \item AutoRegressive Conditional Heteroskedasticity (ARCH)
+    \begin{itemize}
+      \item Engle 제안 (1982)
+      \item 변동성이 이전 시간까지의 변동성에 의존하는 AR모형과 유사
+      \item 변동성은 이전 시간까지의 실현 수익률 크기 $a_t^2$에 의존
+    \end{itemize}
+    \begin{eqnarray*}
+      a_t &=& r_t - \mu = \sigma_t e_t \\
+      \sigma_t^2 &=& \alpha_0 + \alpha_1 a_{t-1}^2 + \ldots + \alpha_m a_{m-1}^2
+    \end{eqnarray*}
+    \begin{itemize}
+      \item $e_t$ : 평균 0, 분산 1인 I.I.D 확률변수. 보통 정규분포 가정
+      \item $\alpha_i$ : 양수(positive)인 계수
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH 효과 테스트 1 : Ljung-Box 테스트}
+  \begin{itemize}
+    \item Ljung-Box 테스트
+    \begin{itemize}
+      \item $\{a_t^2\}$ 시계열의 auto-correlation이 $m$차까지 0인지 검정
+      \begin{eqnarray*}
+        Q(m) = n\left(n+2\right)\sum_{k=1}^h\frac{\hat{\rho}^2_k}{n-k}
+      \end{eqnarray*}
+    \end{itemize}
+    \item {\tt Box.test(x, lag, type)} 
+    \begin{itemize}
+      \item {\tt x} : 시계열 자료
+      \item {\tt lag} : 검정 차수 
+      \item {\tt type} : 검정 방법 {\tt "Box-Pierce", "Ljung-Box"}
+    \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+Box.test(sp500**2, lag=20, type="Ljung-Box")
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH 효과 테스트 2 : Lagrange Multiplier 테스트}
+  \begin{itemize}
+    \item Lagrange Multiplier 테스트
+    \begin{itemize}
+      \item $a_t^2$를 $a_{t-1}^2, \ldots, a_{t-m}^2$으로 회귀분석한 계수가 0인지 검정
+      \begin{eqnarray*}
+        a_t^2 &=& \alpha_0 + \alpha_1 a_{t-1}^2 + \ldots + \alpha_m a_{m-1}^2 + e_t
+      \end{eqnarray*}
+    \end{itemize}
+    \item {\tt ArchTest(x, lags, demean} (FinTS 패키지)
+    \begin{itemize}
+      \item {\tt x} : 시계열 자료
+      \item {\tt lag} : 검정 차수 
+      \item {\tt demean} : {\tt TRUE}이면 샘플평균 제거후 분석
+    \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig>>=
+ArchTest(sp500)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH(1) 모형의 특성}
+  \begin{itemize}
+    \item ARCH(1)
+    \begin{eqnarray*}
+      a_t &=& \sigma_t e_t \\
+      \sigma_t^2 &=& \alpha_0 + \alpha_1 a_{t-1}^2
+    \end{eqnarray*}
+    \item 무조건부 평균(unconditional mean)은 0
+    \begin{eqnarray*}
+      E[a_t] = E[E[a_t|F_{t-1}]] = E[\sigma E[e_t]] = 0
+    \end{eqnarray*}
+    \item 무조건부 분산(unconditional variance)은 $\dfrac{\alpha_0}{1-\alpha_1}$
+    \begin{eqnarray*}
+      \text{Var}[a_t] &=& E[a_t^2] = E[E[a_t^2|F_{t-1}]] = E[\alpha_0 + \alpha_1 a_{t-1}^2]  \\
+                      &=& \alpha_0 + \alpha_1 E[a_{t-1}^2] = \alpha_0 + \alpha_1 \text{Var}[a_{t-1}]
+    \end{eqnarray*}
+    \item Excess Kurtosis
+    \begin{eqnarray*}
+      \dfrac{E[a_t^4]}{[E[a_t^2]]^2} 
+        = \dfrac{3(1+\alpha_1)}{(1-\alpha_1)(1-3\alpha_1^2)} > 3
+    \end{eqnarray*}
+    \item 추가적 제한조건
+    \begin{eqnarray*}
+      1-3\alpha_1^2 > 0
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH 모형의 장단점}
+  \begin{itemize}
+    \item 장점
+    \begin{itemize}
+      \item 단순한 수학적 모형
+      \item 정상 신호 모형
+      \item 변동성 clustering 표현 가능
+      \item fai-tail 표현 가능
+    \end{itemize}
+    \item 단점
+    \begin{itemize}
+      \item 레버리지 효과 표현 불가능
+      \item 계수 $\{\alpha_i\}$에 제한이 많음
+      \item 변동성 쇼크에 대한 반응속도가 느리기때문에 변동성 과대평가
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH 모형 사용 방법}
+  \begin{itemize}
+    \item 차수 결정
+    \begin{itemize}
+      \item ARCH(p)모형의 차수 결정
+      \item $a_t^2$의 PACF 이용
+    \end{itemize}
+    \item 계수 추정
+    \begin{itemize}
+      \item MLE(Maximum Likelihood Estimation) 사용
+      \item 보통 $e_t$가 Normal 분포인 경우 가정
+    \end{itemize}
+    \item 모형 검증
+    \begin{itemize}
+      \item 올바른 모형인 경우 표준잔차 $a_t/\sigma_t$는 iid
+      \item Ljung-Box test 사용
+    \end{itemize}
+    \item 예측
+    \begin{itemize}
+      \item 모형 수식에 의한 회귀적 예측 가능
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\section{GARCH 모형}
+
+\subsection{GARCH 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{GARCH 모형}
+  \begin{itemize}
+    \item Generalized AutoRegressive Conditional Heteroskedasticity
+    \item Bollerslev 제안 (1986)
+    \item 변동성이 이전 시간까지의 변동성 및 실현변동성 모두에 의존하는 AR모형
+    \item ARCH 모형보다 적은 차수로 수익률 시계열 모형 가능
+    \item GARCH(m, s) 모형
+    \begin{eqnarray*}
+      a_t &=& \sigma_t e_t \\
+      \sigma_t^2 &=& \alpha_0 + \sum_{i=1}^m\alpha_i a_{t-i}^2 + \sum_{j=1}^s\beta_j \sigma_{t-j}^2
+    \end{eqnarray*}
+    \begin{itemize}
+      \item $\alpha_0$, $\alpha_i$, $\beta_i$ : 양수(positive)인 계수
+      \item 계수 조건
+      \begin{eqnarray*}
+        \sum_{i}^{\max (m,s)} (\alpha_i + \beta_i) < 1
+      \end{eqnarray*}
+    \end{itemize}
+    \item GARCH(m, 0) = ARCH(m)
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{GARCH(1,1) 모형 특징}
+  \begin{itemize}
+    \item GARCH(1, 1) 모형
+    \begin{eqnarray*}
+      \sigma_t^2 &=& \alpha_0 + \alpha_1 a_{t-1}^2 + \beta_1 \sigma_{t-1}^2
+    \end{eqnarray*}
+    \begin{eqnarray*}
+      \alpha_0 > 0,\; 0 < \alpha_i > 1,\; 0 < \beta_i < 1,\; \alpha_i + \beta_i < 1
+    \end{eqnarray*}
+    \item Excess Kurtosis
+    \begin{eqnarray*}
+      \dfrac{E[a_t^4]}{[E[a_t^2]]^2} 
+        = \dfrac{3(1-(\alpha_1 + \beta_1)^2)}{1-(\alpha_1 + \beta_1)^2-2\alpha^2} > 3
+    \end{eqnarray*}
+    \item 추가적 제한조건
+    \begin{eqnarray*}
+      1-(\alpha_1 + \beta_1)^2-2\alpha^2 > 0
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{GARCH(1,1) 모형 예측}
+  \begin{itemize}
+    \item 1-스텝 예측
+    \begin{eqnarray*}
+      \sigma_{t+1}^2 &=& \alpha_0 + \alpha_1 a_t^2 + \beta_1 \sigma_t^2 \\
+      E[\sigma_{t+1}^2|F_t]&=& \alpha_0 + \alpha_1 a_t^2 + \beta_1 \sigma_t^2 
+    \end{eqnarray*}
+    \item 2-스텝 예측
+    \begin{eqnarray*}
+      \sigma_{t+2}^2 
+        &=& \alpha_0 + \alpha_1 a_{t+1}^2 + \beta_1 \sigma_{t+1}^2 \\
+        &=& \alpha_0 + (\alpha_1 + \beta_1) \sigma_{t+1}^2 + \alpha_1 \sigma_t^2 (e_{t+1}^2 - 1) \\
+      E[\sigma_{t+2}^2|F_t]
+        &=& \alpha_0 + (\alpha_1 + \beta_1) \sigma_{t+1}^2
+    \end{eqnarray*}
+    \item $l$-스텝 예측
+    \begin{eqnarray*}
+      E[\sigma_{t+l}^2|F_t]
+        &=& \alpha_0 + (\alpha_1 + \beta_1) \sigma_{t+l-1}^2 \\
+        &=& \dfrac{\alpha_0(1-(\alpha_1 + \beta_1)^{l-1})}{1-(\alpha_1 + \beta_1)} + 
+            (\alpha_1 + \beta_1)^{l-1}\sigma_{t+1} \\
+      E[\sigma_{t+l}^2|F_t] &\rightarrow& \dfrac{\alpha_0}{1-(\alpha_1 + \beta_1)}
+            \;\; \text{as l $\rightarrow \infty$}
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{fGarch 패키지}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 명령}
+  \begin{itemize}
+    \item fGarch 패키지
+    \item {\tt garchSpec}
+    \begin{itemize}
+      \item 시뮬레이션을 위한 GARCH 모형 정의
+    \end{itemize}
+    \item {\tt garchSim}
+    \begin{itemize}
+      \item GARCH 모형 시뮬레이션
+    \end{itemize}
+    \item {\tt garchFit}
+    \begin{itemize}
+      \item GARCH 모형 파라미터 추정
+    \end{itemize}
+    \item GARCH(m, s) 모형 정의에서 차수 s=0이면 ARCH 모형
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 모형 정의 명령}
+  \begin{itemize}
+    \item {\tt garchSpec(model, cond.dist, rseed)}
+    \item 평균 프로세스와 변동성 프로세스 동시 정의
+    \begin{eqnarray*}
+      x_t &=& \mu + \sum_{i=1}^p a_i x_{t-i}+ \sum_{i=0}^q b_i a_{t-i} \\
+      a_t &=& \sigma_t e_t \\
+      \sigma_t^2 &=& \alpha_0 + \sum_{i=1}^m\alpha_i a_{t-i}^2 + \sum_{j=1}^s\beta_j \sigma_{t-j}^2
+    \end{eqnarray*}
+    \begin{itemize}
+      \item {\tt model=list(omega, alpha, beta, mu, ar, ma)}
+      \begin{itemize}
+        \item {\tt mu, ar, ma} : 평균 프로세스 계수
+        \item {\tt omega=0.8, alpha=0.1, beta=0.8} : 변동성 프로세스 계수 ($\omega=\alpha_0$)
+      \end{itemize}
+      \item {\tt cond.dist} : 표준잔차 이노베이션 확률변수 정의
+      \begin{itemize}
+        \item {\tt norm} : Normal 분포
+        \item {\tt ged} : Generalized Error 분포
+        \item {\tt std} : Student-t 분포
+      \end{itemize}
+      \item {\tt rseed} : 랜덤 시드
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 모형 정의의 예}
+  \begin{itemize}
+    \item ARCH(2)
+    \begin{itemize}
+      \item {\tt garchSpec(model = list(alpha = c(0.2, 0.4), beta = 0))}
+    \end{itemize}
+    \item AR(1)-ARCH(2)
+    \begin{itemize}
+      \item {\tt garchSpec(model = list(ar = 0.5, alpha = c(0.3, 0.4), beta = 0))}
+    \end{itemize}
+    \item GARCH(1,1)
+    \begin{itemize}
+      \item {\tt garchSpec(model = list(alpha = 0.2, beta = 0.7))}
+    \end{itemize}
+    \item ARMA(1,2)-GARCH(1,1)
+    \begin{itemize}
+      \item {\tt garchSpec(model = list(ar = 0.5, ma = c(0.3, -0.3)))}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 모형 시뮬레이션 명령}
+  \begin{itemize}
+    \item {\tt garchSim(spec, n)}
+    \begin{itemize}
+      \item {\tt spec} : {\tt garchSpec} 명령으로 정의된 모형
+      \item {\tt n} : 시뮬레이션 수
+    \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<fig, eval=FALSE>>=
+library("fGarch")
+spec <- garchSpec(model = list())
+x <- garchSim(spec, n=1000)
+plot(x)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 모형 추정 명령}
+  \begin{itemize}
+    \item {\tt garchFit(formula, data, cond.dist, trace)}
+    \item 입력 변수
+    \begin{itemize}
+      \item {\tt formula} : ARCH/GARCH 모형 구조를 정의하는 formula
+      \item {\tt cond.dist} : 표준잔차 이노베이션 확률변수 정의
+      \item {\tt trace} : {\tt FALSE} 이면 최적화 과정을 표시하지 않음
+    \end{itemize}
+    \item 출력 변수 : S4 class
+    \begin{itemize}
+      \item {\tt data} : 원본 자료
+      \item {\tt fit} : 추정된 파라미터
+      \item {\tt residuals} : 잔차
+      \item {\tt fitted} : 추정된 파라미터로 fitted 된 시계열
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 모형 추정 예 1}
+  \begin{tcolorbox}\small
+<<fig>>=
+x <- as.vector(garchSim(garchSpec(rseed=1985), n=200)[,1])
+m <- garchFit(~garch(1,1), data=x, trace=FALSE)
+summary(m)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 모형 추정 예 1 (계속)}
+  \begin{tcolorbox}\small
+    \begin{verbatim}
+
+Standardised Residuals Tests:
+                                Statistic p-Value  
+ Jarque-Bera Test   R    Chi^2  1.114092  0.5728988
+ Shapiro-Wilk Test  R    W      0.9932315 0.4910797
+ Ljung-Box Test     R    Q(10)  7.30396   0.6964714
+ Ljung-Box Test     R    Q(15)  8.712828  0.8920477
+ Ljung-Box Test     R    Q(20)  9.766983  0.972203 
+ Ljung-Box Test     R^2  Q(10)  11.88456  0.2928571
+ Ljung-Box Test     R^2  Q(15)  14.93927  0.4558004
+ Ljung-Box Test     R^2  Q(20)  20.08938  0.4523512
+ LM Arch Test       R    TR^2   11.57234  0.480607 
+
+Information Criterion Statistics:
+      AIC       BIC       SIC      HQIC 
+-8.579494 -8.513527 -8.580273 -8.552798  
+
+    \end{verbatim}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 모형 추정 예 2-1}
+  \begin{tcolorbox}\tiny
+<<fig>>=
+(m1 <- garchFit(~arma(3,0)+garch(1,1), data=sp500, trace=FALSE))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 모형 추정 예 2-2}
+  \begin{tcolorbox}\tiny
+<<fig>>=
+(m2 <- garchFit(~garch(1,1), data=sp500, trace=FALSE))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 모형 추정 결과 Plot}
+  \begin{itemize}
+    \item fGARCH S4 클래스 명령
+    \item {\tt plot(x, which)}
+    \item {\tt which} 인수 : 분석 결과 선택
+    \begin{enumerate}
+      \item Time SeriesPlot
+      \item Conditional Standard Deviation Plot
+      \item Series Plot with 2 Conditional SD Superimposed
+      \item Autocorrelation function Plot of Observations
+      \item Autocorrelation function Plot of Squared Observations
+      \item Cross Correlation Plot
+      \item Residuals Plot
+      \item Conditional Standard Deviations Plot
+      \item Standardized Residuals Plot
+      \item ACF Plot of Standardized Residuals
+      \item ACF Plot of Squared Standardized Residuals
+      \item Cross Correlation Plot between $r^2$ and r
+      \item Quantile-Quantile Plot of Standardized Residuals
+    \end{enumerate}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 모형 결과 Plot 예 1-1}
+  \begin{tcolorbox}\scriptsize
+<<fig, eval=FALSE>>=
+plot(m2, which=3)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 모형 결과 Plot 예 1-2}
+  \begin{tcolorbox}\scriptsize
+<<fig, eval=FALSE>>=
+layout(matrix(c(1,2), 1, 2, byrow=TRUE))
+plot(m2, which=8)
+plot(m2, which=9)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 모형 결과 Plot 예 1-3}
+  \begin{tcolorbox}\scriptsize
+<<fig, eval=FALSE>>=
+layout(matrix(c(1,2), 1, 2, byrow=TRUE))
+plot(m2, which=10)
+plot(m2, which=11)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARCH/GARCH 모형 예측 예}
+  \begin{tcolorbox}\scriptsize
+<<fig, eval=FALSE>>=
+N <- length(sp500)
+sp500.2 <- sp500[-(N-12+1:N)]
+m3 <- garchFit(~garch(1,1), data=sp500.2, trace=FALSE)
+p <- predict(m3, 12)
+sp500.p <- ts(c(m3@sigma.t**2, (p$standardDeviation)**2), start=1926, frequency=12)
+plot(window(sp500**2, start=1980), type="l", col="gray", main="sp500 Volatility Prediction")
+lines(window(sp500.p, start=1980), lty=2, col="red"); abline(v=1991)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{GARCH 변형 모형}
+  \begin{itemize}
+    \item IGARCH : Integrated GARCH
+    \begin{itemize}
+      \item GARCH ARMA 계수가 unit root를 가지는 모형
+    \end{itemize}
+    \item GARCH-M : GARCH in the mean
+    \begin{itemize}
+      \item 시계열 자체가 변동성에 의존
+    \end{itemize}
+    \item EGARCH : Exponential GARCH
+    \begin{itemize}
+      \item 레버리지 효과 부가
+    \end{itemize}
+    \item TGARCH : Threshold GARCH
+    \begin{itemize}
+      \item 레버리지 효과 부가
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{rugarch 패키지: GARCH 변형 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{rugarch 패키지: GARCH 변형 모형}
+  \begin{itemize}
+    \item rugarch 패키지 
+    \item R Univariate GARCH Model
+    \item ARFIMAX 평균 프로세스 지원
+    \item 다음과 같은 GARCH-변형 변동성 프로세스 지원
+    \begin{itemize}
+      \item sGARCH
+      \item eGARCH
+      \item gjrGARCH
+      \item apARCH
+      \item iGARCH
+      \item csGARCH
+      \item TGARCH
+      \item AVGARCH
+      \item NGARCH
+      \item NAGARCH
+      \item APARCH
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{rugarch 모형 추정 명령}
+  \begin{itemize}
+    \item {\tt ugarchspec(variance.model, mean.model, distribution.model)}
+    \begin{itemize}
+      \item {\tt variance.model=list(model, garchOrder, submodel)} : 변동성 프로세스 모형
+      \item {\tt model} : {\tt "sGARCH", "fGARCH", "eGARCH", "gjrGARCH", "apARCH", "iGARCH", "csGARCH"}
+      \item {\tt garchOrder=c(1,1)} : 변동성 프로세스 차수
+      \item {\tt submodel} : {\tt model="fGARCH"}인 경우 {\tt "GARCH", "TGARCH", "AVGARCH", "NGARCH”, "NAGARCH", "APARCH","GJRGARCH" and "ALLGARCH"}
+      \item {\tt mean.model=list(armaOrder, include.mean, garchm)} : {\tt FALSE} 이면 최적화 과정을 표시하지 않음
+      \item {\tt armaOrder=c(0,0)} : 평균 ARMA 프로세스 차수
+      \item {\tt include.mean} : constant mean 추가 여부
+      \item {\tt garchm} : GARCH-in-the-mean 추가 여부
+    \end{itemize}
+    \item {\tt ugarchfit(spec, data)}
+    \begin{itemize}
+      \item {\tt spec} : {\tt ugarchspec}로 정의된 모형
+      \item {\tt data} : 시계열 자료
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{IGARCH : Integrated GARCH}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{IGARCH : Integrated GARCH}
+  \begin{itemize}
+    \item GARCH ARMA 계수가 unit root를 가지는 모형
+    \item 변동성 이노베이션의 영향이 영구적
+    \item IGARCH(1,1)
+    \begin{eqnarray*}
+      \sigma_t^2 &=& \alpha_0 + \beta_1 \sigma_{t-1}^2 + (1-\beta_1) a_{t-1}^2
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{IGARCH : Integrated GARCH}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+library(rugarch)
+spec.igarch <- ugarchspec(variance.model=list(model="iGARCH", garchOrder=c(1,1)),
+  mean.model=list(armaOrder=c(0, 0), include.mean=TRUE, arfima=FALSE))
+mod.fit.igarch <- ugarchfit(spec=spec.igarch, data=as.numeric(sp500))
+show(mod.fit.igarch)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\subsection{GARCH-M : GARCH in the mean}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{GARCH-M : GARCH in the mean}
+  \begin{itemize}
+    \item 시계열 자체가 변동성에 의존
+    \item 수익률 시계열은 리스크 프리미엄을 가짐
+    \begin{eqnarray*}
+      x_t &=& \mu + c\sigma_t^2 + a_t \\
+      a_t &=& \sigma_t e_t \\
+      \sigma_t^2 &=& \alpha_0 + \sum_{i=1}^m\alpha_i a_{t-i}^2 + \sum_{j=1}^s\beta_j \sigma_{t-j}^2
+    \end{eqnarray*}
+    \item 시계열 자체가 변동성에 의존
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{GARCH-M : GARCH in the mean}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+spec.garchm <- ugarchspec(variance.model=list(model="sGARCH", garchOrder=c(1,1)),
+  mean.model=list(armaOrder=c(0, 0), include.mean=TRUE, garchm=TRUE))
+mod.fit.garchm <- ugarchfit(spec=spec.garchm, data=as.numeric(sp500))
+show(mod.fit.garchm)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\subsection{EGARCH : Exponential GARCH}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{EGARCH : Exponential GARCH}
+  \begin{itemize}
+    \item 분산(변동성)의 log값 모형
+    \item 레버리지 효과 부가
+    \item 변동성 이노베이션 값이 양수일 때와 음수일 때 비중 변화
+    \begin{eqnarray*}
+      \log (\sigma_t^2) &=& \alpha_0 + 
+        \dfrac{\sum_{j=1}^s\beta_j B^{j-1}}{\sum_{i=1}^m\alpha_iB^i}g(e_{t-1})
+    \end{eqnarray*}
+    \item 비중함수
+    \begin{eqnarray*}
+      g(e_{t}) = 
+      \begin{cases}
+        (\theta + \gamma) e_t - \gamma E[|e_t|] & \text{if } e_t \geq 0 \\
+        (\theta - \gamma) e_t - \gamma E[|e_t|] & \text{if } e_t < 0 
+      \end{cases}
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{EGARCH : Exponential GARCH}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+spec.egarch <- ugarchspec(variance.model=list(model="eGARCH", garchOrder=c(1,1)),
+     mean.model=list(armaOrder=c(0, 0), include.mean=TRUE, arfima=FALSE))
+mod.fit.egarch <- ugarchfit(spec=spec.egarch, data=as.numeric(sp500))
+show(mod.fit.egarch)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\subsection{TGARCH : Threshold GARCH}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{TGARCH : Threshold GARCH}
+  \begin{itemize}
+    \item 레버리지 효과 부가
+    \item 실현 수익률 값이 양수일 때와 음수일 때 비중 변화
+    \begin{eqnarray*}
+      a_t &=& \sigma_t e_t \\
+      \sigma_t^2 &=& \alpha_0 + \sum_{i=1}^m(\alpha_i + \gamma_i N_{t-i})a_{t-i}^2 + \sum_{j=1}^s\beta_j \sigma_{t-j}^2
+    \end{eqnarray*}
+    \begin{eqnarray*}
+      N_{t-i} =
+      \begin{cases}
+        1 & \text{if } a_{t-i} < 0 \\
+        0 & \text{if } a_{t-i} \geq 0 
+      \end{cases}
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{TGARCH : Threshold GARCH}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+spec.tgarch <- ugarchspec(variance.model=list(model="fGARCH", submodel="TGARCH", garchOrder=c(1,1)),
+     mean.model=list(armaOrder=c(0, 0), include.mean=TRUE, arfima=FALSE))
+mod.fit.tgarch <- ugarchfit(spec=spec.tgarch, data=as.numeric(sp500))
+show(mod.fit.tgarch)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\section{Stochastic Volatility 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Stochastic Volatility 모형}
+  \begin{itemize}
+    \item 변동성 프로세스의 이노베이션이 독립적 확률변수
+    \begin{eqnarray*}
+      a_t &=& \sigma_t e_t \\
+      {1-\sum_{i=1}^m\alpha_iB^i} \log (\sigma_t^2) &=& \alpha_0 + v_t
+    \end{eqnarray*}
+    \item 모델 자유도가 증가하는 대신 파라미터 추정이 어려움
+    \item Kalman Filter / MCMC (Monte Carlo Markov Chain) 사용
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\section{Extreme Value 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Extreme Value 모형}
+  \begin{itemize}
+    \item daily 종가뿐이 아니라 시고저종(OHLC)값을 모두 사용하여 변동성 추정
+    \item Garman-Klass 변동성 추정
+    \begin{eqnarray*}
+      \sigma_{0,t}^2 &=& (C_t - C_{t-1})^2 \\
+      \sigma_{1,t}^2 &=& \dfrac{(O_t - C_{t-1})^2}{2f} + \dfrac{(C_t - O_t)^2}{2(1-f)} \\
+      \sigma_{2,t}^2 &=& \dfrac{(H_t - L_t)^2}{4\log 2} \\
+      \sigma_{3,t}^2 &=& 0.17 \dfrac{(O_t - C_{t-1})^2}{f} + 0.83\dfrac{(H_t - L_t)^2}{(1-f)4\log 2} \\
+      \sigma_{5,t}^2 &=& 0.5(H_t-L_t)^2 - (2 \log 2 - 1)(C_t - O_t)^2 \\
+      \sigma_{6,t}^2 &=& 0.12 \dfrac{(O_t - C_{t-1})^2}{f} + 0.88\dfrac{\sigma_{5,t}^2}{1-f}
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Extreme Value 모형 (계속)}
+  \begin{itemize}
+    \item Yang-Zhang 변동성 추정
+    \begin{eqnarray*}
+      o_t &=& \log O_t - \log C_{t-1} \\
+      c_t &=& \log C_t - \log O_t \\
+      u_t &=& \log H_t - \log O_t \\
+      d_t &=& \log L_t - \log O_t \\
+      \sigma_{yz}^2 &=& \sigma_{o}^2 + k\sigma_{c}^2 + (1-k)\sigma_{rs}^2 \\
+      \sigma_{o}^2 &=& \dfrac{1}{n-1}\sum_{t=1}^n(o_t-\bar{o}_t)^2 \\
+      \sigma_{c}^2 &=& \dfrac{1}{n-1}\sum_{t=1}^n(c_t-\bar{c}_t)^2 \\
+      \sigma_{rs}^2 &=& \dfrac{1}{n-1}\sum_{t=1}^n (u_t(u_t-c_t)+d_t(d_t-c_t)) \\
+      k &=& \dfrac{0.34}{1.34+(n+1)/(n-1)} \\
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R에서 Extreme Value 모형 사용}
+  \begin{itemize}
+    \item {\tt TTR} 패키지 사용
+    \item {\tt volatility(OHLC, n=10, calc="close", N=260, ...)}
+    \begin{itemize}
+      \item {\tt OHLC} : Open-High-Low-Close dataframe
+      \item {\tt n} : 변동성 계산용 윈도우 크기
+      \item {\tt calc} : 변동성 계산 방법
+      \begin{itemize}
+        \item {\tt "close"} : Close-to-Close
+        \item {\tt "garman.klass"} : Garman Klass
+        \item {\tt "rogers.satchell"} : Rogers Satchell
+        \item {\tt "parkinson"} : Parkinson
+        \item {\tt "gk.yz"} : Garman Klass - Yang Zhang
+        \item {\tt "yang.zhang"} : Yang Zhang
+      \end{itemize}
+      \item {\tt N} : Normalization을 위한 1년의 일수 
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R에서 Extreme Value 모형 사용예}
+  \begin{tcolorbox}\scriptsize
+<<fig, eval=FALSE>>=
+require("quantmod")
+data(ttrc); ohlc <- ttrc[,c("Open","High","Low","Close")]
+vClose <- volatility(ohlc, calc="close")
+vGK <- volatility(ohlc, calc="garman")
+vGKTZ <- volatility(ohlc, calc="gk.yz")
+vYZ <- volatility(ohlc, calc="yang.zhang")
+old.par <- par(); par(mfrow=c(2,1), mar=c(1,4,2,2))
+plot(ohlc$Close[-(1:5000)], type='l', col=1, xlab="", ylab="price",main="Volatilities")
+plot(vClose[-(1:5000)], type='l', col=1, xlab="", ylab="volatility")
+lines(vGK[-(1:5000)], col=2)
+lines(vYZ[-(1:5000)], col=3)
+legend("topleft", c("Close-Close", "Garman Klass", "Yang Zhang"), lwd=1, col=1:3)
+par(old.par)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=12,height=7>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\section{Realized Volatility 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Realized Volatility 모형}
+  \begin{itemize}
+    \item 변동성 변화보다 high frequency인 자료를 사용하여 샘플 변동성 측정
+    \item 아래의 가격 프로세스에 대해 
+      \begin{equation}
+      Y_t = \mu_t dt + \sigma_t dW_t,
+      \end{equation}
+    \item $\Delta$간격으로 $n$개의 시세 샘플링으로 구한 실현변동성(realized volatility)
+      \begin{equation}
+      RV_t = \sum_{i=1}^n ( Y_{t,i} - Y_{t,{i-i}} )^2 = \sum_{i=1}^n r_{t,i}^2 
+      \end{equation}
+    \item $RV_t - \sigma_t^2$는 $n$이 증가하면 0으로 수렴
+    \begin{itemize}
+      \item 일간 변동성 : 보통 10분 - 30분 샘플링 시세 사용
+      \item 월간 변동성 : 일일 시세 사용
+    \end{itemize}
+    \item frequency가 높아지면 market microstructure noise로 인한 변동성 과대 평가
+    \item frequency가 낮아지면 변동성 측정 오차 증가
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Realized Volatility 모형의 어려움}
+  \begin{itemize}
+    \item correlated-return : RV 추정 필터 필요
+    \begin{itemize}
+      \item 예를 들어 수익률이 MA(1) 모형인 경우
+      \begin{equation}
+      RV_t = \dfrac{n}{n-1}\sum_{i=1}^n (r_{t,i} - \bar{r}_t)^2 + 
+             2\sum_{i=1}^{n-1} (r_{t,i} - \bar{r}_t) (r_{t,i+1} - \bar{r}_t)
+      \end{equation}
+    \end{itemize}
+    \item market microstructure noise (MMN)
+    \begin{itemize}
+      \item frequency가 높아지면 MMN로 인한 변동성 과대 평가
+      \item frequency가 낮아지면 변동성 측정 오차 증가
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\end{document}
+
+

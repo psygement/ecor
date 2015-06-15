@@ -1,0 +1,687 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\input{../template_lecture.Rnw}
+\begin{document}
+\SweaveOpts{concordance=TRUE, keep.source=TRUE}
+<<echo=FALSE>>=
+options(width=60)
+@
+
+\title{제8강: 다중회귀분석 및 일반회귀분석}
+\subtitle{금융 통계 및 시계열 분석}
+\author{TRADE INFORMATIX}
+\date{2014년 2월 4일}
+\maketitle
+
+\begin{frame}[fragile]
+\frametitle{목차}
+\tableofcontents
+\end{frame}
+
+\section{다중회귀분석}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{다중회귀분석(Multiple Linear Regression)의 예 1}
+  \begin{tcolorbox}[boxsep=2mm,title=예제: apple/intel 주가를 이용한 삼성전자 주가 예측]
+<<results=hide>>=
+library(quantmod)
+d1 <- getSymbols("NASDAQ:AAPL", src="google", auto.assign=FALSE)
+d2 <- getSymbols("NASDAQ:INTC", src="google", auto.assign=FALSE)
+d3 <- getSymbols("KRX:005930", src="google", auto.assign=FALSE)
+r1 <- lag(ROC(d1[,4]))
+r2 <- lag(ROC(d2[,4]))
+r3 <- log(d3[,1]/lag(d3[,4]))
+r <- as.data.frame(merge(r1,r2,r3))
+names(r) <- c("apple", "intel", "samsung")
+@
+<<>>=
+head(r)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{apple/intel vs. 삼성전자}
+  \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=7,height=6>>=
+plot(r)
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{다중회귀분석(Multiple Linear Regression)의 예 2}
+  \begin{tcolorbox}[boxsep=2mm,title=예제: Cystic fibrosis (낭포성섬유종) 환자]\footnotesize
+<<>>=
+library(ISwR)
+head(cystfibr, 20)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Cystic fibrosis (낭포성섬유종) 환자}
+  \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=7,height=6>>=
+pairs(cystfibr, gap=0)
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{다중선형회귀분석 (Multiple Linear Regression)}
+  \begin{tcolorbox}[boxsep=2mm,title=다중선형회귀분석]
+    \begin{itemize}
+      \item 반응변수 $y$의 기대값 $\mu$를 복수의 설명변수 $x$의 선형 조합으로 설명하려는 시도
+      \begin{equation}
+        y \sim N(\mu, \sigma) = N(b_0 + b_1 x_1 + \cdots + b_p x_p, \sigma)
+      \end{equation}
+    \end{itemize}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{OLS (Ordinary Least Squares) Solution}
+  \begin{itemize}
+    \item 선형대수방정식
+    \begin{equation}
+      \mathbf{y} = \mathbf{X} \mathbf{\beta} + \mathbf{e}
+    \end{equation}
+    \begin{equation}
+      \mathbf{y} = \begin{pmatrix} y_1 \\ y_2 \\ \vdots \\ y_n \end{pmatrix}, \quad
+      \mathbf{X} = \begin{pmatrix} 
+                      x_{p,1}    & \cdots & x_{1,1}    & 1 \\ 
+                      x_{p,2}    & \cdots & x_{1,2}    & 1 \\ 
+                      \vdots     &        & \vdots     & \vdots \\ 
+                      x_{p,n}    & \cdots & x_{1,n}    & 1 \\ 
+                    \end{pmatrix}, \quad
+      \mathbf{\beta} = \begin{pmatrix} b_p \\ \vdots \\ b_1 \\ b_0  \end{pmatrix}, \quad
+      \mathbf{e} = \begin{pmatrix} e_1 \\ e_2 \\ \vdots \\ e_n \end{pmatrix}, \quad
+    \end{equation}
+    \item 오차 제곱의 합을 최소화
+    \begin{equation}
+      \hat\beta = \arg\min 
+        (\mathbf{y}-\mathbf{X}\mathbf{\beta})^T(\mathbf{y}-\mathbf{X}\mathbf{\beta})
+    \end{equation}
+    \item 계수 추정치 $\hat\beta$
+    \begin{equation}
+      \hat\beta = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}
+    \end{equation}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multiple Linear Regression in R}
+  \begin{tcolorbox}[boxsep=2mm,title={\tt lm}]
+    \begin{itemize}
+      \item {\tt lm(formula, data)}
+      \begin{itemize}
+        \item {\tt formula} : {\tt response} ~ {\tt factor 1} + {\tt factor 2}
+        \item {\tt data} : 자료가 dataframe인 경우 dataframe 이름
+      \end{itemize}
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+m <- lm(samsung ~ apple + intel, data=r)
+summary(m)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Confidence Interval \& Prediction Interval in R}
+  \begin{tcolorbox}[boxsep=2mm,title={\tt lm}]
+    \begin{itemize}
+      \item {\tt predict(model, newdata, interval, level=0.95)}
+      \begin{itemize}
+        \item {\tt model} : {\tt lm}명령으로 계산한 모델 오브젝트
+        \item {\tt newdata} : column name이 모델 변수이름인 데이터프레임
+        \item {\tt interval} : {\tt 'confidence'}, {\tt 'prediction'}
+        \item {\tt level} : $1-\alpha$ 
+      \end{itemize}
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+newdata <- data.frame(apple=0.02, intel=0.01)
+predict(m, newdata, interval="confidence")
+predict(m, newdata, interval="prediction")
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Relationships in Sum of Squares}
+  \begin{itemize}
+    \item Total Sum of Squares (Total Variations)
+    \begin{equation}
+      \text{TSS} = \sum (y_i - \bar{y})^2
+    \end{equation}
+    \item Residual Sum of Squares (Unexplained Variations)
+    \begin{equation}
+      \text{RSS} = \sum (y_i - \hat{y}_i)^2
+    \end{equation}
+    \item Regression Sum of Squares (Exxplained variations)
+    \begin{equation}
+      \text{RegSS} = \sum (\hat{y}_i - \bar{y})^2
+    \end{equation}
+    \item Total Variation = Explained Variation + Unexplained Variation 
+    \begin{equation}
+      \text{TSS} = \text{RegSS} + \text{RSS} 
+    \end{equation}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{수정결정계수(modified coefficient of determination)}
+  \begin{itemize}
+    \item 결정계수 : 추정된 선형회귀모형이 실제 자료를 설명할 수 있는 능력의 척도
+    \begin{equation*}
+      R^2 = \dfrac{\text{RegSS}}{\text{TSS}} = 1 - \dfrac{\text{RSS}}{\text{TSS}}
+    \end{equation*}
+    \item 수정결정계수 : 팩터수 증가에 따른 자동적인 결정계수 증가 방지
+    \begin{equation*}
+      R^2_{\text{adj}} = 1 - \dfrac{\text{RSS}/(n-p-1)}{\text{TSS}/(n-1)}
+    \end{equation*}
+    \item F-test : 다음 test-statistics는 자유도 $(p, n-p-1)$의 F 분포
+    \begin{equation*}
+      F = \dfrac{\text{RegSS}/p}{\text{RSS}/(n-p-1)}
+    \end{equation*}
+    \begin{equation*}
+      H_0 : b_1 = 0 \;\; \text{against} \;\; H_a : b_1 \neq 0
+    \end{equation*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ANOVA for Multiple Linear Regression in R}
+  \begin{tcolorbox}[boxsep=2mm,title={\tt lm}]
+    \begin{itemize}
+      \item {\tt anova(model)}
+      \begin{itemize}
+        \item {\tt model} : {\tt lm}명령으로 계산한 모델 오브젝트
+      \end{itemize}
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}
+<<>>=
+anova(m)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{다중공선성(Multicollinearity)}
+  \begin{tcolorbox}[boxsep=2mm,title=다중공선성(Multicollinearity)]
+    \begin{itemize}
+      \item 설명변수들 간에 강한 상관관계가 있는 경우
+      \begin{itemize}
+        \item 회귀분석의 기본 가정을 무시한 결과
+        \item 특정 데이터 샘플에 대한 설명력은 강하지만 데이터 샘플이 달라지면
+              회귀분석에 의한 모형 계수가 크게 변함
+      \end{itemize}
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+cor(r, use="complete.obs")
+lm(samsung ~ apple + intel, data=r[1:900,])
+lm(samsung ~ apple + intel, data=r[-(1:900),])
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Multiple Linear Regression in R : Example 2}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+m1 <- lm(pemax~age+sex+height+weight+bmp+fev1+rv+frc+tlc, data=cystfibr)
+summary(m1)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Dummy Variable}
+  \begin{itemize}
+    \item Dummy Variable
+    \begin{itemize}
+      \item 설명변수가 category값인 경우 숫자 0, 1로 치환
+      \item Single Dummy Variable의 경우 ANOVA 분석
+    \end{itemize}
+    \item Analysis of Covariance
+    \begin{itemize}
+      \item Multiple Regression에서 Dummy Variable이 있는 경우
+        \begin{eqnarray*}
+          y &=& b_0 + b_1 x + b_2 d + e
+        \end{eqnarray*}
+      \item interaction 항을 이용하여 Slope와 intercept가 다른 두개의 모형으로 표현
+        \begin{eqnarray*}
+          y &=& b_0 + b_1 x + b_2 d + b_3 ( d \cdot x ) + e \\
+            &=& 
+            \begin{cases} 
+              b_0 + b_1 x + e                 & \text{if } d = 0 \\ 
+              (b_0 + b_2) + (b_1 + b_3) x + e & \text{if } d = 1 
+            \end{cases}
+        \end{eqnarray*}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Single Dummy Variable 예}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+url <- "http://www.stat.tamu.edu/~sheather/book/docs/datasets/changeover_times.txt"
+changeover_times <- read.table(url, header=TRUE)
+head(changeover_times)
+m2 <- lm(Changeover~New, data=changeover_times)
+summary(m2)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Single Dummy Variable 예}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\footnotesize
+<<fig>>=
+attach(changeover_times)
+par(mfrow=c(2,1))
+plot(New, Changeover,
+     xlab="Dummy variable, New",
+     ylab="Change Over Time")
+abline(lsfit(New, Changeover))
+boxplot(Changeover ~ Method,
+        xlab="Method",
+        ylab="Change Over Time")
+detach(changeover_times)
+@
+      \end{tcolorbox}
+    \column{0.5\textwidth}
+      \begin{center}
+<<fig=TRUE,echo=FALSE,width=7,height=7>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Analysis of Covariance 예}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+url <- "http://www.stat.tamu.edu/~sheather/book/docs/datasets/travel.txt"
+travel <- read.table(url, header=TRUE)
+head(travel)
+attach(travel)
+mfull <- lm(Amount ~ Age + C + C:Age)
+summary(mfull)
+detach(travel)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Analysis of Covariance 예}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\footnotesize
+<<fig>>=
+attach(travel)
+par(mfrow=c(1,1))
+plot(Age[C==0], Amount[C==0],
+     pch=c("A"), col=c("black"),
+     xlab="Age",
+     ylab="Amount Spent")
+points(Age[C==1], Amount[C==1],
+       pch=c("C"), col=c("red"))
+detach(travel)
+@
+      \end{tcolorbox}
+    \column{0.5\textwidth}
+      \begin{center}
+<<fig=TRUE,echo=FALSE,width=7,height=7>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\section{선형분석진단}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{선형회귀의 문제점}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\footnotesize
+<<fig>>=
+url <- 
+  paste("http://www.stat.tamu.edu",
+        "/~sheather/book/docs/",
+        "datasets/anscombe.txt",
+        sep="")
+anscombe <- read.table(url,
+                       header=TRUE)
+attach(anscombe)
+par(mfrow=c(2,2))
+xlim <- c(4,20); ylim <- c(3,14)
+plot(x1,y1,xlim=xlim,ylim=ylim,
+     main="Data Set 1")
+abline(lsfit(x1,y1))
+plot(x2,y2,xlim=xlim,ylim=ylim,
+     main="Data Set 2")
+abline(lsfit(x2,y2))
+plot(x3,y3,xlim=xlim,ylim=ylim,
+     main="Data Set 3")
+abline(lsfit(x3,y3))
+plot(x4,y4,xlim=xlim,ylim=ylim,
+     main="Data Set 4")
+abline(lsfit(x4,y4))
+detach(anscombe)
+@
+      \end{tcolorbox}
+    \column{0.5\textwidth}
+      \begin{center}
+<<fig=TRUE,echo=FALSE,width=7,height=7>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{선형회귀의 문제점}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<>>=
+attach(anscombe)
+summary(m1 <- lm(y1~x1))
+summary(m2 <- lm(y2~x2))
+detach(anscombe)
+@
+      \end{tcolorbox}
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\scriptsize
+<<>>=
+attach(anscombe)
+summary(m3 <- lm(y3~x3))
+summary(m4 <- lm(y4~x4))
+detach(anscombe)
+@
+      \end{tcolorbox}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{선형회귀 결과진단 (Diagnostics)}
+  \begin{itemize}
+    \item 표준잔차(Standardized Residuals)
+    \begin{itemize}
+      \item 올바른 모형인 경우 표준잔차는 평균이 0인 Normal 분포
+      \item 올바른 모형인 경우 표준잔차의 분산은 fitted value와 상관없이 상수
+      \item Log-likelihood
+    \end{itemize}
+    \item Leverage Points
+    \begin{itemize}
+      \item 어떤 샘플 포인트가 분석결과에 가장 큰 영향력을 미치는지 파악
+    \end{itemize}
+    \item Outliers
+    \begin{itemize}
+      \item 어떤 샘플 포인트 가장 설명이 되지 않는지를 표시
+    \end{itemize}
+    \item Added-Variable Plot
+    \begin{itemize}
+      \item 특정 팩터를 제외하고 분석한 회귀분석 잔차를 그 팩터로 회귀분석
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Linear Regression Diagnostics in R}
+  \begin{tcolorbox}[boxsep=2mm]
+    \begin{itemize}
+      \item {\tt plot(model)}
+      \begin{itemize}
+        \item {\tt model} : {\tt lm()}의 결과로 나온 모델 오브젝트
+      \end{itemize}
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}\footnotesize
+<<figs,fig=FALSE,results=hide>>=
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(lm(samsung ~ apple, data=r))
+@
+  \end{tcolorbox}
+  \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=8,height=5>>=
+<<figs>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{표준잔차(Standardized Residuals) 분석}
+  \begin{itemize}
+    \item 잔차(Residuals)
+    \begin{itemize}
+      \item 실제 종속변수값과 모델 종속변수값의 차이
+    \end{itemize}
+    \begin{eqnarray*}
+      e_i = y_i - \hat{y}_i
+    \end{eqnarray*}
+    \item 표준잔차(Standardized Residuals)
+    \begin{itemize}
+      \item 잔차를 잔차 표준 편차로 정규화
+    \end{itemize}
+    \begin{eqnarray*}
+      r_i = \dfrac{e_i}{\text{Var}(e_i)}
+    \end{eqnarray*}
+    \item Residuals vs Fitted
+    \begin{itemize}
+      \item Fitted values 값에 따른 잔차의 평균과 분산 값 표시
+      \item Fitted values 값에 따른 평균이나 분산값의 변화가 적으면 적합
+    \end{itemize}
+    \item Scale vs Location
+    \begin{itemize}
+      \item Scale : 표준잔차의 제곱근
+      \item 잔차의 부호를 생략하고 크기만 절대적 비교
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{표준잔차(Standardized Residuals) 분포 분석}
+  \begin{itemize}
+    \item QQ plot
+    \begin{itemize}
+      \item 표준잔차의 Normality를 눈으로 확인
+    \end{itemize}
+    \item Sharpiro-Wilk test
+    \begin{itemize}
+      \item 표준잔차의 Normality를 수치적으로 테스트
+    \end{itemize}
+    \item Log-Likelihood 
+    \begin{itemize}
+      \item 잔차가 동일한 normal 분포로부터 나왔을 경우의 Log-Likelihood 값을 계산
+      \item 두 개의 다른 모델 중 선택하는 경우 Log-Likelihood가 높은 모델 선택
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Leverage Points}
+  \begin{itemize}
+    \item Leverage Point
+    \begin{itemize}
+      \item 모형 예측 결과와 크게 영향력을 미치는 샘플 포인트  
+      \begin{eqnarray*}
+        \hat{\mathbf{y}}
+          = \mathbf{X} \mathbf{\beta} 
+          = \left( \mathbf{X} \left( \mathbf{X}^T\mathbf{X} \right) ^{-1} \mathbf{X}^T \right) \mathbf{y}
+          = \mathbf{H} \mathbf{y}
+      \end{eqnarray*}
+      \item hat matrix $\hat{\mathbf{y}}$의 $(i,j)$ 번째 원소를 $h_{i,j}$라고 하면
+      \begin{eqnarray*}
+        \hat{y}_i &=& h_{i,i} y_i + \sum_{j \neq i} h_{i,j} y_j 
+      \end{eqnarray*}
+      \begin{eqnarray*}
+        h_{i,j} = \dfrac{1}{n} + \dfrac{(x_i-\bar{x})(x_j-\bar{y})}{\sum_k (x_k-\bar{x})^2}
+      \end{eqnarray*}
+      \item 다른 샘플 포인트와 멀리 떨어져 있을 수록 leverage 증가  
+      \item \url{http://www.rob-mcculloch.org/teachingApplets/Leverage/index.html}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Outliers}
+  \begin{itemize}
+    \item 평균 레버리지
+      \begin{eqnarray*}
+        \text{Average} (h_{i,i}) = \dfrac{2}{n}
+      \end{eqnarray*}
+    \item Rule of thumb for finding high leverage points
+      \begin{eqnarray*}
+        h_{ii} > 2 \cdot \text{Average} (h_{i,j}) = \dfrac{4}{n}
+      \end{eqnarray*}
+    \item 아웃라이어(Outlier)
+    \begin{itemize}
+      \item 모형 예측 결과와 크게 다른 값을 가지는 샘플 포인트
+      \item 일반적으로(rule of thumb), 표준잔차의 크기가 2보다 크면 아웃라이어 
+    \end{itemize}
+    \item Bad Leverage Point
+    \begin{itemize}
+      \item Outlier인 Leverage Point  
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Leverage \& Outlier 예}
+  \begin{tcolorbox}\footnotesize
+<<fig>>=
+url <- "http://www.stat.tamu.edu/~sheather/book/docs/datasets/bonds.txt"
+bonds <- read.table(url, header=TRUE)
+head(bonds)
+m1 <- lm(BidPrice~CouponRate, data=bonds)
+summary(m1)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Leverage \& Outlier 예}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\footnotesize
+<<fig>>=
+attach(bonds)
+par(mfrow=c(1,1))
+plot(CouponRate, BidPrice,
+     xlab="Coupon Rate (%)", 
+     ylab="Bid Price ($)",
+     xlim=c(2,14),
+     ylim=c(85,120))
+abline(lsfit(CouponRate,BidPrice))
+detach(bonds)
+@
+      \end{tcolorbox}
+    \column{0.5\textwidth}
+      \begin{center}
+<<fig=TRUE,echo=FALSE,width=7,height=7>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Leverage \& Outlier 예}
+  \begin{tcolorbox}\footnotesize
+<<fig>>=
+attach(bonds)
+leverage1 <- hatvalues(m1)
+StanRes1 <- rstandard(m1)
+residual1 <- m1$residuals
+lt <- cbind(Case, CouponRate, BidPrice, 
+            round(leverage1,3), round(residual1,3), round(StanRes1,3))
+lt[c(1:6, 10:15, 33:35),]
+detach(bonds)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Leverage \& Outlier 예}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\footnotesize
+<<fig>>=
+attach(bonds)
+plot(CouponRate,StanRes1,
+     xlab="Coupon Rate (%)", 
+     ylab="Standardized Residuals",
+     xlim=c(2,14))
+abline(h=2,lty=2)
+abline(h=-2,lty=2)
+# identify(CouponRate,StanRes1,Case)
+detach(bonds)
+@
+      \end{tcolorbox}
+    \column{0.5\textwidth}
+      \begin{center}
+<<fig=TRUE,echo=FALSE,width=7,height=7>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Leverage \& Outlier 예}
+  \begin{tcolorbox}
+<<fig>>=
+summary((m2 <- update(m1, subset=(1:35)[-c(4,13,35)])))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Leverage \& Outlier 예

@@ -1,0 +1,697 @@
+
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\input{../template_lecture.Rnw}
+\begin{document}
+\SweaveOpts{concordance=TRUE, keep.source=TRUE}
+<<echo=FALSE>>=
+options(width=60)
+@
+
+\title{제7강: 연관성 분석 \& 회귀 분석}
+\subtitle{금융 통계 및 시계열 분석}
+\author{TRADE INFORMATIX}
+\date{2014년 1월 28일}
+\maketitle
+
+\begin{frame}[fragile]
+\frametitle{목차}
+\tableofcontents
+\end{frame}
+
+\section{통계적 연관성}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{통계적 연관성}
+  \begin{itemize}
+    \item 통계적 연관성 (Statistical Association)
+      \begin{itemize}
+        \item 두 개의 확률사건이 독립적이 아닐 때 통계적 연관성을 가진다.
+        \item 상관관계(correlation)는 통계적 연관성의 한 종류
+      \end{itemize}
+    \item 확률사건의 독립(event independence)
+      \begin{itemize}
+        \item 두 개의 확률사건 $A$, $B$가 동시에 일어날 확률이 
+              각각의 확률 사건이 일어날 확률의 곱인 경우 
+      \end{itemize}
+      \begin{equation}
+        P(A \cap B) = P(A) \cdot P(B) 
+      \end{equation}
+    \item 확률변수의 독립(random variable independence)
+      \begin{itemize}
+        \item 두 개의 확률변수 $X$, $Y$에 대해 모든 확률사건 
+              $P\{X \le a\}$, $P\{Y \le b\}$가 독립이면 그 두 확률변수는 독립
+        \item 이를 확률분포로 나타내면 각각의 확률분포함수의 곱이
+              joint 확률분포와 같으면 두 확률변수는 독립
+      \end{itemize}
+      \begin{equation}
+        f_{X,Y} (x,y) = f_X (x) \cdot f_Y (y)
+      \end{equation}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{확률변수의 유형에 따른 연관성 분석}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{확률변수의 유형}
+  \begin{enumerate}
+    \item 카테고리 값(categirical value). Nominal Value
+    \begin{itemize}
+      \item 이산적(discrete)인 값. 
+            정수(integer)값으로 대표할 수는 있지만 크기의 비교가 불가능
+      \item 특수한 경우로 success/pass 의 두 가지 상태값만 가지는 경우 (binary)
+      \item 분할표(table)를 이용하면 특정한 값의 그룹에 속하는지 아닌지를
+            사용하여 count 정수로 나타낼 수 있음
+    \end{itemize}
+    \item 순서값. Ordinal Value
+    \begin{itemize}
+      \item 이산적(discrete)인 경우도 있고 연속적(continuous)인 경우도 있음. 
+            정수(integer)값 혹은 실수(real value)으로 대표할 수는 있으며
+            크기의 상대적인 비교가 가능
+    \end{itemize}
+    \item 실수값. Real Value
+    \begin{itemize}
+      \item 임의의 연속적(continuous)인 값.
+            양수/음수 모두 가능한 경우와 duration 값과 같이 양수만 가능한 경우가 있음
+    \end{itemize}
+  \end{enumerate}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{확률변수의 유형에 따른 연관성 분석}
+  \begin{enumerate}
+    \item 독립변수와 종속변수가 모두 카테고리값인 경우
+    \begin{itemize}
+      \item 각각의 카테고리에 해당하는 자료의 수(count)를 분할표(table)로 분석
+      \item Pearson's Chi-squared test
+      \item proportion test
+      \begin{itemize}
+        \item 확률적인 양 중 하나는 binary value이고 나머지가 카테고리값인 경우 
+      \end{itemize}
+    \end{itemize}
+    \item 독립변수가 카테고리값이고 종속변수가 실수인 경우 
+    \begin{itemize}
+      \item ANOVA (Analysis of Variance)
+      \begin{itemize}
+        \item One-way ANOVA : 두 값중 하나는 실수이고 하나는 카테고리값
+        \item Two-way ANOVA : 세 값중 하나는 실수이고 나머지 두 값은 카테고리값
+      \end{itemize}
+    \end{itemize}
+    \item 독립변수와 종속변수가 모두 실수인 경우
+    \begin{itemize}
+      \item Pearson product-moment linear correlation coefficient. 
+            일반적인 상관도(correlation) 정의
+      \item Spearman's $\rho$
+      \item Kendall's $\tau$
+    \end{itemize}
+    \item 종속변수가 카테고리값이고 독립변수가 실수인 경우 
+    \begin{itemize}
+      \item Classification, Clustering
+      \begin{itemize}
+        \item 일반적인 패턴인식의 방법론
+      \end{itemize}
+    \end{itemize}
+  \end{enumerate}
+\end{frame}
+%===============================================================================
+
+\subsection{Binomial Test}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Binomial Test}
+  \begin{tcolorbox}[boxsep=2mm,title=문제 1 : 상승확률 비교]
+    삼성전자의 주가가 전일 대비 상승할 확률이 $p$인 Bernoulli trial 일때
+    2011년에는 247일중 120일 상승하고 2012년에는 247일중 126일 상승하였다.
+    상승확률 $p$가 변화하였는가?
+  \end{tcolorbox}
+  \begin{tcolorbox}  
+<<results=hide>>=
+library(rquantbook)
+df1 <- get_quantbook_data("krx_stock_daily_price", ticker="005930", 
+          date_start="2011-01-01", date_end="2011-12-31")
+df2 <- get_quantbook_data("krx_stock_daily_price", ticker="005930", 
+          date_start="2012-01-01", date_end="2012-12-31")
+p1 <- df1$close
+p2 <- df2$close
+d1 <- p1[-1] > p1[-length(p1)]
+d2 <- p2[-1] > p2[-length(p2)]
+@
+<<>>=
+c(length(d1[d1==TRUE]), length(d1))
+c(length(d2[d2==TRUE]), length(d2))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Binomial Test}
+  \begin{itemize}
+    \item binomial 분포의 확률값에 대한 검정
+    \item 성공확률이 $p$, 실패확률이 $q=1-p$인 경우, 
+          전체 n개의 시도에서 $K$번의 성공이 나올 확률은
+    \begin{equation}
+      Z = \dfrac{K-np}{\sqrt{npq}}
+    \end{equation}
+    \item $n>25$ 인 경우에 $Z$는 표준 정규 분포로 수렴
+    \begin{equation}
+      z \propto N(0,1)
+    \end{equation}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Binomial Test in R}
+  \begin{tcolorbox}[boxsep=2mm,title={\tt binom.test}]
+    \begin{itemize}
+      \item {\tt binom.test(x, n, p=0.5)}
+      \begin{itemize}
+        \item {\tt x} : 성공 카운트
+        \item {\tt n} : 전체 카운트
+        \item {\tt p} : 테스트 하려는 확률값
+      \end{itemize}
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}\small
+<<>>=
+binom.test(126, 247, 120/247)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\subsection{Chi-Squared Test}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Chi-Squared Test (Case 1)}
+  \begin{tcolorbox}[boxsep=2mm,title=문제 2 : 카테고리 비율 비교]
+    삼성전자, 현대차, 포스코 세 종목 중 당일 가장 많이 상승한 종목을 우승 종목으로
+    하였을 때 각각 우승한 횟수는 2011년에 87, 94, 66번이다. 각 종목의 우승 확률은
+    같다고 할 수 있는가?
+  \end{tcolorbox}
+  \begin{tcolorbox}\scriptsize
+<<results=hide>>=
+library(rquantbook)
+api <- "krx_stock_daily_price"
+d11<-"2011-01-01";d12<-"2011-12-31";d21<-"2012-01-01";d22<-"2012-12-31"; 
+df11 <- get_quantbook_data(api, ticker="005930", date_start=d11, date_end=d12)
+df12 <- get_quantbook_data(api, ticker="005380", date_start=d11, date_end=d12)
+df13 <- get_quantbook_data(api, ticker="005490", date_start=d11, date_end=d12)
+best_count <- function(df1, df2, df3) {
+  p1 <- df1$close; p2 <- df2$close; p3 <- df3$close  
+  d1 <- (p1[-1] - p1[-length(p1)])/p1[-length(p1)]
+  d2 <- (p2[-1] - p2[-length(p2)])/p2[-length(p2)]
+  d3 <- (p3[-1] - p3[-length(p3)])/p3[-length(p3)]
+  table(max.col(cbind(d1, d2, d3)))
+}
+@
+<<>>=
+best_count(df11, df12, df13)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Chi-Squared Test (Case 1)}
+  \begin{itemize}
+    \item $k$개의 카테고리 결과가 나올 수 있는 프로세스에 대해 
+          각각의 카테고리 결과가 나올 확률이 $(p_1, p_2, \cdots, p_k)$인지
+          테스트
+    \item $n$번 시도 중 각각의 카테고리 결과가 나온 횟수 $X_i$에 대해
+          기대값과의 오차의 제곱의 합은 자유도 $k-1$인 Chi-Squared 분포
+    \begin{equation}
+      \sum_{i=1}^{k} \dfrac{(X_i - np_i)^2}{np_i} \propto \chi_{k-1}^2
+    \end{equation}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Chi-Squared Test in R (Case 1)}
+  \begin{tcolorbox}[boxsep=2mm,title={\tt chisq.test}]
+    \begin{itemize}
+      \item 복수개의 카테고리 자료의 확률분포에 대한 검정
+      \item {\tt chisq.test(x, p=rep(1/length(x), length(x)), correct=TRUE)}
+      \begin{itemize}
+        \item {\tt p} : 테스트 하려는 확률 비율
+        \item {\tt correct} : cotinuity correction
+      \end{itemize}
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}\small
+<<>>=
+chisq.test(c(87, 94, 66))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Chi-Squared Test (Case 2)}
+  \begin{tcolorbox}[boxsep=2mm,title=문제 3 : 카테고리 비율 비교]
+    삼성전자, 현대차, 포스코 세 종목 중 당일 가장 많이 상승한 종목을 우승 종목으로
+    하였을 때 각각 우승한 횟수는 2011년에 87, 94, 66번이고 2012년에 97, 78, 72번이다. 
+    2012년의 우승 비율은 2011년과 달라졌는가?
+  \end{tcolorbox}
+  \begin{tcolorbox}\scriptsize
+<<results=hide>>=
+library(rquantbook)
+api <- "krx_stock_daily_price"
+d11<-"2011-01-01";d12<-"2011-12-31";d21<-"2012-01-01";d22<-"2012-12-31"; 
+df11 <- get_quantbook_data(api, ticker="005930", date_start=d11, date_end=d12)
+df12 <- get_quantbook_data(api, ticker="005380", date_start=d11, date_end=d12)
+df13 <- get_quantbook_data(api, ticker="005490", date_start=d11, date_end=d12)
+df21 <- get_quantbook_data(api, ticker="005930", date_start=d21, date_end=d22)
+df22 <- get_quantbook_data(api, ticker="005380", date_start=d21, date_end=d22)
+df23 <- get_quantbook_data(api, ticker="005490", date_start=d21, date_end=d22)
+best_count <- function(df1, df2, df3) {
+  p1 <- df1$close; p2 <- df2$close; p3 <- df3$close  
+  d1 <- (p1[-1] - p1[-length(p1)])/p1[-length(p1)]
+  d2 <- (p2[-1] - p2[-length(p2)])/p2[-length(p2)]
+  d3 <- (p3[-1] - p3[-length(p3)])/p3[-length(p3)]
+  table(max.col(cbind(d1, d2, d3)))
+}
+@
+<<>>=
+best_count(df11, df12, df13); best_count(df21, df22, df23)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Chi-squared Test (Case 2)}
+  \begin{itemize}
+    \item $r\times c$개의 contingency table에 대해 
+          행과 열의 카테고리 분포가 독립적인지 테스트
+    \item 즉, 결과값이 $j$번째 카테고리가 나올 확률이 행 $i$에 따라 달라지는지
+          테스트
+    \item 실제 결과값과 독립적이라고 가정한 경우의 기대치의 오차의 제곱의 합은
+          Chi-Squared 분포로 수렴
+    \begin{equation}
+      H_0 : P(i,j) = P(i) \cdot P(j)
+    \end{equation}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Chi-squared Test in R (Case 2)}
+  \begin{tcolorbox}[boxsep=2mm,title={\tt chisq.test}]
+    \begin{itemize}
+      \item 복수개의 카테고리 자료의 확률분포에 대한 검정
+      \item {\tt chisq.test(x, correct=TRUE)}
+      \begin{itemize}
+        \item {\tt p} : 테스트 하려는 contingency table
+      \end{itemize}
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}\small
+<<>>=
+chisq.test(rbind(c(97,78,72),c(87,94,66)))
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\section{ANOVA}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Difference in Means between Groups}
+  \begin{tcolorbox}[boxsep=2mm,title=문제 4 : 카테고리별 평균 비교]
+    고객중 성별에 따른 연령의 차이가 있는지 테스트
+  \end{tcolorbox}
+  \begin{tcolorbox}
+<<>>=
+df <- read.csv("client.csv", 
+        fileEncoding="CP949", encoding="UTF-8", 
+        stringsAsFactors=FALSE)
+data <- split(df, df[,2])
+df1 <- as.data.frame(t(sapply(data, function(d) {
+          c(d[[5]][1],d[[7]][1],d[[6]][1])})), 
+        stringsAsFactors=FALSE)
+rownames(df1) <- NULL
+colnames(df1) <- c("city", "gender", "age")
+df2 <- df1[-as.numeric(rownames(df1[df1$city=="",])),] 
+colnames(df2) <- c("city", "gender", "age")
+df2$city <- factor(df2$city)
+df2$gender <- factor(df2$gender)
+df2$age <- as.numeric(df2$age)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ANOVA (Analysis of Variance)}
+  \begin{itemize}
+    \item 전체 $n$개의 샘플이 $k$개의 카테고리로 구분 가능할 때
+          샘플 그룹간에 평균의 차이가 존재하는지 테스트
+    \item 각 샘플그룹은 분산의 크기가 같은 정규분포이어야 한다.
+    \item 전체 샘플평균은 $\bar{x}$, 각 샘플그룹의 샘플갯수는 $n_i$, 
+          샘플평균은 $x_i$, 샘플분산은 $v_i$ 일 때
+    \item 그룹내 분산 (within-group variance) $V_W$
+    \begin{equation}
+      V_W = \dfrac{1}{n-c} \sum_{i=1}^{c} (n_i - 1)v_i
+    \end{equation}
+    \item 그룹간 분산 (between-group variance) $V_B$
+    \begin{equation}
+      V_B = \dfrac{n}{c-1} \sum_{i=1}^{c} (x_i - \bar{x})^2
+    \end{equation}
+    \item 이 때, 그룹내 분산과 그룹간 분산의 비율은 자유도 $(c-1,n-c)$인 
+          F 분포를 이룬다.
+    \begin{equation}
+      \dfrac{V_B}{V_W} \sim F_{c-1,n-c}
+    \end{equation}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ANOVA in R}
+  \begin{tcolorbox}[boxsep=2mm,title={\tt aov}]
+    \begin{itemize}
+      \item {\tt aov(formula, data)}
+      \begin{itemize}
+        \item {\tt formula} : 연관성 테스트를 위한 모델 포뮬라
+        \item {\tt data} : dataframe
+      \end{itemize}
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}\small
+<<>>=
+result <- aov(age ~ gender, data=df2)
+result
+summary(result)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ANOVA 결과 in R}
+  \begin{tcolorbox}[boxsep=2mm,title={\tt model.tables}]
+    \begin{itemize}
+      \item {\tt model.tables(result, type)}
+      \begin{itemize}
+        \item {\tt result} : ANOVA 결과
+        \item {\tt type} : {\tt effects}이면 ANOVA 계수에 대한 결과,
+                           {\tt means}이면 그룹 평균에 대한 결과 표시
+      \end{itemize}
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}\small
+<<>>=
+model.tables(result, type="effects")
+model.tables(result, type="means")
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\section{회귀분석}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Simple Correlation}
+  \begin{tcolorbox}[boxsep=2mm,title=문제 5 : 연속변수의 상관관계]
+    SP500(SPDR ETF)과 KOSPI200(KODEX 200 ETF)사이의 수익률의 상관관계는?
+  \end{tcolorbox}
+  \begin{tcolorbox}
+<<results=hide>>=
+library(quantmod)
+d1 <- getSymbols("NYSEARCA:SPY", src="google", auto.assign=FALSE)
+d2 <- getSymbols("KRX:069500", src="google", auto.assign=FALSE)
+d <- merge(lag(d1,1), d2)
+r <- ROC(d)
+x <- coredata(r[,4])
+y <- coredata(r[,9])
+xy <- data.frame(x,y)
+names(xy) <- c("sp500", "kospi200")
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{S\&P 500 vs KOSPI 200}
+  \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=7,height=6>>=
+library(ggplot2)
+qplot(sp500, kospi200, data=xy)
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{상관계수 (Correlation)}
+  \begin{tcolorbox}[boxsep=2mm,title=상관계수]
+    \begin{itemize}
+      \item 두 확률변수의 선형 상관관계를 나타내는 척도 (Pearson Correlation)
+      \begin{itemize}
+        \item $\rho=1$ : 완전 선형 상관 관계
+        \item $\rho=0$ : 무상관 (독립과는 다름)
+        \item $\rho=-1$ : 완전 선형 반상관 관계
+      \end{itemize}
+      \item 비선형 상관관계는 측정 불가능
+      \item 실제 물리적인 상관관계가 없어도 spurious correlation 이 나타날 수 있음
+    \end{itemize}
+  \end{tcolorbox}
+    \begin{equation}
+      \rho_{XY} = \dfrac{\sigma_{XY}}{\sigma_X \sigma_Y}
+                = \dfrac{\sqrt{E[(X-\bar{X})(Y-\bar{Y})]}}{\sqrt{E[(X-\bar{X})^2}]\sqrt{E[(X-\bar{Y})^2]}}
+    \end{equation}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Spearman correlation \& Kendall correlation}
+    \begin{itemize}
+      \item Spearman's rank correlation coefficient $\rho_s$
+      \begin{itemize}
+        \item 두 변수를 순위(rank)로 변환한 후에 순위에 대해 Pearson Correlation을 구함
+        \item 비선형함수라도 단조함수(monotonic function)이면 상관관계 계산 가능
+      \end{itemize}
+      \item Kendall tau rank correlation coefficient $\tau$
+      \begin{itemize}
+        \item 두 변수를 순위(rank)로 변환한 후에 두 변수의 순위가 같은 concordant 짝의 수를 이용하여 계산
+        \begin{equation*}
+          \tau = \frac{(\text{number of concordant pairs}) - (\text{number of discordant pairs})}{\frac{1}{2} n (n-1) }
+        \end{equation*}
+      \end{itemize}
+    \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Correlation Test}
+  \begin{tcolorbox}[boxsep=2mm,title=Correlation Test]
+    \begin{itemize}
+      \item 상관계수가 유의미한 값 즉 0이 아닌 값을 가지는지 검정
+      \begin{equation}
+        H_0 : \rho = 0
+      \end{equation}
+      \item test statistics : Student-t 분포
+      \begin{equation}
+        t = r\sqrt{\dfrac{n-2}{1-r^2}} \sim t_{n-2}
+      \end{equation}
+    \end{itemize}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Correlation in R}
+  \begin{tcolorbox}[boxsep=2mm,title={\tt cor}]
+    \begin{itemize}
+      \item {\tt cor(x, y, method)}
+      \begin{itemize}
+        \item {\tt x, y} : 두 확률변수의 샘플집합
+        \item {\tt method} : correlation 정의. {\tt "pearson", "kendall", "spearman"}
+      \end{itemize}
+      \item {\tt cor.test(x, y, alternative, method)}
+      \begin{itemize}
+        \item {\tt alternative } : {\tt two.sided", "less", "greater"}
+      \end{itemize}
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}\small
+<<>>=
+cor(x,y)
+cor.test(x,y)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{선형 회귀 (Linear Regression)}
+  \begin{tcolorbox}[boxsep=2mm,title=선형 회귀]
+    \begin{itemize}
+      \item 반응변수 $y$의 기대값 $\mu$를 설명변수 $x$의 선형 조합으로 설명하려는 시도
+      \begin{equation}
+        y \sim N(\mu, \sigma) = N(b_1 x + b_0, \sigma)
+      \end{equation}
+      \item 반응변수 $y$와 설명변수에 의한 예측값의 오차 $e$는 정규분포
+      \begin{equation}
+        y - (b_1 x + b_0) = e \sim N(0, \sigma)
+      \end{equation}
+    \end{itemize}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Solution 1 : Generalized method of moments}
+  \begin{itemize}
+    \item GMM 조건 : 추정 오차와 설명 변수는 무상관관계
+    \begin{equation}
+      \mathrm{E}\big[\, x_i e_i \,\big] = \mathrm{E}\big[\, x_i(y_i - x_i'\beta) \,\big] = 0.
+    \end{equation}
+    \begin{equation}
+      \hat{b}_1 = \frac{ \mathrm{Cov}[x,y] }{ \mathrm{Var}[x] } 
+    \end{equation}
+
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Solution 2 : OLS (Ordinary least squares)}
+  \begin{itemize}
+    \item 실제 샘플의 값 $\{ y_i \}$과 선형 회귀로 인한 예측치 $\{ b_1 x_i + b_0\}$의
+          관계를 선형대수방정식으로 표시
+    \begin{equation}
+      \mathbf{y} = \mathbf{X} \mathbf{\beta} + \mathbf{e}
+    \end{equation}
+    \begin{equation}
+      \mathbf{y} = \begin{pmatrix} y_1 \\ y_2 \\ \vdots \\ y_n \end{pmatrix}, \quad
+      \mathbf{X} = \begin{pmatrix} x_1 & 1 \\ x_2 & 1 \\ \vdots \\ x_n & 1 \end{pmatrix}, \quad
+      \mathbf{\beta} = \begin{pmatrix} b_1 \\ b_0  \end{pmatrix}, \quad
+      \mathbf{e} = \begin{pmatrix} e_1 \\ e_2 \\ \vdots \\ e_n \end{pmatrix}, \quad
+    \end{equation}
+    \item $\{ y_i \}$와 $\{ b_1 x_i + b_0\}$사이의 오차 제곱의 합을 최소화
+    \begin{equation}
+      \hat\beta = \arg\min \sum_{i=1}^N (y_i - b_1 x_i - b_0)^2 
+                = \arg\min (\mathbf{y}-\mathbf{X}\mathbf{\beta})^T(\mathbf{y}-\mathbf{X}\mathbf{\beta})
+    \end{equation}
+    \item 계수 추정치 $\hat\beta$
+    \begin{equation}
+      \hat\beta = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}
+    \end{equation}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{선형회귀계수 검정}
+  \begin{itemize}
+    \item 선형회귀계수 $b_1$, $b_0$는 Student-t 분포
+    \begin{equation}
+      t = \dfrac{\hat\beta - \beta}{s_{\hat\beta}} \sim t_{n-2}
+    \end{equation}
+    \item standard error $s_{\hat\beta}$는
+    \begin{equation}
+      s_{\hat\beta} = \sqrt{ \frac{\tfrac{1}{n-2}\sum_{i=1}^n 
+        e_i^{\,2}} {\sum_{i=1}^n (x_i -\bar{x})^2} }
+    \end{equation}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{결정계수(coefficient of determination)}
+  \begin{itemize}
+    \item 추정된 선형회귀모형이 실제 자료를 설명할 수 있는 능력의 척도
+    \begin{equation}
+      R^2 = \dfrac{\text{Explained Variation}}{\text{Total Variation}}
+          = 1 - \dfrac{\text{Unexplained Variation}}{\text{Total Variation}}
+    \end{equation}
+    \begin{equation}
+      \text{Unexplained Variation} = \sum (y_i - \hat{y}_i)^2
+    \end{equation}
+    \begin{equation}
+      \text{Total Variation} = \sum (y_i - \bar{y})^2
+    \end{equation}
+    \item multiple R : $R = \sqrt{R^2}$ 
+    \begin{itemize}
+      \item 설명변수가 1개인 simple regression 에서는 correlation과 일치
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Linear Regression in R}
+  \begin{tcolorbox}[boxsep=2mm,title={\tt lm}]
+    \begin{itemize}
+      \item {\tt lm(formula, data)}
+      \begin{itemize}
+        \item {\tt formula} : 모형 포뮬라
+        \item {\tt data} : 모형에 사용된 자료가 dataframe인 경우
+      \end{itemize}
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+m <- lm(kospi200 ~ sp500, data=xy)
+summary(m)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Linear Model Object}
+  \begin{itemize}
+    \item {\tt coef} : 회귀모형 계수
+    \item {\tt confint} : 회귀모형 계수의 신뢰구간
+    \item {\tt fitted} : 회귀모형 fitting 결과
+    \item {\tt predict} : 회귀모형 예측 결과
+    \item {\tt residuals} : 회귀모형 오차
+  \end{itemize}
+  \begin{tcolorbox}\small
+<<>>=
+coef(m)
+confint(m)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Linear Model Plot}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\small
+<<fig>>=
+plot(x, y, 
+     xlab="S&P500",
+     ylab="KOSPI200",
+     main="Returns")
+abline(m, lwd=3)
+pr <- predict(m,
+        interval="confidence",
+        level=0.999)
+c1 <- cbind(m$model$sp500, pr[,2])
+c2 <- cbind(m$model$sp500, pr[,3])
+lines(c1[order(c1[,1]),], lty=2)
+lines(c2[order(c2[,1]),], lty=2)
+@
+      \end{tcolorbox}
+    \column{0.5\textwidth}
+      \begin{center}
+<<fig=TRUE,echo=FALSE,results=hide,width=7,height=9>>=
+<<fig>>
+@
+      \end{center}
+  \end{columns}
+\end{frame}
+%===============================================================================
+
+\end{document}

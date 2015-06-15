@@ -1,0 +1,909 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\input{../template_lecture.Rnw}
+\begin{document}
+\SweaveOpts{concordance=TRUE, keep.source=TRUE}
+<<echo=FALSE>>=
+options(width=60)
+@
+
+\title{제9강: 시계열분석 1}
+\subtitle{금융 통계 및 시계열 분석}
+\author{TRADE INFORMATIX}
+\date{2014년 2월 7일}
+\maketitle
+
+\begin{frame}[fragile]
+\frametitle{목차}
+\tableofcontents
+\end{frame}
+
+\section{시계열 분석}
+
+\subsection{시계열 분석}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{시계열 분석이란}
+  \begin{tcolorbox}[boxsep=2mm,title=정적 통계 분석]
+    \begin{itemize}
+      \item 시간 순서에 따른 일련의 확률변수 값이 서로 독립적
+      \item independent and identical distribution
+    \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}[boxsep=2mm,title=시계열 분석]
+    \begin{itemize}
+          \item 시간 순서에 따른 일련의 확률변수 값이 서로 상관관계
+          \item non-zero auto-covariance
+    \end{itemize}
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{시계열 분석이란}
+  \pgfmathdeclarefunction{gauss}{2}{%
+    \pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}%
+  }
+  \begin{center}
+    \begin{tikzpicture}[%
+      scale=0.75, font=\small%
+      ,>=stealth, align=center%
+      ,box1/.style={%
+        very thick, minimum height=1.7em,% 
+        draw=black!50, top color=white, bottom color=black!20}%
+      ]
+      \clip (-2,-10) rectangle (11,3);
+      \draw[->] (-0.5,0) -- (10, 0);
+      \draw[->] (0,-0.5) -- (0, 1.5);
+      \node (label1) at (10, -0.5) {시간};
+      \draw[-] (2,-0.2) -- (2, 0.2);\node at (2, -0.5) {$t_1$};
+      \draw[-] (4,-0.2) -- (4, 0.2);\node at (4, -0.5) {$t_2$};
+      \draw[-] (6,-0.2) -- (6, 0.2);\node at (6, -0.5) {$t_3$};
+      \draw[-] (8,-0.2) -- (8, 0.2);\node at (8, -0.5) {$t_4$};
+      \draw[fill=red!50!black](2,0)--(2,1.1);\draw[fill=red!50!black](2,1.1)circle(2pt);\node at (2, 1.4) {$x_1$};
+      \draw[fill=red!50!black](4,0)--(4,1.6);\draw[fill=red!50!black](4,1.6)circle(2pt);\node at (3.6, 1.6) {$x_2$};
+      \draw[fill=red!50!black](6,0)--(6,1.2);\draw[fill=red!50!black](6,1.2)circle(2pt);\node at (6.4, 1.2) {$x_3$};
+      \draw[fill=red!50!black](8,0)--(8,1.4);\draw[fill=red!50!black](8,1.4)circle(2pt);\node at (8, 1.7) {$x_4$};
+      \begin{scope}[shift={(2,-4)}, scale=0.30]
+        \begin{axis}[hide axis,no markers, domain=-5:5, samples=100]
+          \addplot [ultra thick, cyan!50!black] {gauss(0,1)};
+        \end{axis}
+      \end{scope}
+      \begin{scope}[shift={(6,-4)}, scale=0.30]
+        \begin{axis}[hide axis,no markers, domain=-5:5, samples=100]
+          \addplot [ultra thick, cyan!50!black] {gauss(0,1)};
+        \end{axis}
+      \end{scope}
+      \draw[->] (4, -1) -- (3,-2);
+      \draw[->] (6, -1) -- (7,-2);
+      \node at (3, -4.2) {probability of $x_2$};
+      \node at (7, -4.2) {probability of $x_3$};
+      \draw[<->] (3, -4.7) .. controls (4,-5.7) and (6,-5.7) .. (7,-4.7);
+      \node at (5, -6) {joint probability density $f(x_2, x3)$\\ covariance $E[x_2 x_3]$};
+    \end{tikzpicture}
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{시계열의 분류}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{시계열의 분류}
+  \begin{columns}[c]
+    \column{0.45\textwidth}
+      \begin{itemize}
+        \item 비정상 신호 \\ (Non-stationary signals)
+        \begin{itemize}
+          \item 자산 가격 (asset price)
+          \item GDP 
+          \item 투자자별 누적 순매수 포지션
+        \end{itemize}
+      \end{itemize}
+    \column{0.55\textwidth}
+      \begin{itemize}
+        \item 정상 신호 \\ (Stationary signals)
+        \begin{itemize}
+          \item 자산 수익률 (asset return)
+          \item GDP 증가율
+          \item 시간당 투자자별 순매수 포지션 변화
+        \end{itemize}
+      \end{itemize}
+  \end{columns}      
+\end{frame}
+%===============================================================================
+
+\subsection{정상특성(Stationarity)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{정상특성(Stationarity)}
+  \begin{tcolorbox}[boxsep=2mm,title=정상 특성]
+    \begin{itemize}
+      \item 평균 크기와 상관계수가 변하지 않으면 정상(stationary)
+      \item 평균 크기가 지속적으로 증가하면 비정상(non-stationary)
+    \end{itemize}
+  \end{tcolorbox}    
+  시계열 신호 $\{x_i\}$에 대해,
+  \begin{itemize}
+    \item 강한 정상 특성 (Strictly Stationary)
+    \begin{itemize}
+      \item 모든 양의 정수 $i, l, k$에 대해, \\
+        $(x_i, x_{i+1}, \cdots, x_{i+l})$의 결합확률분포(joint distribution)가 
+        $(x_{i+l}, x_{i+1+l}, \cdots, x_{i+l+k})$의 결합확률분포와 같은 경우 
+    \end{itemize}
+    \item 약한 정상 특성 (Weakly Stationary)
+    \begin{itemize}
+      \item 모든 양의 정수 $i, k$에 대해, \\
+        expectation $E[x_i]$가 변하지 않는 상수(constant)이고 \\
+        lag-$k$ auto-covariance $Cov[x_i, x_{i-k}]$가 $i$가 아닌 $k$값에만 의존하는 경우
+    \end{itemize}
+    \begin{equation}
+      E[x_i] = \mu
+    \end{equation}
+    \begin{equation}
+      Cov[x_i, x_{i-k}] = E[(x_i-\mu )(x_{i-k}-\mu )] = Cov_k
+    \end{equation}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{자기상관계수(Autocorrelation)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{자기상관계수(Autocorrelation)}
+  \begin{itemize}
+    \item 자기상관계수 : covariance를 variance로 정규화(normalization)
+    \begin{equation}
+      \rho_k = \dfrac{E[(x_i-\mu)(x_{i-k}-\mu)]}{E[(x_i-\mu)^2]} = \dfrac{Cov_k}{\sigma^2}
+    \end{equation}
+    \item 자기상관계수의 크기는 0과 1사이
+    \begin{equation}
+      0 \leq \rho_k \leq 1
+    \end{equation}
+    \item 샘플 자기상관계수 : 샘플 자료에서 구한 자기상관계수의 추정치
+    \begin{equation}
+      r_k = \dfrac{1}{n}\dfrac{\sum_{i=k+1}^{n}(x_i-\mu)(x_{i-k}-\mu)}{\sum_{i=1}^{n}(x_i-\mu)^2}
+    \end{equation}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Correlogram}
+  \begin{itemize}
+    \item Correlogram : lag-k에 대한 autocorrelation 값을 함수로 나타낸 그림
+  \end{itemize}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=7,height=5>>=
+require(rquantbook)
+d <- get_quantbook_data("krx_stock_daily_investor", "2012-01-01", date_end="2013-12-31")
+acf(d$foreigner, main="Example of Correlogram")
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{{\tt acf/pacf} command}
+  \begin{itemize}
+    \item autocorrelation, autocovariance, parical correlation 계산
+    \item correlogram 그리기
+    \item {\tt acf(x, lag.max, type, plot=TRUE)}
+    \begin{itemize}
+      \item {\tt x} : 시계열 자료
+      \item {\tt lag.max} : 계산할 최대 lag 수
+      \item {\tt type} : 계산 유형. {\tt "correlation", "covariance", "partial"}
+      \item {\tt plot} : correlogram 그리기 여부
+    \end{itemize}
+    \item {\tt pacf(x, lag.max, plot=TRUE)} : partial acf 전용 명령
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<echo=FALSE>>=
+options(width=100)
+@
+<<>>=
+require(rquantbook)
+d <- get_quantbook_data("krx_stock_daily_investor", "2012-01-01", date_end="2013-12-31")
+head(d, 4)
+a <- acf(d$foreigner)
+str(a)
+@
+<<echo=FALSE>>=
+options(width=60)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\section{선형모형(Linear Models)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{선형모형(Linear Models)}
+  \begin{itemize}
+    \item 백색잡음 (White Noise)
+    \begin{itemize}
+      \item Normal 분포. 신호간 독립 (Independent and Indentical Distribution)
+      \item autocorrelation은 lag-0에서 1. 이외는 모두 0
+    \end{itemize}
+    \item MA 모형 (Moving-Average model)
+    \begin{itemize}
+      \item white noise의 선형조합
+      \item autocorrelation support가 유한
+    \end{itemize}
+    \item AR 모형 (Auto-Regressive model)
+    \begin{itemize}
+      \item 과거의 일부 신호값과 white noise의 선형조합
+      \item autocorrelation support가 무한
+    \end{itemize}
+    \item ARMA 모형 (Auto-Regressive Moving-Average model)
+    \begin{itemize}
+      \item 신호값이 과거의 값과 white noise의 선형조합
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{백색잡음(White Noise)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{백색잡음(White Noise)}
+  \begin{itemize}
+    \item 선형모형의 입력값
+    \item 시뮬레이션
+    \begin{itemize}
+      \item {\tt rnorm} 명령으로 생성가능
+    \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}
+<<fig, eval=FALSE>>=
+x <- rnorm(100)
+par(mfrow=c(1,2))
+plot(x, type='l', main="white noise")
+acf(x, main="autocorrelation of white noise")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{AR 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{AR 모형}
+  \begin{itemize}
+    \item innovation$w_t$과 신호 자체의 과거값의 선형 조합
+    \begin{equation}
+      x_t = a_1 x_{t-1} + \cdots + a_p x_{t-p} + w_t
+    \end{equation}
+    \begin{itemize}
+      \item $w_t$ : white noise (평균:0 , 분산 $\sigma^2$)
+      \item $a_i$ : 모형 계수
+    \end{itemize}
+    \item $a_i$가 다음 조건을 만족할 때 신호가 정상(stationary)
+    \begin{equation}
+      \text{특성식: } \; 1 - a_1 x - a_2 x^2 - \cdots - a_p x^p = 0
+    \end{equation}
+    의 해의 크기(modulus)가 1보다 커야 한다.
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{AR(1) 모형}
+  \begin{itemize}
+    \item innovation $w_t$과 한 단계 과거값만의 선형 조합
+    \item 평균 : $E[x] = 0$
+    \begin{eqnarray*}
+      E[x_t] = a_1 E[x_{t-1}] + E[w_t] \\
+      \mu = a_1 \mu + 0 \\
+      \therefore \mu = 0
+    \end{eqnarray*}
+    \item 분산 : $\text{Var}[x] = \sigma^2/(1-a_1^2)$
+    \begin{eqnarray*}
+      \text{Var}[x_t] &=& E[(a_1 x_{t-1} + w_t)^2] \\
+      &=& a_1^2 E[x_{t-1}^2] + E[x+{t-1}w_t] + E[w_t^2] \\
+      &=& a_1^2 \text{Var}[x_t] + \sigma^2
+    \end{eqnarray*}
+    \item autocovariance : $\text{Cov}[x_t x_{t-k}] = a_1^k \sigma^2/(1-a_1^2)$
+    \item autocorrelation : $\rho(k) = a_1^k$
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{AR 모형의 시뮬레이션 1}
+  \begin{itemize}
+    \item 모형 공식을 이용한 시뮬레이션
+  \end{itemize}
+  \begin{tcolorbox}
+<<fig, eval=FALSE>>=
+set.seed(1)
+x <- w <- rnorm(1000)
+for (t in 2:1000) x[t] <- 0.7 * x[t-1] + w[t]
+par(mfrow=c(1,2))
+plot(x, type='l', main="AR(1) model")
+acf(x, main="autocorrelation of AR(1) model")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{AR 모형의 시뮬레이션 2}
+  \begin{itemize}
+    \item {\tt arima.sim(model=list(ar=coeff), n)}
+    \begin{itemize}
+      \item {\tt coeff} : AR 모형 계수 벡터
+      \item {\tt n} : 시뮬레이션 갯수
+    \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}
+<<fig, eval=FALSE>>=
+set.seed(1)
+x <- arima.sim(model=list(ar=c(0.7)), 1000, n.start=1)
+par(mfrow=c(1,2))
+plot(x, type='l', main="AR(1) model")
+acf(x, main="autocorrelation of AR(1) model")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{Partial Autocorrelation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Partial Autocorrelation}
+  \begin{itemize}
+    \item $p$-th order AR 모형 회귀분석으로 구한 모형 계수 $a_{i,i}$
+    \begin{eqnarray*}
+      (\text{for } i=1) & x_t =& a_{1,1} x_{t-1} + e_t \\
+      (\text{for } i=2) & x_t =& a_{1,2} x_{t-1} + a_{2,2} x_{t-2} + e_t \\
+      (\text{for } i=3) & x_t =& a_{1,3} x_{t-1} + a_{2,3} x_{t-2} + a_{3,3} x_{t-3} + e_t \\
+      (\text{for } i=4) & x_t =& a_{1,4} x_{t-1} + a_{2,4} x_{t-2} + a_{3,4} x_{t-3} + 
+                        a_{4,4} x_{t-3} + e_t
+    \end{eqnarray*}
+    \item $p$-th order AR 모형 신호에서 구한 $a_{i,i}$는 다음 특성을 가진다.
+    \begin{itemize}
+      \item 샘플 크기가 커지면 $a_{p,p}$는 $a_p$로 수렴
+      \item $p$보다큰 $i$에 대해 $a_{i,i} = 0$
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{AR 모형 PACF 결과}
+  \begin{tcolorbox}
+<<fig, eval=FALSE>>=
+set.seed(1)
+x <- arima.sim(model=list(ar=c(0.7)), 1000, n.start=1)
+par(mfrow=c(1,2))
+acf(x, lag.max=10, main="ACF of AR(1) model")
+acf(x, lag.max=10, "partial", main="PACF of AR(1) model")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{AR모형 계수추정}
+  \begin{itemize}
+    \item {\tt ar(x, aic, order.max, method)}
+    \begin{itemize}
+      \item {\tt x} : 입력 신호
+      \item {\tt aic} : AIC 기준을 이용한 order 결정
+      \item {\tt order.max} : 가능한 최대 order
+      \item {\tt method} : 추정 방법 ({\tt "yule-walker", "burg", "ols", "mle", "yw"})
+    \end{itemize}
+    \item 출력 : list
+    \begin{itemize}
+      \item {\tt order} : 결정된 order
+      \item {\tt ar} : 추정된 계수
+      \item {\tt method} : 사용된 추정방법
+      \item {\tt parialacf} : 추정된 PACF
+      \item {\tt resid} : error residuals
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{AR모형 계수추정의 예 1}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+set.seed(1)
+x <- arima.sim(model=list(ar=c(0.7)), 1000, n.start=1)
+(m <- ar(x))
+str(m)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{AR모형 계수추정의 예 2}
+  \begin{tcolorbox}\footnotesize
+<<echo=FALSE>>=
+options(width=100)
+@
+<<>>=
+require(rquantbook)
+d <- get_quantbook_data("krx_stock_daily_investor", "2012-01-01", date_end="2013-12-31")
+(m <- ar(d$foreigner))
+str(m)
+@
+<<echo=FALSE>>=
+options(width=60)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\subsection{MA 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{MA 모형}
+  \begin{itemize}
+    \item innovation $w_t$의 과거값의 선형조합
+    \begin{equation}
+      x_t = w_t + b_1 w_{t-1} + \cdots + b_q w_{t-q} = \sum_{i=0}^q b_i w_{t-i}
+    \end{equation}
+    \begin{itemize}
+      \item $w_t$ : white noise (평균:0 , 분산 $\sigma^2$)
+      \item $b_k$ : 모형 계수. $b_0=1$
+    \end{itemize}
+    \item MA모형은 AR모형과 달리 계수값에 관계없이 항상 정상(stationary)
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{MA 모형 특성}
+  \begin{itemize}
+    \item 평균 : $E[x] = 0$
+    \begin{eqnarray*}
+      E[x_t] = E[w_t] + b_1 E[w_{t-1}] + \cdots + b_q E[w_{t-q}] = 0
+    \end{eqnarray*}
+    \item 분산 : $\text{Var}[x] = \sigma^2(1+\sum_{i=1}^q b_i^2) = \sigma^2\sum_{i=0}^q b_i^2)$
+    \begin{eqnarray*}
+      \text{Var}[x_t] &=& E[(w_t + b_1 w_{t-1} + \cdots + b_q w_{t-q})^2] \\
+      &=& a_1^2 E[w_t^2] + b_1^2 E[w_{t-1}^2] + \cdots + b_q^2 E[w_{t-q}^2] \\
+      &=& \sigma^2(1+\sum_{i=1}^q b_i^2)
+    \end{eqnarray*}
+    \item autocorrelation
+    \begin{eqnarray*}
+      \rho(k) =
+        \begin{cases}
+          1 & \text{if } k = 0 \\
+          \dfrac{\sum_{i=0}^{q-k} b_i b_{i+k}}{\sum_{i=0}^q b_i^2} & \text{if } k = 0 \\
+          0 & \text{if } x > q
+        \end{cases}
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{MA모형의 시뮬레이션 1}
+  \begin{itemize}
+    \item 모형 공식을 이용한 시뮬레이션
+  \end{itemize}
+  \begin{tcolorbox}
+<<fig, eval=FALSE>>=
+set.seed(1)
+b <- c(0.8, 0.6, 0.2)
+x <- w <- rnorm(1000)
+for (t in 4:1000) {
+  for (j in 1:3) x[t] <- x[t] + b[j] * w[t-j]
+}
+par(mfrow=c(1,2))
+plot(x, type='l', main="MA(3) model")
+acf(x, main="autocorrelation of MA(3) model")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{MA모형의 시뮬레이션 2}
+  \begin{itemize}
+    \item {\tt arima.sim(model=list(ma=coeff), n)}
+    \begin{itemize}
+      \item {\tt coeff} : MA모형 계수 벡터
+      \item {\tt n} : 시뮬레이션 갯수
+    \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}
+<<fig, eval=FALSE>>=
+set.seed(1)
+x <- arima.sim(model=list(ma=c(0.8, 0.6, 0.2)), 1000)
+par(mfrow=c(1,2))
+plot(x, type='l', main="MA(3) model")
+acf(x, main="autocorrelation of MA(3) model")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\subsection{ARMA 모형}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARMA모형}
+  \begin{itemize}
+    \item innovation $w_t$의 과거값과 신호 자체의 과거값의 선형 조합
+    \begin{equation}
+      x_t = \sum_{i=1}^p a_i x_{t-i}+ \sum_{i=0}^q b_i w_{t-i}
+    \end{equation}
+    \begin{itemize}
+      \item $w_t$ : white noise (평균:0 , 분산 $\sigma^2$)
+      \item $a_i$, $b_i$ : 모형 계수. $b_0=1$
+    \end{itemize}
+    \item ARMA모형은 AR모형처럼 계수가 다음 조건을 만족해야 정상(stationary)
+    \begin{equation}
+      \text{특성식: } \; \sum_{i=1}^p a_i x^i = 1
+    \end{equation}
+    의 해의 크기(modulus)가 1보다 커야 한다.
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARMA(1,1) 모형}
+  \begin{itemize}
+    \item 신호자체와 innovation의 과거의 값 1개의 선형조합
+    \begin{eqnarray*}
+      x_t &=& a x_{t-1} + w_t + b w_{t-1} 
+    \end{eqnarray*}
+    \item Backward operator $B$ : $B^j x_i = x_{i-j}$
+    \begin{eqnarray*}
+      x_t &=& (1-aB)^{-1}(1+bB)w_t \\
+          &=& \left(\sum_{i=0}^{\infty}a^iB^i\right)(1+bB)w_t \\
+          &=& w_t + (a+b)\sum_{i=0}^{\infty}a^{i-1}w_{t-i}
+    \end{eqnarray*}
+    \item 분산
+    \begin{eqnarray*}
+      \text{Var}[x_t] 
+        &=& \text{Var}\left[ w_t + (a+b)\sum_{i=0}^{\infty}a^{i-1}w_{t-i} \right] \\ 
+        &=& \sigma^2 ( 1 + (a+b)^2 (1-a^2)^{-1} )
+    \end{eqnarray*}
+    \item autocorrelation
+    \begin{eqnarray*}
+      \rho(k) = \dfrac{a^{k-1}(a+b)(1+ab)}{1+ab+b^2}
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARMA모형의 시뮬레이션}
+  \begin{itemize}
+    \item {\tt arima.sim(model=list(ar=ar,ma=ma), n)}
+    \begin{itemize}
+      \item {\tt ar, ma} : ARMA모형 계수 벡터
+      \item {\tt n} : 시뮬레이션 갯수
+    \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}
+<<fig, eval=FALSE>>=
+set.seed(1)
+x <- arima.sim(model=list(ar=-0.6,ma=0.5), 1000)
+par(mfrow=c(1,2))
+plot(x, type='l', main="ARMA(1,1) model")
+acf(x, main="autocorrelation of ARMA(1,1) model")
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARMA모형 계수추정}
+  \begin{itemize}
+    \item {\tt arima} 명령으로 AR모형, MA모형, ARMA모형 모두 추정가능
+    \item {\tt arima(x, order, method)}
+    \begin{itemize}
+      \item {\tt x} : 입력 신호
+      \item {\tt order} : 모형 order
+      \begin{itemize}
+        \item AR 계수 order $p$, Integration 계수 order, MA 계수 order $q$ 
+        \item AR(p) 모형 : {\tt order=c(p, 0, 0)}
+        \item MA(q) 모형 : {\tt order=c(0, 0, q)}
+        \item ARMA(p,q) 모형 : {\tt order=c(p, 0, q)}
+      \end{itemize}
+      \item {\tt method} : 추정 방법 ({\tt ("CSS-ML", "ML", "CSS")})
+    \end{itemize}
+    \item 출력 : list
+    \begin{itemize}
+      \item {\tt coef} : 추정된 계수
+      \item {\tt arma} : 추정된 계수 (compact form)
+      \item {\tt residuals} : error residuals
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARMA모형 계수추정의 예 1}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+set.seed(1)
+x <- arima.sim(model=list(ar=-0.6,ma=0.5), 5000)
+m <- arima(x, c(1,0,1), include.mean=FALSE)
+str(m)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARMA모형모형 계수추정의 예 2}
+  \begin{tcolorbox}\footnotesize
+<<echo=FALSE>>=
+options(width=100)
+@
+<<>>=
+require(rquantbook)
+d <- get_quantbook_data("krx_stock_daily_investor", "2012-01-01", date_end="2013-12-31")
+m <- arima(d$foreigner, c(1,0,1))
+str(m)
+@
+<<echo=FALSE>>=
+options(width=60)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+\subsection{order 결정}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{추정 order 결정}
+  \begin{itemize}
+    \item AIC (Akaike Information Criterion)
+    \begin{eqnarray*}
+      \text{AIC} = -\dfrac{2}{T} \log {\text{(maximum ikelihood)}} + 
+                    \dfrac{2}{T} \text{(number of parameters)}
+    \end{eqnarray*}
+    \item BIC (Bayesian Information Criterion)
+    \begin{eqnarray*}
+      \text{BIC(L)} = -\dfrac{2}{T} \log {\text{(maximum ikelihood)}} + 
+                    \dfrac{2L\log T}{T} 
+    \end{eqnarray*}
+    \item 선정 기준 : AIC 혹은 BIC 가 최소가 되는 order 선택
+    \item {\tt AIC(model)}, {\tt BIC(model)} : AIC/BIC 계산 명령어
+    \begin{itemize}
+      \item {\tt model} : {\tt arima} 명령으로 구한 추정결과 
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{추정 order 결정 예}
+  \begin{tcolorbox}\footnotesize
+<<echo=FALSE>>=
+options(width=100)
+@
+<<>>=
+require(rquantbook)
+d <- get_quantbook_data("krx_stock_daily_investor", "2012-01-01", date_end="2013-12-31")
+x <- d$foreigner
+best.aic <- Inf
+for (i in 0:2) for (j in 0:2) {
+  fit.aic <- AIC(arima(x, order=c(i,0,j)))
+  if (fit.aic < best.aic) {
+    best.order <- c(i,0,j)
+    best.arima <- arima(x, best.order)
+    best.aic <- fit.aic
+  }
+}
+best.order 
+best.arima
+@
+<<echo=FALSE>>=
+options(width=60)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{AR(p) 모형 예측}
+  \begin{itemize}
+    \item 1-step 예측
+    \begin{eqnarray*}
+      E[x_{t+1}|x_t] 
+        &=& E \left[ \sum_{i=1}^p a_i x_{t-i+1} + w_{t+1} | x_t \right] \\
+        &=& \sum_{i=1}^p a_i x_{t-i+1}
+    \end{eqnarray*}
+    \item 2-step 예측
+    \begin{eqnarray*}
+      E[x_{t+2}|x_t] 
+        &=& E \left[ \sum_{i=1}^p a_i x_{t-i+2} + w_{t+2} | x_t \right] \\
+        &=& a_1 E[x_{t+1}|x_t] + \sum_{i=2}^p a_i x_{t-i+2}
+    \end{eqnarray*}
+    \item 예측 step이 증가하면 예측치는 0으로 수렴
+    \begin{eqnarray*}
+      E[x_{t+N}|x_t] \rightarrow 0 \; \text{for } N \rightarrow \infty
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{MA(q) 모형 예측}
+  \begin{itemize}
+    \item 1-step 예측
+    \begin{eqnarray*}
+      E[x_{t+1}|x_t] 
+        &=& E \left[ \sum_{i=0}^q b_i w_{t-i+1} | x_t \right] \\
+        &=& b_1 w_t
+    \end{eqnarray*}
+    \item 2-step 예측
+    \begin{eqnarray*}
+      E[x_{t+2}|x_t] 
+        &=& E \left[ \sum_{i=0}^q b_i w_{t-i+2} | x_t \right] \\
+        &=& b_2 w_t
+    \end{eqnarray*}
+    \item $q$ order 모형의 경우 $q$-step 이후는 예측 불가
+    \begin{eqnarray*}
+      E[x_{t+N}|x_t] = 0 \; \text{for } N > q
+    \end{eqnarray*}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARMA모형 예측}
+  \begin{itemize}
+    \item {\tt predict(model, n.ahead)}
+    \begin{itemize}
+      \item {\tt model} : {\tt arima} 명령으로 구한 추정결과 
+      \item {\tt n.ahead} : 모형 order
+    \end{itemize}
+    \item 출력 : list
+    \begin{itemize}
+      \item {\tt pred} : 예측치
+      \item {\tt se} : standardized error
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARMA모형 예측 예 1}
+  \begin{tcolorbox}
+<<fig, eval=FALSE>>=
+set.seed(1)
+x <- arima.sim(model=list(ar=-0.6,ma=0.5), 1000)
+m <- arima(x[1:990], c(1,0,1))
+p <- predict(m, 10)
+x2 <- c(x[1:990], p$pred)
+plot(x[985:995], type='b', col="red", pch=1)
+lines(x2[985:995], type='b', col="blue", lty=2, pch=2)
+legend("topleft", c("actual", "prediction"), col=c("red", "blue"),
+       lty=1:2, pch=1:2)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARMA모형 예측 예 2}
+  \begin{tcolorbox}\footnotesize
+<<fig, eval=FALSE>>=
+d <- get_quantbook_data("krx_stock_daily_investor", "2012-01-01",
+                        date_end="2013-11-23")
+x <- d$foreigner; names(x) <- d$date
+m <- arima(x[1:463], c(2,0,1))
+p <- predict(m, 5)
+x2 <- c(x[1:463], p$pred); names(x2) <- d$date
+library(xts)
+library(xtsExtra)
+plot.xts(as.xts(cbind(x[460:468], x2[460:468])), type="b", 
+         screens = factor(1, 1), col=c("red", "blue"), pch=1:2)
+legend("topleft", c("actual", "prediction"), col=c("red", "blue"),
+       lty=1:2, pch=1:2)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARMA모형 예측 예 3}
+  \begin{tcolorbox}\footnotesize
+<<fig, eval=FALSE>>=
+d <- get_quantbook_data("krx_stock_daily_investor", "2012-01-01",
+                        date_end="2013-11-23")
+x <- d$foreigner; names(x) <- d$date
+m <- arima(x[1:464], c(2,0,1))
+p <- predict(m, 4)
+x2 <- c(x[1:464], p$pred); names(x2) <- d$date
+library(xts)
+library(xtsExtra)
+plot.xts(as.xts(cbind(x[460:468], x2[460:468])), type="b", 
+         screens = factor(1, 1), col=c("red", "blue"), pch=1:2)
+legend("topleft", c("actual", "prediction"), col=c("red", "blue"),
+       lty=1:2, pch=1:2)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{ARMA모형 예측 예 4}
+  \begin{tcolorbox}\footnotesize
+<<fig, eval=FALSE>>=
+d <- get_quantbook_data("krx_stock_daily_investor", "2012-01-01",
+                        date_end="2013-11-23")
+x <- d$foreigner; names(x) <- d$date
+m <- arima(x[1:465], c(2,0,1))
+p <- predict(m, 3)
+x2 <- c(x[1:465], p$pred); names(x2) <- d$date
+library(xts)
+library(xtsExtra)
+plot.xts(as.xts(cbind(x[460:468], x2[460:468])), type="b", 
+         screens = factor(1, 1), col=c("red", "blue"), pch=1:2)
+legend("topleft", c("actual", "prediction"), col=c("red", "blue"),
+       lty=1:2, pch=1:2)
+@
+  \end{tcolorbox}
+  \begin{center}
+<<echo=FALSE,results=hide,fig=TRUE,width=9,height=5>>=
+<<fig>>
+@
+  \end{center}
+\end{frame}
+%===============================================================================
+
+\end{document}
+
+

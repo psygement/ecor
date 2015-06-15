@@ -1,0 +1,955 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\input{../template_lecture.Rnw}
+\begin{document}
+\SweaveOpts{concordance=TRUE, keep.source=TRUE}
+<<echo=FALSE>>=
+options(width=60)
+@
+
+\title{제3강: 고급자료처리 및 기술통계}
+\subtitle{금융 통계 및 시계열 분석}
+\author{TRADE INFORMATIX}
+\date{2014년 1월 14일}
+\maketitle
+
+\begin{frame}[fragile]
+\frametitle{Outline}
+\tableofcontents
+\end{frame}
+
+
+\section{고급 자료 처리}
+
+\subsection{자료형 확인 및 변환(coercion)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{자료형 확인 및 변환(coercion)}
+  \begin{itemize}
+    \item 자료형 확인 : {\tt is.xxx()} 명령 사용 
+    \begin{itemize}
+      \item {\tt is.na, is.nan, is.logical, is.character, is.numeric, is.integer, 
+                 is.double, is.list, is.matrix, is.array, is.data.frame }   
+    \end{itemize}
+    \item 자료형 변환 : {\tt as.xxx()} 명령 사용 
+    \begin{itemize}
+      \item {\tt as.null, as.logical, as.character, as.numeric, as.integer, 
+                 as.double, as.list, as.matrix, as.array, as.data.frame }   
+    \end{itemize}
+    \item 자료형 변환 방지: {\tt I()} 명령 사용 
+    \begin{itemize}
+      \item {\tt as.data.frame}과 명령 사용시 문자열을 자동으로 factor 로 변환.
+      \item 이를 막기 위해서는 {\tt stringsAsFactors=FALSE}와 같은 인수를 
+            설정하거나 문자열 자료를 {\tt I()} 명령으로 감싼다.     
+    \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+y <- as.data.frame(list(a=c("a", "b", "c"), b=1:3))
+str(y)
+z <- as.data.frame(I(list(a=c("a", "b", "c"), b=1:3)))
+str(z)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+\subsection{자료 분할}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{자료 분할: split/cut}
+  \begin{itemize}
+    \item {\tt split(data, index)} : 카테고리 인덱스 벡터에 따라 분할
+    \item {\tt cut(data)} : 수치값에 따라 분할  
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+x <- 1:10
+y <- c(rep('a', 4), rep('b',3), rep('c', 3))
+split(x, y)
+a <- rnorm(20)
+b <- seq(-10, 10, 2.5)
+cut(a, b)
+a[cut(a,b)=='(0,2.5]']
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+\subsection{Wide/Long 포맷 변환}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Wide/Long 포맷}
+  \begin{itemize}
+    \item Wide 포맷 : 카테고리값 컬럼이 별도로 존재
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize    
+<<echo=FALSE>>=
+options(width=100)
+@
+<<echo=FALSE>>=
+head(mtcars, 20)
+@
+<<echo=FALSE>>=
+options(width=60)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Wide/Long 포맷 (계속)}
+  \begin{itemize}
+    \item Long 포맷 : 특정한 컬럼의 팩터/스트링 값이 필드 이름 역할
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize    
+<<echo=FALSE>>=
+library(reshape2)
+x <- mtcars[1:5,]
+x$id <- rownames(x)
+y <- melt(x, id.vars="id", variable.name="spec", value.name="value")
+head(y, 20)
+@
+  \end{tcolorbox}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Wide $\rightarrow$ Long 포맷 변환}
+  \begin{itemize}
+    \item {\tt melt(data, id.vars, variable.name, value.name)} 
+    \begin{itemize}
+      \item {\tt data} : 입력 자료
+      \item {\tt id.vars} : 아이디 컬럼 이름
+      \item {\tt variable.name} : 필드명 컬럼 이름
+      \item {\tt value.name} : 필드값 컬럼 이름
+    \end{itemize}
+    \item Wide $\rightarrow$ Long 변환. reshape2 패키지
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+library(reshape2)
+x <- mtcars[1:5,]
+x$id <- rownames(x)
+y <- melt(x, id.vars="id", variable.name="spec", value.name="value")
+head(y, 15)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Long $\rightarrow$ Wide 포맷 변환}
+  \begin{itemize}
+    \item {\tt dcast(data, id.columns ~ field.columns, value.var)} 
+    \begin{itemize}
+      \item {\tt data} : 입력 자료
+      \item {\tt id.columns} : 아이디 컬럼들 (+로 결합)
+      \item {\tt field.columns} : 필드 컬럼들 (+로 결합)
+      \item {\tt value.var} : 값 컬럼 
+    \end{itemize}
+    \item Long $\rightarrow$ Wide 변환. reshape2 패키지
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+library(reshape2)
+library(gcookbook)
+head(plum)
+dcast(plum, length + time ~ survival, value.var="count")
+dcast(plum, time ~ length + survival, value.var="count")
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+\subsection{데이터프레임 컬럼 분할}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{{\tt with/attach/detach}를 이용한 데이터프레임 컬럼 분할}
+  \begin{itemize}
+    \item 데이터 프레임의 열(column/리스트의 원소 등을 접근할 때
+          데이터 프레임이나 리스트 이름을 쓰지 않도록 하여 코드 가독성 향상
+    \item {\tt with(data, expression)} : express 사용시 data 이름 생략 
+    \item {\tt attach(data)} : 워크스페이스에 컬럼 분할하여 로드
+    \item {\tt detach(data)} : 워크스페이스에 로드된 컬럼 삭제
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<eval=FALSE>>=
+tapply(CO2$conc, CO2$Treatment, table)
+with(CO2, tapply(conc, Treatment, table))
+attach(CO2);tapply(conc, Treatment, table)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+\subsection{데이터프레임 머지}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 데이터프레임 머지(merge)}
+  \begin{itemize}
+    \item {\tt merge(x, y, by.x, by.y)}
+    \begin{itemize}
+      \item {\tt x, y} : 데이터프레임
+      \item {\tt by.x, by.y} : 각 데이터프레임에서 join할 컬럼 이름
+    \end{itemize}
+    \item Relationship Database 에서의 TABLE JOIN과 같음
+  \end{itemize}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+(authors <- data.frame(
+  surname = I(c("Tukey", "Venables", "Tierney", "Ripley", "McNeil")),
+  nationality = c("US", "Australia", "US", "UK", "Australia"),
+  deceased = c("yes", rep("no", 4))))
+(books <- data.frame(
+  name = I(c("Tukey", "Venables", "Tierney", "Ripley", "Ripley", "McNeil", "R Core")),
+  title = c("Exploratory Data Analysis", "Modern Applied Statistics ...",
+            "LISP-STAT", "Spatial Statistics", "Stochastic Simulation", 
+            "Interactive Data Analysis", "An Introduction to R"),
+  other.author = c(NA, "Ripley", NA, NA, NA, NA, "Venables & Smith")))
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 데이터프레임 머지(merge) (계속)}
+  \begin{tcolorbox}\scriptsize
+<<>>=
+merge(authors, books, by.x = "surname", by.y = "name")
+merge(books, authors, by.x = "name", by.y = "surname")
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 데이터프레임 머지(merge) (계속 2)}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+(x <- data.frame(k1=c(NA,NA,3,4,5), k2=c(1,NA,NA,4,5), data=1:5))
+(y <- data.frame(k1=c(NA,2,NA,4,5), k2=c(NA,NA,3,4,5), data=1:5))
+merge(x, y, by=c("k1","k2")) # NA's match
+@
+  \end{tcolorbox}
+\end{frame}
+%===================================================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{R 데이터프레임 머지(merge) (계속 3)}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+merge(x, y, by=c("k1","k2"), incomparables=NA)
+merge(x, y, by="k1") # NA's match, so 6 rows
+merge(x, y, by="k2", incomparables=NA) # 2 rows
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+\subsection{데이터프레임 컬럼 변환}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{{\tt transform}를 이용한 데이터프레임 컬럼 변환}
+  \begin{itemize}
+    \item {\tt transform(data, ...)} 
+    \item 데이터 프레임의 특정 열값을 수치적으로 변환하거나 새로운 열을 추가
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+head(airquality)
+head(transform(airquality, Ozone = -Ozone))
+head(transform(airquality, new = -Ozone, Temp = (Temp-32)/1.8))
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+\subsection{그룹별로 데이터프레임 컬럼 변환}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{그룹별로 데이터프레임 컬럼 변환}
+  \begin{itemize}
+    \item {\tt ddply(data, category.column, transform, ...)}
+    \begin{itemize}
+      \item {\tt category.column} : 그룹 카테고리 컬럼 지정
+    \end{itemize}
+    \item {\tt plyr} 패키지
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+library(MASS)
+library(plyr)
+head(cabbages)
+head(transform(cabbages, DevWt=HeadWt-mean(HeadWt)))
+head(ddply(cabbages, "Cult", transform, DevWt=HeadWt-mean(HeadWt)))
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+\subsection{apply 명령}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{apply 명령을 이용한 implicit loop}
+  \begin{itemize}
+    \item 단일 명령어를 반복적으로 수행하는 경우에는 명시적으로 loop를 사용하는 
+          것보다 {\tt apply} 명령어를 사용하는 것이 빠르다.
+    \item {\tt apply} 명령의 종류
+    \begin{itemize}
+      \item {\tt apply(X, MARGIN, FUN)} : 행렬/어레이에서 루프 방향을 지정
+      \item {\tt lapply(X, FUN)} : 벡터/리스트에서 원소별로 루프
+      \item {\tt sapply(X, FUN)} : {\tt lapply} 결과를 벡터로 변환 
+      \item {\tt vapply(FUN, ...)} : apply 결과의 초기값을 미리 지정
+      \item {\tt mapply(FUN, ...)} : 복수 개의 벡터/리스트 루프
+      \item {\tt tapply(X, INDEX, FUN)} : 카테고리별로 루프
+      \item {\tt by(FUN, ...)} : 데이터프레임 입력
+      \item {\tt aggregate(FUN, ...)} : 데이터프레임 출력
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{apply 명령}
+  \begin{itemize}
+    \item {\tt apply(X, MARGIN, FUN)}
+    \begin{itemize}
+      \item {\tt X} : 2차원 이상의 행렬/어레이/데이터프레임
+      \item {\tt MARGIN} : 1이면 행, 2이면 열
+      \item {\tt FUN} : 적용할 함수
+    \end{itemize}
+    \item 2차원 이상의 행렬/어레이/데이터프레임에서 행/열을 지정하여 반복작업
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+(x <- cbind(x1 = 3, x2 = c(4:1, 2:5)))
+apply(x, 1, sum)
+apply(x, 2, sum)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{apply 명령 (계속)}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+(x <- cbind(x1 = 3, x2 = c(4:1, 2:5)))
+apply(x, 1, sort)
+apply(x, 2, sort)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{apply 명령 (계속)}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+(z <- array(1:24, dim=2:4))
+apply(z, 1:2, function(x) max(x))
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{lapply 명령}
+  \begin{itemize}
+    \item {\tt lapply(X, FUN)}
+    \begin{itemize}
+      \item {\tt X} : 리스트 
+      \item {\tt FUN} : 적용할 함수. 함수에 적용할 인수는 함수 뒤에 
+    \end{itemize}
+    \item 리스트의 각 원소에 대해 루프를 생성, 함수 적용. 리스트 자료형 반환
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+(x <- list(a = 1:10, beta = exp(-3:3), logic = c(TRUE,FALSE,FALSE,TRUE)))
+lapply(x, mean)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{lapply 명령 (계속)}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+(x <- list(a = 1:10, beta = exp(-3:3), logic = c(TRUE,FALSE,FALSE,TRUE)))
+lapply(x, quantile, probs = 1:3/4)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{sapply 명령}
+  \begin{itemize}
+    \item {\tt sapply(X, FUN)}
+    \begin{itemize}
+      \item {\tt lapply}의 결과를 리스트가 아닌 행렬이나 벡터로 
+            단순화(simplify)하여 반환
+    \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+(x <- list(a = 1:10, beta = exp(-3:3), logic = c(TRUE,FALSE,FALSE,TRUE)))
+sapply(x, quantile, probs = 1:3/4)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{vapply 명령}
+  \begin{itemize}
+    \item {\tt vapply(X, FUN, FUN.VALUE)}
+    \begin{itemize}
+      \item {\tt X} : 벡터/리스트
+      \item {\tt FUN} : 적용할 함수
+      \item {\tt FUN.VALUE} : apply 결과의 초기값
+    \end{itemize}
+    \item apply 결과의 자료형, 포맷이나 초기값을 미리 정해놓음
+  \end{itemize}
+  \begin{columns}[c]
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\footnotesize    
+<<setup>>=
+(x <- sapply(3:9, seq))
+@
+      \end{tcolorbox}
+    \column{0.5\textwidth}
+      \begin{tcolorbox}\footnotesize    
+<<>>=
+sapply(x, fivenum)
+vapply(x, fivenum,
+  c(Min. = 0,
+    "1st Qu." = 0, 
+    Median = 0,
+    "3rd Qu." = 0,
+    Max. = 0))
+@
+      \end{tcolorbox}
+  \end{columns}  
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{mapply 명령}
+  \begin{itemize}
+    \item {\tt mapply(FUN, ...)}
+    \begin{itemize}
+      \item {\tt FUN} : 적용할 함수
+      \item {\tt ...} : 복수개의 벡터/리스트
+    \end{itemize}
+    \item 복수개의 벡터/리스트의 n번째 원소들끼리 묶은뒤 루프 생성
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+'+'(1,2)
+rbind(11:14, 1:4)
+mapply('+', 11:14, 1:4)
+word <- function(C,k) paste(rep(C,k), collapse = '')
+utils::str(mapply(word, LETTERS[1:6], 6:1, SIMPLIFY = FALSE))
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{tapply 명령}
+  \begin{itemize}
+    \item {\tt tapply(X, INDEX, FUN)}
+    \begin{itemize}
+      \item {\tt X} : 자료 벡터
+      \item {\tt INDEX} : 인덱스 벡터
+      \item {\tt FUN} : 적용할 함수
+    \end{itemize}
+    \item 인덱스 벡터값이 같은 것끼리 묶은 뒤 루프 생성, 함수 적용
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+n <- 17
+fac <- factor(rep(1:3, length=n), levels = 1:5)
+rbind(1:n, fac)
+tapply(1:n, fac, sum)
+(1:n)[fac==1]
+sum((1:n)[fac==1])
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{by 명령}
+  \begin{itemize}
+    \item {\tt by(df, INDEX, FUN)}
+    \begin{itemize}
+      \item 리스트 자료형 반환
+      \item {\tt X} : 데이터프레임
+      \item {\tt INDEX} : 인덱스 벡터/데이터프레임
+      \item {\tt FUN} : 적용할 함수
+    \end{itemize}
+    \item 입력자료가 데이터프레임이거나 함수가 데이터프레임을 요구하는 경우
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+head(CO2)
+tapply(CO2[,4], CO2[,3], summary)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{by 명령 (계속)}
+  \begin{tcolorbox}\footnotesize
+<<echo=FALSE>>=
+options(width=80)
+@  
+<<>>=
+by(CO2[,-3], CO2[,3], summary)
+@
+<<echo=FALSE>>=
+options(width=60)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{aggregate 명령}
+  \begin{itemize}
+    \item {\tt aggregate(x, INDEX, FUN)}
+    \begin{itemize}
+      \item {\tt X} : 입력 자료
+      \item {\tt INDEX} : 인덱스 벡터
+      \item {\tt FUN} : 적용할 함수
+    \end{itemize}
+    \item {\tt tapply}와 유사. 결과가 데이터프레임 자료형으로 반환
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<echo=FALSE>>=
+options(width=100)
+@
+<<>>=
+class(state.x77)
+head(state.x77)
+aggregate(state.x77, list(Region = state.region), mean)
+@
+<<echo=FALSE>>=
+options(width=60)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+
+\section{기술통계}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{기술통계(descriptive statistics)}
+  \begin{itemize}
+    \item 기술통계(descriptive statistics)
+      \begin{itemize}
+        \item 샘플에 대한 확률적 모형을 가정하지 않고 순수하게 
+              샘플 집합 자체의 특성만을 기술(describe)
+      \end{itemize}
+    \item 추리통계(inferential statistics)
+      \begin{itemize}
+        \item 모집단 혹은 확률 분포 모형에 대한 정보를 이끌어내는 통계학
+      \end{itemize}
+    \item 기술 방법
+      \begin{itemize}
+        \item 요약 통계 (summary statistics)
+        \item 분할표 (table)
+        \item 그래픽 (histogram, density plot)
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+%===============================================================================
+
+\subsection{요약 통계}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{요약통계}
+  \begin{itemize}
+    \item 샘플 전체/부분을 나열하는 경우
+      \begin{itemize}
+        \item {\tt print()}, {\tt head()}, {\tt tail()} 명령 사용 
+      \end{itemize}
+    \item 샘플의 특성을 요약하는 경우
+      \begin{itemize}
+        \item {\tt summary()}, {\tt quantile()}, {\tt fivenum()} 명령 사용 
+        \item 자료의 열(column) 별로 최소값({\tt min()}), 1분위수, 
+              중간값({\tt median()}), 평균({\tt mean()}), 3분위수, 
+              최대값({\tt max()}) 계산 
+        \item {\tt quantile()}, {\tt fivenum()} 은 {\tt summary()}와 달리 
+              벡터입력만을 받을 수 있음
+        \item {\tt quantile()}은 (0,0.25,0.5,0.75,1) quantile 출력
+              {\tt fivenum()}은 quartile 출력. 값이 다를 수 있음
+      \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<echo=FALSE>>=
+options(width=100)
+@
+<<>>=
+head(CO2, n=2)
+tail(CO2, n=1)
+summary(CO2)
+@
+<<echo=FALSE>>=
+options(width=60)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{분위수 (Quantile)}
+  \begin{itemize}
+    \item q-분위수의 개념은 전체 샘플 집합을 q개의 같은 갯수의 서로 다른 
+          부분 집합으로 분할했을 때 경계가 되는 수
+    \item q-분위수의 갯수는 q-1개
+    \item 유한개의 샘플집합에서의 일반적 정의 : k번째 q-분위수는 그 보다 큰 
+          샘플의 수가 전체의 k/q 비율 이하가 되도록 하는 가장 큰 수
+    \item 확률분포가 존재하는 경우 : 갯수가 아닌 확률이 같아지도록 분할 
+    \item {\tt quantile(x, prob, type)} 명령으로 구함
+      \begin{itemize}
+        \item {\tt x} : 샘플 집합 
+        \item {\tt probe} : 경계값 벡터 (0부터 1사이 실수 벡터)
+        \item {\tt type} : 분위수 정의/계산 알고리즘 선택 (9가지)
+      \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+quantile(1:10, c(0, 0.5, 1))
+quantile(rnorm(1000), seq(0, 1, 0.1))
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{개별 기술통계 명령}
+  \begin{itemize}
+    \item {\tt length(x)} : 샘플 갯수
+    \item {\tt max(x, na.rm=FALSE)} : 최대값
+    \item {\tt min(x, na.rm=FALSE)} : 최소값
+    \item {\tt which.min(x)} : 최대값 위치
+    \item {\tt which.max(x)} : 최소값 위치
+    \item {\tt mean(x, na.rm=FALSE)} : 산술 평균
+    \item {\tt median(x, na.rm=FALSE)} : 중간값
+    \item {\tt sum(x, na.rm=FALSE)} : 합계
+    \item {\tt sd(x, na.rm=FALSE)} : 표준편차 (standar deviation)
+    \item {\tt var(x, na.rm=FALSE)} : 분산 (variance)
+    \item {\tt mad(x, na.rm=FALSE)} : 중간값절대변차 (median absolute deviation)\footnotemark
+  \end{itemize}
+  \hrule \vspace{0.3cm}
+  \begin{equation}
+    \text{MAD} = \text{median}_{i}\left(\ \left| X_{i} - \text{median}_{j} (X_{j}) \right|\ \right)
+  \end{equation}
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{분할표 (contingency table)}
+  \begin{itemize}
+    \item 가능한 값의 수가 유한한 카테고리 자료(categorical data)에 대해
+          동일한 값이 나오는 빈도를 조사한 표
+    \item 실수값을 가지는 자료의 경우에는 {\tt cut()} 명령어 등으로
+          분할하여 조사하거나 stem/leaf plot, histogram 등을 사용
+    \item {\tt table(x, ...)} 명령 사용
+      \begin{itemize}
+        \item 단일 벡터 입력의 경우에는 1차원 자료 출력
+        \item 2개의 벡터를 입력한 경우에는 2차원 자료 출력
+        \item n개의 벡터를 입력한 경우에는 n차원 자료 출력
+        \item 출력 자료형은 table 클래스 
+      \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+x <- rpois(100,5)
+x
+table(x)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+\subsection{contingency table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{분할표 (contingency table) 계속 1}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+head(data.frame(state.division, state.region), n=3)
+table(state.division)
+table(state.region)
+table(state.division, state.region)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{분할표 (contingency table) 계속 2}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+head(airquality)
+attach(airquality)
+quantile(Temp)
+head(cut(Temp, quantile(Temp)))
+table(cut(Temp, quantile(Temp)), Month)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{분할표 (contingency table) 계속 3}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+head(CO2)
+with(CO2, table(conc, Type, Treatment))
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{xtabs 명령}
+  \begin{itemize}
+    \item {\tt xtabs(formula, data)} 명령은 벡터 자료가 아닌 formula를 사용
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+with(CO2, xtabs(~ conc + Type + Treatment))
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+\subsection{flat (complex) contingency table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Flat (complex) contingency table}
+  \begin{itemize}
+    \item 3차원 이상의 table에 대해 어레이가 아닌 복합 컬럼 인덱스 사용
+    \item {\tt ftable(x, ...)} 명령 사용
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+with(CO2, ftable(conc, Type, Treatment))
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+\subsection{margin table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{margin table}
+  \begin{itemize}
+    \item 축방향의 합(marginal sum)을 구함
+    \item {\tt margin.table(x, margin)} 명령 사용
+      \begin{itemize}
+        \item {\tt margin=1}은 행방향. {\tt margin=2}은 열방향
+      \end{itemize}
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+m <- matrix(1:4,2)
+m
+margin.table(m,1)
+margin.table(m,2)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+\subsection{propotion table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{propotion table}
+  \begin{itemize}
+    \item 값의 갯수가 아니라 marginal sum에 대한 비율 계산
+    \item {\tt prop.table(x, ...)} 명령 사용
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<>>=
+m <- matrix(1:4,2)
+m
+prop.table(m,1)
+prop.table(m,2)
+@
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+\subsection{stem and leaf plot}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{stem and leaf plot}
+  \begin{itemize}
+    \item {\tt stem(data)} 명령 사용
+    \item 숫자 character를 이용한 일종의 histogram
+    \item 빈도 분포와 개별 샘플을 동시에 알 수 있음
+    \item 기준 자릿수 이상은 중복 표시
+  \end{itemize}
+  \begin{tcolorbox}\footnotesize
+<<echo=FALSE>>=
+options(width=100)
+@
+<<>>=
+set.seed(1)
+x1 <- round(runif(20) * 10)
+x1
+stem(x1)
+x2 <- round(runif(20, 0, 0.3) * 10, 1)
+x2
+stem(x2)
+@
+<<echo=FALSE>>=
+options(width=60)
+@  
+  \end{tcolorbox}    
+\end{frame}
+%===============================================================================
+
+\subsection{히스토그램}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{히스토그램 작성}
+  \begin{itemize}
+    \item {\tt hist} 명령 사용
+    \item 샘플 값을 특정 구간(bucket)들로 나누어 
+          각 구간의 상대적인 샘플 발생 빈도를 계산
+      \begin{columns}[c]
+        \column{0.4\textwidth}
+          \begin{tcolorbox}\footnotesize
+<<hist,fig=FALSE,eval=FALSE>>=
+x <- rnorm(1000)
+hist(x)
+@
+          \end{tcolorbox}
+        \column{0.4\textwidth}
+<<fig=TRUE,echo=FALSE,width=5,height=5>>=
+<<hist>>
+@
+      \end{columns}
+    \item 설정
+      \begin{tcolorbox}\footnotesize
+<<fig=FALSE,eval=FALSE>>=
+hist(x, breaks='st')  # Sturges algorithm
+hist(x, breaks='sc')  # Scott algorithm
+hist(x, breaks='fr')  # Freedman-Diaconis
+hist(x, breaks=c(-2,0,2))
+hist(x, freq=FALSE)  # densities, not frequencies
+@
+    \end{tcolorbox}
+  \end{itemize}
+\end{frame}
+
+\subsection{커널 밀도 추정}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{커널 밀도(Kenel Density) 추정}
+
+\begin{itemize}
+\item {\tt density} 명령 사용
+\item 히스토그램과 달리 연속적인 밀도 추정이 가능
+\item 확률 분포가 특정한 커널 함수의 합으로 이루어져 있다고 가정
+\item 커널 함수는 폭(bandwidth)을 조정가능하며 전체 발생빈도를 가장 적절하게 근사화할 수 있는 폭을 계산
+  \begin{itemize}
+  \item $x$ : 확률변수의 값
+  \item $x_j$ : $j$번째 샘플의 값
+  \item $n$ : 샘플 갯수
+  \item $b$ : 폭
+  \item $K(\cdot)$ : 커널 함수
+  \item $f(x)$ : 추정된 확률 분포 함수
+  \end{itemize}
+\end{itemize}
+$$ f(x) = \frac{1}{nb} \sum_{j=1}^{n} K \left( \frac{x - x_j}{b} \right) $$
+\end{frame}
+%===============================================================================
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{커널 함수의 종류}
+\begin{itemize}
+\item 가우시안(Gaussian) : 가장 일반적으로 사용됨
+\item 사각형(rectangular)
+\item 삼각형(triangular)
+\item Epanechnikov : 최적 커널
+\end{itemize}
+<<fig=TRUE,eval=TRUE,echo=FALSE,width=6,height=5>>=
+rec <- function(x) (abs(x) < 1) * 0.5
+tri <- function(x) (abs(x) < 1) * (1 - abs(x))
+gauss <- function(x) 1/sqrt(2*pi) * exp(-(x^2)/2)
+x <- seq(from = -3, to = 3, by = 0.001)
+plot(x, rec(x), type = "l", ylim = c(0,1), ylab = expression(K(x)), col="red")
+lines(x, tri(x), col="blue")
+lines(x, gauss(x), col="darkgreen")
+legend(-3, 0.8, legend = c("Rectangular", "Triangular", "Gaussian"), lty = 1, title = "kernel functions", bty = "n")
+@
+\end{frame}
+%===============================================================================
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{커널 밀도(Kenel Density) 추정 예제}
+<<eval=FALSE>>=
+x <- c(0, 1, 1.1, 1.5, 1.9, 2.8, 2.9, 3.5)
+@
+<<fig=TRUE,eval=TRUE,echo=FALSE,width=6,height=5>>=
+x <- c(0, 1, 1.1, 1.5, 1.9, 2.8, 2.9, 3.5)
+n <- length(x)
+xgrid <- seq(from = min(x) - 1, to = max(x) + 1, by = 0.01)
+h <- 0.4
+bumps <- sapply(x, function(a) 4 * gauss((xgrid - a)/h)/(n * h))
+plot(xgrid, rowSums(bumps), ylab = expression(hat(f)(x)), type = "l", xlab = "x", lwd = 2)
+axis(4)
+par(new=T)
+hist(x, xaxt='n', yaxt='n', main="", xlab="", ylab="")
+rug(x, lwd = 2)
+out <- apply(bumps, 2, function(b) lines(xgrid, b))
+@
+\end{frame}
+%===============================================================================
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{커널 폭 계산 알고리즘 }
+\begin{itemize}
+\item 최적 커널 폭 : 분포의 오차 최소화
+  \begin{itemize}
+  \item 평균 적분 오차 (Mean Interaged Square Error)
+  $$
+  MISE = E \left[ \int \left| \hat{f}(x;b) - f(x)  \right| {}^2 dx  \right] 
+  $$
+  \item asymptotic expansion으로 최소 MISE에 대한 b값을 구하면
+  $$
+  b^{\ast}_{MISE} = \left[ \frac{\int K^2}{n\int (f'')^2 (\int x^2 K)^2}  \right]^{1/5}
+  $$
+  \end{itemize}
+\item 가우시안 커널에 대한 계산 결과
+  \begin{itemize}
+  \item {\tt width="nrd0"} (추천 파라미터)
+  $$
+  b = 1.06 \min (\sigma, R/1.34) n ^{-1/5}
+  $$
+  \item {\tt width="sj"} (R의 디폴트 파라미터)
+  $$
+  b = 0.9 \min (\sigma, R/1.34) n ^{-1/5}
+  $$
+  \end{itemize}
+\end{itemize}
+\end{frame}
+%===============================================================================
+
+\end{document}
+
